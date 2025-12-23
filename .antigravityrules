@@ -1,0 +1,79 @@
+# Reglas de Antigravity para AppPrestamos
+
+## Contexto del Proyecto
+Este es un proyecto Flutter para gestión de préstamos locales. La aplicación permite administrar clientes, préstamos, pagos y generar reportes.
+
+## Stack Tecnológico
+- **Framework**: Flutter 3.38.5
+- **Lenguaje**: Dart 3.10.4
+- **Base de datos**: SQLite (sqflite)
+- **Gestión de estado**: Riverpod
+- **Plataformas**: Android, Web, Windows
+
+## Reglas de Desarrollo
+
+### Arquitectura
+- Seguir arquitectura limpia con separación de capas: presentation, domain, data
+- Mantener la estructura de carpetas existente en `lib/`
+- Los modelos deben estar en `lib/models/`
+- Los providers de Riverpod en `lib/providers/`
+- Las pantallas en `lib/screens/`
+- Los widgets reutilizables en `lib/widgets/`
+
+### Estilo de Código
+- Usar nombres en español para variables, funciones y clases relacionadas con el dominio del negocio
+- Seguir las convenciones de Dart: camelCase para variables, PascalCase para clases
+- Mantener el código limpio sin print statements en producción
+- Usar const constructors cuando sea posible para optimización
+
+### Base de Datos
+- Todas las operaciones de base de datos deben usar transacciones cuando sea apropiado
+- Mantener la compatibilidad con sqflite para todas las plataformas
+- Las migraciones de base de datos deben ser versionadas
+
+### UI/UX
+- Mantener el sistema de diseño existente con el tema oscuro/claro
+- Usar los colores definidos en el tema de la aplicación
+- Todas las pantallas deben ser responsive
+- Implementar manejo de errores con mensajes amigables al usuario
+
+### Testing
+- Priorizar testing en navegador web para desarrollo rápido
+- Ejecutar `flutter run -d chrome` para pruebas
+- Verificar funcionalidad antes de marcar tareas como completadas
+
+### Dependencias
+- Consultar `pubspec.yaml` antes de agregar nuevas dependencias
+- Preferir paquetes oficiales y bien mantenidos
+- Documentar el propósito de nuevas dependencias
+
+### Hot Reload y Debugging
+- Usar hot reload (`r`) para cambios rápidos durante desarrollo
+- Usar hot restart (`R`) cuando sea necesario reiniciar el estado
+- Verificar la consola para warnings y errores
+
+## Comandos Comunes
+- Ejecutar en web: `flutter run -d chrome`
+- Ejecutar tests: `flutter test`
+- Analizar código: `flutter analyze`
+- Formatear código: `dart format .`
+- Build APK: `flutter build apk`
+
+## Notas Importantes
+- El proyecto está en producción para un cliente
+- Evitar cambios que rompan funcionalidad existente
+- Documentar cambios significativos en DOCUMENTACION.md
+- Revisar ESCENARIOS_PRUEBA.md para casos de prueba
+
+### 🛠️ Uso Obligatorio de MCP y Mejores Prácticas
+- **Consulta de Errores:** Antes de finalizar cualquier tarea, DEBES ejecutar el analizador de Flutter a través del MCP para detectar lints o errores de seguridad.
+- **Investigación:** Si una implementación (ej. manejo de Temas Dinámicos) no es clara, el agente DEBE usar la herramienta `search_web` o el servidor MCP para consultar la documentación oficial de Flutter 3.38.5.
+- **Arquitectura:** Seguir estrictamente la separación de capas (Clean Architecture) para facilitar futuras actualizaciones.
+
+### 🎨 UI/UX y Temas (Dark/Light Mode)
+- **Implementación de Temas:** No uses colores hardcoded. DEBES usar `Theme.of(context).colorScheme` para garantizar la compatibilidad con el modo oscuro y claro solicitado.
+- **Referencia:** Si el agente falla en esto, DEBE revisar la implementación en `lib/theme/` para mantener la consistencia.
+
+### 🚀 Estándares para Google Play Store
+- **Seguridad:** Los datos sensibles deben manejarse con transacciones seguras en SQLite y cumplir con los permisos mínimos necesarios en el `AndroidManifest.xml`.
+- **Rendimiento:** Usar constructores `const` y optimizar el árbol de widgets para mantener 60 FPS.

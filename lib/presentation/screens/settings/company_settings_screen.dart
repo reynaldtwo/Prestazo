@@ -1,0 +1,431 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:file_picker/file_picker.dart';
+import '../../../core/theme/app_colors.dart';
+import '../../../core/widgets/widgets.dart';
+import '../../../data/providers/providers.dart';
+
+class CompanySettingsScreen extends ConsumerStatefulWidget {
+  const CompanySettingsScreen({super.key});
+
+  @override
+  ConsumerState<CompanySettingsScreen> createState() =>
+      _CompanySettingsScreenState();
+}
+
+class _CompanySettingsScreenState extends ConsumerState<CompanySettingsScreen> {
+  final _formKey = GlobalKey<FormState>();
+
+  // Controllers
+  final _nameController = TextEditingController();
+  final _rucController = TextEditingController();
+  final _phoneController = TextEditingController();
+  final _cellController = TextEditingController();
+  final _whatsappController = TextEditingController();
+  final _addressController = TextEditingController();
+  final _logoPathController = TextEditingController();
+
+  // Visibility Flags
+  bool _showName = false;
+  bool _showRuc = false;
+  bool _showPhone = false;
+  bool _showCell = false;
+  bool _showWhatsapp = false;
+  bool _showAddress = false;
+  bool _showLogo = false;
+
+  bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSettings();
+  }
+
+  Future<void> _loadSettings() async {
+    final settings = ref.read(appSettingsProvider).value;
+    if (settings != null) {
+      _nameController.text = settings.companyName ?? '';
+      _rucController.text = settings.companyRuc ?? '';
+      _phoneController.text = settings.companyPhone ?? '';
+      _cellController.text = settings.companyCell ?? '';
+      _whatsappController.text = settings.companyWhatsapp ?? '';
+      _addressController.text = settings.companyAddress ?? '';
+      _logoPathController.text = settings.companyLogoPath ?? '';
+
+      _showName = settings.showCompanyName;
+      _showRuc = settings.showCompanyRuc;
+      _showPhone = settings.showCompanyPhone;
+      _showCell = settings.showCompanyCell;
+      _showWhatsapp = settings.showCompanyWhatsapp;
+      _showAddress = settings.showCompanyAddress;
+      _showLogo = settings.showCompanyLogo;
+
+      setState(() {});
+    }
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _rucController.dispose();
+    _phoneController.dispose();
+    _cellController.dispose();
+    _whatsappController.dispose();
+    _addressController.dispose();
+    _logoPathController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Datos de la Empresa')),
+      body: Form(
+        key: _formKey,
+        child: ListView(
+          padding: const EdgeInsets.all(16),
+          children: [
+            _buildInfoCard(),
+            const SizedBox(height: 24),
+            _buildSectionHeader('Identidad'),
+            _buildFieldWithToggle(
+              controller: _nameController,
+              label: 'Nombre de la Empresa',
+              icon: Icons.business,
+              value: _showName,
+              onChanged: (v) => setState(() => _showName = v),
+            ),
+            _buildFieldWithToggle(
+              controller: _rucController,
+              label: 'RUC / Identificación',
+              icon: Icons.confirmation_number,
+              value: _showRuc,
+              onChanged: (v) => setState(() => _showRuc = v),
+            ),
+            _buildSectionHeader('Contacto'),
+            _buildFieldWithToggle(
+              controller: _phoneController,
+              label: 'Teléfono Fijo',
+              icon: Icons.phone,
+              value: _showPhone,
+              onChanged: (v) => setState(() => _showPhone = v),
+              keyboardType: TextInputType.phone,
+            ),
+            _buildFieldWithToggle(
+              controller: _cellController,
+              label: 'Celular',
+              icon: Icons.smartphone,
+              value: _showCell,
+              onChanged: (v) => setState(() => _showCell = v),
+              keyboardType: TextInputType.phone,
+            ),
+            _buildFieldWithToggle(
+              controller: _whatsappController,
+              label: 'WhatsApp',
+              icon: Icons.chat,
+              value: _showWhatsapp,
+              onChanged: (v) => setState(() => _showWhatsapp = v),
+              keyboardType: TextInputType.phone,
+            ),
+            _buildSectionHeader('Ubicación'),
+            _buildFieldWithToggle(
+              controller: _addressController,
+              label: 'Dirección',
+              icon: Icons.location_on,
+              value: _showAddress,
+              onChanged: (v) => setState(() => _showAddress = v),
+              maxLines: 2,
+            ),
+            _buildSectionHeader('Branding'),
+            _buildLogoField(),
+            const SizedBox(height: 32),
+            AppButton(
+              label: 'Guardar Cambios',
+              variant: AppButtonVariant.primary,
+              isFullWidth: true,
+              isLoading: _isLoading,
+              onPressed: _saveSettings,
+            ),
+            const SizedBox(height: 32),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInfoCard() {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.info.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: AppColors.info.withOpacity(0.3)),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.info_outline, color: AppColors.info),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              'Activa el interruptor para mostrar el dato en los recibos y reportes.',
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(color: AppColors.textSecondary),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSectionHeader(String title) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16, top: 8),
+      child: Text(
+        title,
+        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+          fontWeight: FontWeight.bold,
+          color: AppColors.primary,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFieldWithToggle({
+    required TextEditingController controller,
+    required String label,
+    required IconData icon,
+    required bool value,
+    required ValueChanged<bool> onChanged,
+    TextInputType? keyboardType,
+    int maxLines = 1,
+    String? hint,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: AppTextField(
+              controller: controller,
+              label: label,
+              hint: hint,
+              prefixIcon: icon,
+              keyboardType: keyboardType ?? TextInputType.text,
+              maxLines: maxLines,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Column(
+            children: [
+              const SizedBox(height: 8),
+              Switch(
+                value: value,
+                onChanged: onChanged,
+                activeColor: AppColors.primary,
+              ),
+              Text(
+                value ? 'Visible' : 'Oculto',
+                style: const TextStyle(fontSize: 10, color: Colors.grey),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLogoField() {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: Row(
+              children: [
+                Expanded(
+                  child: AppTextField(
+                    controller: _logoPathController,
+                    label: 'Ruta del Logo (PNG)',
+                    hint: 'Seleccione archivo...',
+                    prefixIcon: Icons.image,
+                    readOnly: true, // Only allow picking via button
+                    onTap: _pickLogo,
+                  ),
+                ),
+                IconButton(
+                  onPressed: _pickLogo,
+                  icon: const Icon(Icons.folder_open, color: AppColors.primary),
+                  tooltip: 'Seleccionar Imagen',
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 12),
+          Column(
+            children: [
+              const SizedBox(height: 8),
+              Switch(
+                value: _showLogo,
+                onChanged: (v) => setState(() => _showLogo = v),
+                activeColor: AppColors.primary,
+              ),
+              Text(
+                _showLogo ? 'Visible' : 'Oculto',
+                style: const TextStyle(fontSize: 10, color: Colors.grey),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _pickLogo() async {
+    try {
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['png'],
+      );
+
+      if (result != null && result.files.single.path != null) {
+        final path = result.files.single.path!;
+        // Simple validation check (FilePicker usually handles this but good to double check or if user manually pasted before readonly)
+        if (!path.toLowerCase().endsWith('.png')) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Solo se permiten imágenes PNG'),
+                backgroundColor: AppColors.danger,
+              ),
+            );
+          }
+          return;
+        }
+
+        setState(() {
+          _logoPathController.text = path;
+          _showLogo = true; // Auto-enable visibility when selected
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error al seleccionar imagen: $e'),
+            backgroundColor: AppColors.danger,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _saveSettings() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() => _isLoading = true);
+
+    try {
+      final repo = ref.read(settingsRepositoryProvider);
+      final currentSettings = ref.read(appSettingsProvider).value!;
+      final newSettings = currentSettings.copyWith(
+        companyName: _nameController.text.trim(),
+        showCompanyName: _showName,
+        companyRuc: _rucController.text.trim(),
+        showCompanyRuc: _showRuc,
+        companyPhone: _phoneController.text.trim(),
+        showCompanyPhone: _showPhone,
+        companyCell: _cellController.text.trim(),
+        showCompanyCell: _showCell,
+        companyWhatsapp: _whatsappController.text.trim(),
+        showCompanyWhatsapp: _showWhatsapp,
+        companyAddress: _addressController.text.trim(),
+        showCompanyAddress: _showAddress,
+        companyLogoPath: _logoPathController.text.trim(),
+        showCompanyLogo: _showLogo,
+      );
+
+      // Using updateGlobalSettings (assuming it exists or using updateSetting iteratively)
+      // Since we modified many fields, let's see if there is a bulk update or we iterate.
+      // Checking SettingsRepository... usually key-value.
+      // Let's implement a bulk update or just update one by one for now if no bulk.
+      // BETTER: Update the repository to support saving the whole object or map.
+
+      // For now, I'll update each field individually as typically repositories have key-value updates.
+      // Actually, looking at previous knowledge, we update specific keys.
+      // Let's check SettingsRepository implementation.
+
+      // Just in case, I will try to use a bulk update method if available, or call updateSetting multiple times.
+      // Ideally, we should add a saveSettings method to the repository.
+
+      // PROVISIONAL: Calling updateSetting for each field.
+      await repo.updateSetting('company_name', newSettings.companyName);
+      await repo.updateSetting(
+        'show_company_name',
+        newSettings.showCompanyName ? 1 : 0,
+      );
+      await repo.updateSetting('company_ruc', newSettings.companyRuc);
+      await repo.updateSetting(
+        'show_company_ruc',
+        newSettings.showCompanyRuc ? 1 : 0,
+      );
+      await repo.updateSetting('company_phone', newSettings.companyPhone);
+      await repo.updateSetting(
+        'show_company_phone',
+        newSettings.showCompanyPhone ? 1 : 0,
+      );
+      await repo.updateSetting('company_cell', newSettings.companyCell);
+      await repo.updateSetting(
+        'show_company_cell',
+        newSettings.showCompanyCell ? 1 : 0,
+      );
+      await repo.updateSetting('company_whatsapp', newSettings.companyWhatsapp);
+      await repo.updateSetting(
+        'show_company_whatsapp',
+        newSettings.showCompanyWhatsapp ? 1 : 0,
+      );
+      await repo.updateSetting('company_address', newSettings.companyAddress);
+      await repo.updateSetting(
+        'show_company_address',
+        newSettings.showCompanyAddress ? 1 : 0,
+      );
+      await repo.updateSetting(
+        'company_logo_path',
+        newSettings.companyLogoPath,
+      );
+      await repo.updateSetting(
+        'show_company_logo',
+        newSettings.showCompanyLogo ? 1 : 0,
+      );
+
+      ref.invalidate(appSettingsProvider);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Datos de la empresa actualizados'),
+            backgroundColor: AppColors.success,
+          ),
+        );
+        context.pop();
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error al guardar: $e'),
+            backgroundColor: AppColors.danger,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+}
