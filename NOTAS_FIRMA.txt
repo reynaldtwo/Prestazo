@@ -1,0 +1,9 @@
+Credenciales de Firma (¡GUARDA ESTO!)
+He generado un archivo android/app/upload-keystore.jks. No lo pierdas, o no podrás actualizar la app en el futuro.
+
+Keystore: android/app/upload-keystore.jks
+Alias: upload
+Contraseña: prestazo123
+La configuración ya quedó guardada en android/key.properties para futuras compilaciones automáticas.
+
+¡Estás listo para publicar!

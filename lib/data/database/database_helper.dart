@@ -40,14 +40,12 @@ class DatabaseHelper {
     }
 
     if (io.Platform.isWindows || io.Platform.isLinux || io.Platform.isMacOS) {
-      if (!_ffiInitialized) {
-        sqfliteFfiInit();
-        _ffiInitialized = true;
-      }
       databaseFactory = databaseFactoryFfi;
     }
 
-    final documentsDirectory = await getApplicationDocumentsDirectory();
+    final documentsDirectory = await getApplicationSupportDirectory();
+    // Create directory if it doesn't exist (AppSupport might not exist yet)
+    await io.Directory(documentsDirectory.path).create(recursive: true);
     final path = join(documentsDirectory.path, AppConstants.databaseName);
 
     return await openDatabase(
@@ -130,6 +128,8 @@ class DatabaseHelper {
         preferred_pay_day INTEGER,
         dni TEXT,
         coords TEXT,
+        is_restricted INTEGER DEFAULT 0,
+        restriction_reason TEXT,
         created_at TEXT NOT NULL,
         updated_at TEXT NOT NULL
       )
@@ -451,6 +451,19 @@ class DatabaseHelper {
       } catch (e) {
         // Ignore if columns already exist (though unexpected for v10 columns)
       }
+    }
+    // Migration from v10 to v11 (Recovery features)
+    if (oldVersion < 11) {
+      try {
+        await db.execute(
+          'ALTER TABLE customers ADD COLUMN is_restricted INTEGER DEFAULT 0',
+        );
+      } catch (_) {}
+      try {
+        await db.execute(
+          'ALTER TABLE customers ADD COLUMN restriction_reason TEXT',
+        );
+      } catch (_) {}
     }
     // Run data fix on upgrade
     await fixInterestCalculations();

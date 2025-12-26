@@ -11,6 +11,7 @@ import 'screens/payments/payment_form_screen.dart';
 import 'screens/payments/payment_history_screen.dart';
 import 'screens/settings/company_settings_screen.dart';
 import 'screens/settings/settings_screen.dart';
+import 'screens/settings/about_screen.dart';
 import 'screens/reports/reports_screen.dart';
 import 'shell_screen.dart';
 
@@ -50,6 +51,11 @@ final appRouter = GoRouter(
               path: 'company',
               name: 'company-settings',
               builder: (context, state) => const CompanySettingsScreen(),
+            ),
+            GoRoute(
+              path: 'about',
+              name: 'about',
+              builder: (context, state) => const AboutScreen(),
             ),
           ],
         ),

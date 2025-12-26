@@ -21,7 +21,7 @@ class PaymentHistoryScreen extends ConsumerWidget {
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.go('/dashboard'),
         ),
-        title: const Text('Historial de Pagos'),
+        title: Text(S.of(context).historyTitle),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
@@ -32,16 +32,16 @@ class PaymentHistoryScreen extends ConsumerWidget {
       body: paymentsAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, stack) => AppError(
-          title: 'Error',
+          title: S.of(context).error,
           message: error.toString(),
           onRetry: () => ref.invalidate(allPaymentsProvider),
         ),
         data: (payments) {
           if (payments.isEmpty) {
-            return const AppEmptyState(
+            return AppEmptyState(
               icon: Icons.receipt_long,
-              title: 'Sin pagos registrados',
-              message: 'Los pagos registrados aparecerán aquí',
+              title: S.of(context).noPaymentsTitle,
+              message: S.of(context).noPaymentsMsg,
             );
           }
 
@@ -76,11 +76,12 @@ class _PaymentCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final amount = (payment['amount'] as num?)?.toDouble() ?? 0.0;
+    var amount = (payment['amount'] as num?)?.toDouble() ?? 0.0;
     final interestPaid = (payment['interest_paid'] as num?)?.toDouble() ?? 0.0;
     final principalPaid =
         (payment['principal_paid'] as num?)?.toDouble() ?? 0.0;
-    final customerName = payment['customer_name'] as String? ?? 'Cliente';
+    final customerName =
+        payment['customer_name'] as String? ?? S.of(context).customer;
     final paymentDate = payment['payment_date'] != null
         ? DateTime.tryParse(payment['payment_date'] as String)
         : null;
@@ -118,7 +119,7 @@ class _PaymentCard extends StatelessWidget {
                     ),
                     if (paymentDate != null)
                       Text(
-                        '${_formatDate(paymentDate)} • ${S.of(context).receiptNumber}${payment['receipt_number'] ?? '---'}',
+                        '${_formatDate(context, paymentDate)} • ${S.of(context).receiptNumber}${payment['receipt_number'] ?? '---'}',
                         style: AppTypography.bodySmall,
                       ),
                   ],
@@ -131,10 +132,16 @@ class _PaymentCard extends StatelessWidget {
           Row(
             children: [
               Expanded(
-                child: MoneyLabel(label: 'Interés', amount: interestPaid),
+                child: MoneyLabel(
+                  label: S.of(context).interest,
+                  amount: interestPaid,
+                ),
               ),
               Expanded(
-                child: MoneyLabel(label: 'Capital', amount: principalPaid),
+                child: MoneyLabel(
+                  label: S.of(context).capital,
+                  amount: principalPaid,
+                ),
               ),
             ],
           ),
@@ -155,13 +162,15 @@ class _PaymentCard extends StatelessWidget {
     );
   }
 
-  String _formatDate(DateTime date) {
+  String _formatDate(BuildContext context, DateTime date) {
     final now = DateTime.now();
     final diff = now.difference(date).inDays;
 
-    if (diff == 0) return 'Hoy';
-    if (diff == 1) return 'Ayer';
-    if (diff < 7) return 'Hace $diff días';
+    if (diff == 0) return S.of(context).dateToday;
+    if (diff == 1) return S.of(context).dateYesterday;
+    if (diff < 7) {
+      return S.of(context).dateDaysAgo.replaceAll('{days}', diff.toString());
+    }
 
     return '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
   }

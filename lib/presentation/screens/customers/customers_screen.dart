@@ -319,6 +319,15 @@ class _CustomerListItem extends StatelessWidget {
             ),
           ),
 
+          // Edit Action
+          IconButton(
+            icon: const Icon(Icons.edit, size: 20),
+            onPressed: () =>
+                context.push('/customer/${customer.customerId}/edit'),
+            tooltip: 'Editar cliente',
+            color: Theme.of(context).colorScheme.primary,
+          ),
+
           // Status indicator
           if (!isActive)
             Padding(

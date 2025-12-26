@@ -339,4 +339,28 @@ class LoanRepository {
     }
     return total;
   }
+
+  /// Check if customer is restricted
+  Future<Map<String, dynamic>?> checkCustomerRestriction(
+    String customerId,
+  ) async {
+    final db = await _databaseHelper.database;
+    final results = await db.query(
+      'customers',
+      columns: ['is_restricted', 'restriction_reason'],
+      where: 'customer_id = ?',
+      whereArgs: [customerId],
+    );
+
+    if (results.isNotEmpty) {
+      final isRestricted = (results.first['is_restricted'] as int?) == 1;
+      if (isRestricted) {
+        return {
+          'is_restricted': true,
+          'reason': results.first['restriction_reason'] as String?,
+        };
+      }
+    }
+    return null;
+  }
 }

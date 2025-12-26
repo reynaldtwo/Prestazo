@@ -218,12 +218,23 @@ class BackupService {
         return false;
       }
 
-      // Validate it's a SQLite database (basic check)
+      // 0. Copy to a temp file to ensure access permissions and valid path
+      // This solves issues with some file pickers returning cached paths that
+      // might not be readable directly by SQLite or during the copy process.
+      final tempDir = await getTemporaryDirectory();
+      final tempPath = path.join(tempDir.path, 'temp_restore.db');
+      final tempFile = File(tempPath);
+
+      // Copy bytes manually to ensure we bypass potential URI issues
       final bytes = await externalFile.readAsBytes();
+
+      // Basic validation
       if (bytes.length < 16 ||
           String.fromCharCodes(bytes.take(6)) != 'SQLite') {
         return false;
       }
+
+      await tempFile.writeAsBytes(bytes);
 
       final dbHelper = DatabaseHelper();
       final dbFile = await _databaseFile;
@@ -240,11 +251,17 @@ class BackupService {
       if (await walFile.exists()) await walFile.delete();
       if (await shmFile.exists()) await shmFile.delete();
 
-      // 4. Copy external file over current database
-      await externalFile.copy(dbFile.path);
+      // 4. Copy temp file over current database
+      await tempFile.copy(dbFile.path);
+
+      // 5. Cleanup temp file
+      if (await tempFile.exists()) {
+        await tempFile.delete();
+      }
 
       return true;
     } catch (e) {
+      print('External restore error: $e');
       return false;
     }
   }

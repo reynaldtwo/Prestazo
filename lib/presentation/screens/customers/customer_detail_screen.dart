@@ -8,6 +8,7 @@ import '../../../data/models/customer.dart';
 import '../../../data/models/loan.dart';
 import '../../../data/providers/providers.dart';
 import '../../../core/constants/app_status.dart';
+import '../../../core/localization/locale_provider.dart';
 
 /// Customer detail screen - Consolidated account view with real data
 class CustomerDetailScreen extends ConsumerWidget {
@@ -22,13 +23,13 @@ class CustomerDetailScreen extends ConsumerWidget {
 
     return customerAsync.when(
       loading: () => Scaffold(
-        appBar: AppBar(title: const Text('Cliente')),
+        appBar: AppBar(title: Text(S.of(context).customer)),
         body: const Center(child: CircularProgressIndicator()),
       ),
       error: (error, stack) => Scaffold(
-        appBar: AppBar(title: const Text('Cliente')),
+        appBar: AppBar(title: Text(S.of(context).customer)),
         body: AppError(
-          title: 'Error',
+          title: S.of(context).error,
           message: error.toString(),
           onRetry: () => ref.invalidate(customerByIdProvider(customerId)),
         ),
@@ -36,10 +37,10 @@ class CustomerDetailScreen extends ConsumerWidget {
       data: (customer) {
         if (customer == null) {
           return Scaffold(
-            appBar: AppBar(title: const Text('Cliente')),
-            body: const AppEmptyState(
+            appBar: AppBar(title: Text(S.of(context).customer)),
+            body: AppEmptyState(
               icon: Icons.person_off,
-              title: 'Cliente no encontrado',
+              title: S.of(context).customerNotFound,
             ),
           );
         }
@@ -86,7 +87,12 @@ class CustomerDetailScreen extends ConsumerWidget {
     WidgetRef ref,
   ) {
     final initials = _getInitials(customer.displayName);
-    final statusLabel = customer.isActive ? 'Activo' : 'Inactivo';
+    // Use StatusBadge logic or S manually.
+    // Since we used StatusBadge for UI, here we might need manual string or use StatusBadge widget?
+    // But this is part of a complex header. Let's use S directly for Active/Inactive
+    final statusLabel = customer.isActive
+        ? S.of(context).statusActive
+        : S.of(context).statusInactive;
 
     return SliverAppBar(
       expandedHeight: 220,
@@ -107,7 +113,7 @@ class CustomerDetailScreen extends ConsumerWidget {
                         width: 60,
                         height: 60,
                         decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.2),
+                          color: Colors.white.withOpacity(0.2),
                           borderRadius: BorderRadius.circular(16),
                         ),
                         child: Center(
@@ -147,14 +153,14 @@ class CustomerDetailScreen extends ConsumerWidget {
                   // Registration date
                   Row(
                     children: [
-                      Icon(
+                      const Icon(
                         Icons.calendar_today,
                         size: 14,
                         color: Colors.white70,
                       ),
                       const SizedBox(width: 6),
                       Text(
-                        'Registrado: ${_formatDate(customer.createdAt)}',
+                        '${S.of(context).registeredDate} ${_formatDate(customer.createdAt)}',
                         style: context.textStyles.bodySmall.copyWith(
                           color: Colors.white70,
                         ),
@@ -181,13 +187,13 @@ class CustomerDetailScreen extends ConsumerWidget {
             // Handle menu actions
           },
           itemBuilder: (context) => [
-            const PopupMenuItem(
+            PopupMenuItem(
               value: 'deactivate',
-              child: Text('Desactivar cliente'),
+              child: Text(S.of(context).deactivateCustomer),
             ),
-            const PopupMenuItem(
+            PopupMenuItem(
               value: 'history',
-              child: Text('Ver historial completo'),
+              child: Text(S.of(context).viewFullHistory),
             ),
           ],
         ),
@@ -201,12 +207,14 @@ class CustomerDetailScreen extends ConsumerWidget {
     Customer customer,
   ) {
     return loansAsync.when(
-      loading: () => const AppCard(
-        title: 'Resumen de Cuenta',
-        child: Center(child: CircularProgressIndicator()),
+      loading: () => AppCard(
+        title: S.of(context).accountSummary,
+        child: const Center(child: CircularProgressIndicator()),
       ),
-      error: (e, _) =>
-          AppCard(title: 'Resumen de Cuenta', child: Text('Error: $e')),
+      error: (e, _) => AppCard(
+        title: S.of(context).accountSummary,
+        child: Text('${S.of(context).error}: $e'),
+      ),
       data: (loans) {
         final activeLoans = loans
             .where((l) => l.status == AppStatus.loanActive)
@@ -227,14 +235,14 @@ class CustomerDetailScreen extends ConsumerWidget {
             .length;
 
         return AppCard(
-          title: 'Resumen de Cuenta',
+          title: S.of(context).accountSummary,
           child: Column(
             children: [
               Row(
                 children: [
                   Expanded(
                     child: _SummaryItem(
-                      label: 'Capital Total',
+                      label: S.of(context).totalCapital,
                       value: totalCapital,
                       icon: Icons.account_balance_wallet,
                       iconColor: Theme.of(context).brightness == Brightness.dark
@@ -244,7 +252,7 @@ class CustomerDetailScreen extends ConsumerWidget {
                   ),
                   Expanded(
                     child: _SummaryItem(
-                      label: 'Interés Mensual',
+                      label: S.of(context).monthlyInterest,
                       value: totalInterestExpected,
                       icon: Icons.schedule,
                       iconColor: AppColors.warning,
@@ -260,7 +268,7 @@ class CustomerDetailScreen extends ConsumerWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Préstamos cerrados',
+                          S.of(context).closedLoansTitle,
                           style: context.textStyles.labelSmall,
                         ),
                         const SizedBox(height: 4),
@@ -276,7 +284,7 @@ class CustomerDetailScreen extends ConsumerWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Préstamos activos',
+                          S.of(context).activeLoansTitle,
                           style: context.textStyles.labelSmall,
                         ),
                         const SizedBox(height: 4),
@@ -301,7 +309,7 @@ class CustomerDetailScreen extends ConsumerWidget {
       children: [
         Expanded(
           child: AppButton(
-            label: 'Nuevo Préstamo',
+            label: S.of(context).newLoan,
             icon: Icons.add_card,
             variant: AppButtonVariant.primary,
             onPressed: () => context.push('/customer/$customerId/loan/new'),
@@ -310,7 +318,7 @@ class CustomerDetailScreen extends ConsumerWidget {
         const SizedBox(width: 12),
         Expanded(
           child: AppButton(
-            label: 'Registrar Pago',
+            label: S.of(context).registerPayment,
             icon: Icons.payment,
             variant: AppButtonVariant.secondary,
             onPressed: () =>
@@ -332,21 +340,20 @@ class CustomerDetailScreen extends ConsumerWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('Préstamos', style: context.textStyles.titleLarge),
-            TextButton(onPressed: () {}, child: const Text('Ver todos')),
+            Text(S.of(context).loans, style: context.textStyles.titleLarge),
+            TextButton(onPressed: () {}, child: Text(S.of(context).viewAll)),
           ],
         ),
         const SizedBox(height: 8),
-
         loansAsync.when(
           loading: () => const Center(child: CircularProgressIndicator()),
-          error: (e, _) => Text('Error: $e'),
+          error: (e, _) => Text('${S.of(context).error}: $e'),
           data: (loans) {
             if (loans.isEmpty) {
-              return const AppEmptyState(
+              return AppEmptyState(
                 icon: Icons.receipt_long,
-                title: 'Sin préstamos',
-                message: 'Este cliente no tiene préstamos registrados',
+                title: S.of(context).noLoans,
+                message: S.of(context).noLoansDesc,
               );
             }
 
@@ -376,9 +383,9 @@ class CustomerDetailScreen extends ConsumerWidget {
                         if (payments.isNotEmpty) {
                           if (context.mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
+                              SnackBar(
                                 content: Text(
-                                  'Acción denegada: No se puede eliminar un préstamo con pagos registrados.',
+                                  S.of(context).cannotDeleteWithPayments,
                                 ),
                                 backgroundColor: AppColors.danger,
                               ),
@@ -393,15 +400,15 @@ class CustomerDetailScreen extends ConsumerWidget {
                         return await showDialog(
                           context: context,
                           builder: (context) => AlertDialog(
-                            title: const Text('Confirmar eliminación'),
-                            content: const Text(
-                              '¿Está seguro de que desea eliminar este préstamo?\nEsta acción no se puede deshacer.',
+                            title: Text(S.of(context).confirmDelete),
+                            content: Text(
+                              S.of(context).deleteLoanConfirmationMsg,
                             ),
                             actions: [
                               TextButton(
                                 onPressed: () =>
                                     Navigator.of(context).pop(false),
-                                child: const Text('Cancelar'),
+                                child: Text(S.of(context).cancel),
                               ),
                               FilledButton(
                                 onPressed: () =>
@@ -409,7 +416,7 @@ class CustomerDetailScreen extends ConsumerWidget {
                                 style: FilledButton.styleFrom(
                                   backgroundColor: AppColors.danger,
                                 ),
-                                child: const Text('Eliminar'),
+                                child: Text(S.of(context).delete),
                               ),
                             ],
                           ),
@@ -426,10 +433,8 @@ class CustomerDetailScreen extends ConsumerWidget {
 
                           if (context.mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text(
-                                  'Préstamo eliminado correctamente',
-                                ),
+                              SnackBar(
+                                content: Text(S.of(context).loanDeleted),
                               ),
                             );
                           }
@@ -438,7 +443,11 @@ class CustomerDetailScreen extends ConsumerWidget {
                           ref.invalidate(loansByCustomerProvider(customerId));
                           if (context.mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('Error al eliminar: $e')),
+                              SnackBar(
+                                content: Text(
+                                  '${S.of(context).errorDeleting} $e',
+                                ),
+                              ),
                             );
                           }
                         }
@@ -535,7 +544,7 @@ class _LoanCard extends StatelessWidget {
                     Row(
                       children: [
                         Text(
-                          'Préstamo ${loan.loanNumber != null ? "#${loan.loanNumber}" : ""} ',
+                          '${S.of(context).loan} ${loan.loanNumber != null ? "#${loan.loanNumber}" : ""} ',
                           style: context.textStyles.labelMedium,
                         ),
                         MoneyDisplay(
@@ -545,7 +554,7 @@ class _LoanCard extends StatelessWidget {
                       ],
                     ),
                     Text(
-                      'Tasa: ${loan.monthlyInterestRate.toStringAsFixed(0)}% mensual',
+                      '${S.of(context).rate}: ${loan.monthlyInterestRate.toStringAsFixed(0)}% ${S.of(context).monthly}',
                       style: context.textStyles.bodySmall,
                     ),
                   ],
@@ -560,13 +569,13 @@ class _LoanCard extends StatelessWidget {
               children: [
                 Expanded(
                   child: MoneyLabel(
-                    label: 'Saldo Capital',
+                    label: S.of(context).capitalBalance,
                     amount: loan.principalBalance,
                   ),
                 ),
                 Expanded(
                   child: MoneyLabel(
-                    label: 'Int. Mensual',
+                    label: S.of(context).monthlyInterest,
                     amount: loan.calculateMonthlyInterest(),
                   ),
                 ),
@@ -575,7 +584,7 @@ class _LoanCard extends StatelessWidget {
           ] else ...[
             const SizedBox(height: 8),
             Text(
-              'Cerrado el ${loan.closedAt != null ? _formatDate(loan.closedAt!) : "N/A"}',
+              '${S.of(context).statusClosed} ${loan.closedAt != null ? _formatDate(loan.closedAt!) : "N/A"}',
               style: context.textStyles.bodySmall.copyWith(
                 color: Theme.of(context).colorScheme.outline,
               ),

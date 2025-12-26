@@ -43,6 +43,12 @@ class _LoanFormScreenState extends ConsumerState<LoanFormScreen> {
       final customer = await repo.getCustomerById(widget.customerId);
       if (customer != null && mounted) {
         setState(() => _customer = customer);
+
+        // CHECK RESTRICTION
+        if (customer.isRestricted) {
+          // Show dialog after build
+          Future.microtask(() => _showRestrictionDialog(customer));
+        }
       }
     } catch (e) {
       if (mounted) {
@@ -54,6 +60,72 @@ class _LoanFormScreenState extends ConsumerState<LoanFormScreen> {
         );
       }
     }
+  }
+
+  Future<void> _showRestrictionDialog(Customer customer) async {
+    await showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        title: Row(
+          children: [
+            const Icon(Icons.block, color: AppColors.danger),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                S.of(context).restrictedCustomerTitle,
+                style: const TextStyle(color: AppColors.danger),
+              ),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              S.of(context).restrictedCustomerWarning,
+              style: AppTypography.bodyMedium.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(S.of(context).reasonLabel),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: AppColors.danger.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(4),
+                border: Border.all(
+                  color: AppColors.danger.withValues(alpha: 0.3),
+                ),
+              ),
+              child: Text(
+                customer.restrictionReason ?? S.of(context).noReasonSpecified,
+                style: const TextStyle(fontStyle: FontStyle.italic),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(S.of(context).continueAnywayPrompt),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              Navigator.pop(context); // Go back to previous screen
+            },
+            child: Text(S.of(context).cancelReturn),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx),
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.danger),
+            child: Text(S.of(context).ignoreAndContinue),
+          ),
+        ],
+      ),
+    );
   }
 
   @override

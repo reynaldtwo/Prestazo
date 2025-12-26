@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:uuid/uuid.dart';
 import '../../../core/theme/app_colors.dart';
-import '../../../core/theme/app_typography.dart';
+
 import '../../../core/widgets/widgets.dart';
 import '../../../data/models/customer.dart';
 import '../../../data/providers/providers.dart';
@@ -28,9 +28,11 @@ class _CustomerFormScreenState extends ConsumerState<CustomerFormScreen> {
   final _coordsController = TextEditingController();
   final _notesController = TextEditingController();
   final _payDayController = TextEditingController();
+  final _restrictionReasonController = TextEditingController();
 
   String _billingFrequency = 'MONTHLY';
   int? _preferredPayDay;
+  bool _isRestricted = false;
   bool _isLoading = false;
   Customer? _existingCustomer;
 
@@ -58,6 +60,8 @@ class _CustomerFormScreenState extends ConsumerState<CustomerFormScreen> {
         _addressController.text = customer.address ?? '';
         _coordsController.text = customer.coords ?? '';
         _notesController.text = customer.notes ?? '';
+        _isRestricted = customer.isRestricted;
+        _restrictionReasonController.text = customer.restrictionReason ?? '';
         _billingFrequency = customer.billingFrequency;
         _preferredPayDay = customer.preferredPayDay;
         if (_preferredPayDay != null) {
@@ -230,6 +234,63 @@ class _CustomerFormScreenState extends ConsumerState<CustomerFormScreen> {
                     prefixIcon: Icons.note,
                     maxLines: 3,
                   ),
+                  const SizedBox(height: 16),
+
+                  // Restriction fields (Only enabled in Edit mode)
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: isEditing
+                          ? AppColors.danger.withValues(alpha: 0.05)
+                          : Theme.of(context)
+                                .colorScheme
+                                .surfaceContainerHighest
+                                .withValues(alpha: 0.5),
+                      borderRadius: BorderRadius.circular(8),
+                      border: isEditing
+                          ? Border.all(
+                              color: AppColors.danger.withValues(alpha: 0.2),
+                            )
+                          : null,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Checkbox(
+                              value: _isRestricted,
+                              onChanged: isEditing
+                                  ? (value) {
+                                      setState(() {
+                                        _isRestricted = value ?? false;
+                                      });
+                                    }
+                                  : null,
+                            ),
+                            const Expanded(
+                              child: Text(
+                                'Marcar cliente como "NO PRESTAR"',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.danger,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        if (_isRestricted || isEditing)
+                          AppTextField(
+                            label: 'Motivo de restricción',
+                            hint: 'Especifique la razón...',
+                            controller: _restrictionReasonController,
+                            prefixIcon: Icons.warning_amber,
+                            maxLines: 2,
+                            enabled: isEditing,
+                          ),
+                      ],
+                    ),
+                  ),
                   const SizedBox(height: 32),
 
                   // Submit button
@@ -268,6 +329,11 @@ class _CustomerFormScreenState extends ConsumerState<CustomerFormScreen> {
                   : _notesController.text.trim(),
               billingFrequency: _billingFrequency,
               preferredPayDay: _preferredPayDay,
+              isRestricted: _isRestricted,
+              restrictionReason:
+                  _restrictionReasonController.text.trim().isEmpty
+                  ? null
+                  : _restrictionReasonController.text.trim(),
               updatedAt: now,
             )
           : Customer(
@@ -285,6 +351,11 @@ class _CustomerFormScreenState extends ConsumerState<CustomerFormScreen> {
                   : _notesController.text.trim(),
               billingFrequency: _billingFrequency,
               preferredPayDay: _preferredPayDay,
+              isRestricted: _isRestricted,
+              restrictionReason:
+                  _restrictionReasonController.text.trim().isEmpty
+                  ? null
+                  : _restrictionReasonController.text.trim(),
               createdAt: now,
               updatedAt: now,
             );

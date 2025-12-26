@@ -582,14 +582,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
   }
 
-  void _resetController(String currentValue) {
-    _loanNumberController.text = currentValue;
-  }
-
-  void _resetReceiptController(String currentValue) {
-    _receiptNumberController.text = currentValue;
-  }
-
   Widget _buildMaintenanceCard() {
     return AppCard(
       child: Column(
@@ -898,13 +890,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   label: Text(S.of(context).dark),
                   icon: const Icon(Icons.dark_mode),
                 ),
-                ButtonSegment(
-                  value: ThemeMode.system,
-                  label: Text(S.of(context).system),
-                  icon: const Icon(Icons.settings_brightness),
-                ),
               ],
-              selected: {themeMode},
+              selected: {
+                themeMode == ThemeMode.system ? ThemeMode.light : themeMode,
+              },
               onSelectionChanged: (Set<ThemeMode> selected) {
                 themeNotifier.setThemeMode(selected.first);
               },
@@ -955,9 +944,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     return AppCard(
       child: Column(
         children: [
-          const ListTile(
-            title: Text('PrestamosApp'),
-            subtitle: Text('Versión 1.0.0'),
+          ListTile(
+            title: Text(S.of(context).appName),
+            subtitle: const Text('Descubre lo que puedes hacer'),
+            leading: const Icon(Icons.info_outline),
+            onTap: () => context.push('/settings/about'),
           ),
           const Divider(),
           const ListTile(

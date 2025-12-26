@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
@@ -9,6 +10,7 @@ import 'dart:io';
 import 'package:flutter/widgets.dart' show FileImage; // For loading image
 import '../data/models/app_settings.dart';
 import '../data/models/payment_allocation.dart';
+import '../core/localization/locale_provider.dart';
 
 class PdfGeneratorService {
   final _currencyFormat = NumberFormat.currency(
@@ -24,7 +26,9 @@ class PdfGeneratorService {
     required List<Payment> payments,
     required List<PaymentAllocation> allocations,
     required AppSettings settings,
+    required Locale locale,
   }) async {
+    final s = S(locale);
     final pdf = pw.Document();
 
     // Load image if path provided and enabled
@@ -48,18 +52,19 @@ class PdfGeneratorService {
         margin: const pw.EdgeInsets.all(32),
         build: (context) => [
           _buildHeader(
-            title: 'Estado de Cuenta',
+            title: s.loanStatement,
             settings: settings,
             logo: profileImage,
+            s: s,
           ),
           pw.SizedBox(height: 20),
-          _buildCustomerInfo(customer),
+          _buildCustomerInfo(customer, s),
           pw.Divider(),
-          _buildLoanInfo(loan),
+          _buildLoanInfo(loan, s),
           pw.SizedBox(height: 20),
-          _buildPaymentsTable(payments, allocations),
+          _buildPaymentsTable(payments, allocations, s),
           pw.SizedBox(height: 20),
-          _buildSummary(loan, payments),
+          _buildSummary(loan, payments, s),
         ],
       ),
     );
@@ -67,7 +72,7 @@ class PdfGeneratorService {
     await Printing.layoutPdf(
       onLayout: (format) async => pdf.save(),
       name:
-          'Estado_Cuenta_${customer.displayName}_${loan.loanNumber ?? loan.loanId.substring(0, 6)}',
+          '${s.loanStatement.replaceAll(" ", "_")}_${customer.displayName}_${loan.loanNumber ?? loan.loanId.substring(0, 6)}',
     );
   }
 
@@ -77,7 +82,9 @@ class PdfGeneratorService {
     required Customer customer,
     required List<PaymentAllocation> allocations,
     required AppSettings settings,
+    required Locale locale,
   }) async {
+    final s = S(locale);
     final pdf = pw.Document();
 
     pdf.addPage(
@@ -90,13 +97,14 @@ class PdfGeneratorService {
           customer,
           allocations,
           settings,
+          s,
         ),
       ),
     );
 
     await Printing.layoutPdf(
       onLayout: (format) async => pdf.save(),
-      name: 'Recibo_${payment.receiptNumber}',
+      name: '${s.paymentReceipt.replaceAll(" ", "_")}_${payment.receiptNumber}',
     );
   }
 
@@ -104,7 +112,9 @@ class PdfGeneratorService {
     required Loan loan,
     required Customer customer,
     required AppSettings settings,
+    required Locale locale,
   }) async {
+    final s = S(locale);
     final pdf = pw.Document();
 
     pdf.addPage(
@@ -112,20 +122,23 @@ class PdfGeneratorService {
         pageFormat: PdfPageFormat.roll80,
         margin: const pw.EdgeInsets.all(10),
         build: (context) =>
-            _buildDisbursementReceiptContent(loan, customer, settings),
+            _buildDisbursementReceiptContent(loan, customer, settings, s),
       ),
     );
 
     await Printing.layoutPdf(
       onLayout: (format) async => pdf.save(),
-      name: 'Comprobante_Desembolso_${loan.loanNumber ?? loan.loanId}',
+      name:
+          '${s.disbursementReceipt.replaceAll(" ", "_")}_${loan.loanNumber ?? loan.loanId}',
     );
   }
 
   Future<void> generateConsolidatedActiveLoansReport({
     required List<Map<String, dynamic>> loansData,
     required AppSettings settings,
+    required Locale locale,
   }) async {
+    final s = S(locale);
     final pdf = pw.Document();
 
     // Calculate totals
@@ -144,19 +157,20 @@ class PdfGeneratorService {
         margin: const pw.EdgeInsets.all(20),
         build: (context) => [
           _buildReportHeader(
-            title: 'Reporte Consolidado de Préstamos Vigentes',
+            title: s.consolidatedReport,
             settings: settings,
+            s: s,
           ),
           pw.SizedBox(height: 20),
           pw.Table.fromTextArray(
             headers: [
               '#',
-              'Cliente',
-              'Fecha',
-              'Préstamo #',
-              'Monto Orig.',
-              'Saldo Actual',
-              'Estado',
+              s.clientLabel.replaceAll(':', ''),
+              s.dateLabel.replaceAll(':', ''),
+              s.loanLabel.replaceAll(':', ''),
+              s.originalCapital,
+              s.currentBalance,
+              s.statusActive, // Using generic status label
             ],
             data: loansData.map((row) {
               final loanId =
@@ -196,15 +210,15 @@ class PdfGeneratorService {
                 crossAxisAlignment: pw.CrossAxisAlignment.end,
                 children: [
                   pw.Text(
-                    'Total Capital Regado: ${_currencyFormat.format(totalPrincipalOriginal)}',
+                    'Total ${s.originalCapital}: ${_currencyFormat.format(totalPrincipalOriginal)}',
                     style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
                   ),
                   pw.Text(
-                    'Total Saldo Pendiente: ${_currencyFormat.format(totalPrincipalBalance)}',
+                    'Total ${s.pendingBalance}: ${_currencyFormat.format(totalPrincipalBalance)}',
                     style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
                   ),
                   pw.Text(
-                    'Total Clientes/Préstamos: $count',
+                    'Total ${s.customers}/${s.loans}: $count',
                     style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
                   ),
                 ],
@@ -218,7 +232,7 @@ class PdfGeneratorService {
     await Printing.layoutPdf(
       onLayout: (format) async => pdf.save(),
       name:
-          'Reporte_Consolidado_${_dateFormat.format(DateTime.now()).replaceAll('/', '-')}',
+          '${s.consolidatedReport.replaceAll(" ", "_")}_${_dateFormat.format(DateTime.now()).replaceAll('/', '-')}',
     );
   }
 
@@ -227,7 +241,9 @@ class PdfGeneratorService {
     required DateTime endDate,
     required List<Map<String, dynamic>> paymentsData,
     required AppSettings settings,
+    required Locale locale,
   }) async {
+    final s = S(locale);
     final pdf = pw.Document();
 
     // Calculate totals
@@ -249,10 +265,11 @@ class PdfGeneratorService {
         margin: const pw.EdgeInsets.all(32),
         build: (context) => [
           _buildReportHeader(
-            title: 'Reporte de Ganancias',
+            title: s.earningsReport,
             settings: settings,
             subtitle:
-                'Del ${_dateFormat.format(startDate)} al ${_dateFormat.format(endDate)}',
+                '${s.dateLabel} ${_dateFormat.format(startDate)} ${s.to} ${_dateFormat.format(endDate)}',
+            s: s,
           ),
           pw.SizedBox(height: 30),
 
@@ -266,7 +283,7 @@ class PdfGeneratorService {
                   mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                   children: [
                     pw.Text(
-                      'Total Ganancias (Interés + Mora):',
+                      '${s.totalEarnings} (${s.interest} + ${s.mora}):',
                       style: pw.TextStyle(
                         fontWeight: pw.FontWeight.bold,
                         fontSize: 14,
@@ -286,7 +303,7 @@ class PdfGeneratorService {
                 pw.Row(
                   mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                   children: [
-                    pw.Text('Recuperación Capital:'),
+                    pw.Text('${s.capitalRecovered}:'),
                     pw.Text(_currencyFormat.format(totalPrincipal)),
                   ],
                 ),
@@ -294,7 +311,9 @@ class PdfGeneratorService {
                 pw.Row(
                   mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                   children: [
-                    pw.Text('Total Recaudado:'),
+                    pw.Text(
+                      '${s.collectedToday.replaceAll("Hoy", "")}:',
+                    ), // "Total Cobrado" roughly
                     pw.Text(
                       _currencyFormat.format(totalCollected),
                       style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
@@ -307,17 +326,20 @@ class PdfGeneratorService {
 
           pw.SizedBox(height: 20),
           pw.Text(
-            'Desglose por Concepto:',
+            '${s.paymentBreakdown}:',
             style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
           ),
           pw.SizedBox(height: 5),
           pw.Table.fromTextArray(
             headers: ['Concepto', 'Monto'],
             data: [
-              ['Interés Cobrado', _currencyFormat.format(totalInterest)],
-              ['Mora Cobrada', _currencyFormat.format(totalMora)],
+              ['${s.interest} Cobrado', _currencyFormat.format(totalInterest)],
+              ['${s.mora} Cobrada', _currencyFormat.format(totalMora)],
               ['Otros/Fees', _currencyFormat.format(0.0)],
-              ['TOTAL GANANCIAS', _currencyFormat.format(totalEarnings)],
+              [
+                s.totalEarnings.toUpperCase(),
+                _currencyFormat.format(totalEarnings),
+              ],
             ],
             headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold),
             cellAlignment: pw.Alignment.centerRight,
@@ -330,13 +352,14 @@ class PdfGeneratorService {
     await Printing.layoutPdf(
       onLayout: (format) async => pdf.save(),
       name:
-          'Reporte_Ganancias_${_dateFormat.format(startDate).replaceAll('/', '-')}_${_dateFormat.format(endDate).replaceAll('/', '-')}',
+          '${s.earningsReport.replaceAll(" ", "_")}_${_dateFormat.format(startDate).replaceAll('/', '-')}_${_dateFormat.format(endDate).replaceAll('/', '-')}',
     );
   }
 
   pw.Widget _buildHeader({
     required String title,
     required AppSettings settings,
+    required S s,
     pw.ImageProvider? logo,
   }) {
     return pw.Row(
@@ -416,32 +439,34 @@ class PdfGeneratorService {
     );
   }
 
-  pw.Widget _buildCustomerInfo(Customer customer) {
+  pw.Widget _buildCustomerInfo(Customer customer, S s) {
     return pw.Column(
       crossAxisAlignment: pw.CrossAxisAlignment.start,
       children: [
         pw.Text(
-          'Cliente:',
+          s.clientLabel,
           style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
         ),
         pw.Text(customer.displayName),
-        pw.Text('ID: ${customer.customerId}'),
-        if (customer.phone != null) pw.Text('Tel: ${customer.phone!}'),
-        if (customer.address != null) pw.Text('Dir: ${customer.address!}'),
+        pw.Text('${s.dniLabel} ${customer.customerId}'),
+        if (customer.phone != null)
+          pw.Text('${s.customerPhone}: ${customer.phone!}'),
+        if (customer.address != null)
+          pw.Text('${s.customerAddress}: ${customer.address!}'),
       ],
     );
   }
 
-  pw.Widget _buildLoanInfo(Loan loan) {
+  pw.Widget _buildLoanInfo(Loan loan, S s) {
     return pw.Row(
       mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
       children: [
         pw.Column(
           crossAxisAlignment: pw.CrossAxisAlignment.start,
           children: [
-            pw.Text('Préstamo #: ${loan.loanNumber ?? "Sin Número"}'),
+            pw.Text('${s.loanLabel} ${loan.loanNumber ?? "Sin Número"}'),
             pw.Text(
-              'Fecha Desembolso: ${_dateFormat.format(loan.disbursementDate)}',
+              '${s.disbursementDate}: ${_dateFormat.format(loan.disbursementDate)}',
             ),
           ],
         ),
@@ -449,10 +474,10 @@ class PdfGeneratorService {
           crossAxisAlignment: pw.CrossAxisAlignment.end,
           children: [
             pw.Text(
-              'Monto Original: ${_currencyFormat.format(loan.principalOriginal)}',
+              '${s.amountGranted} ${_currencyFormat.format(loan.principalOriginal)}',
             ),
             pw.Text(
-              'Saldo Actual: ${_currencyFormat.format(loan.principalBalance)}',
+              '${s.currentBalance}: ${_currencyFormat.format(loan.principalBalance)}',
             ),
           ],
         ),
@@ -463,12 +488,19 @@ class PdfGeneratorService {
   pw.Widget _buildPaymentsTable(
     List<Payment> payments,
     List<PaymentAllocation> allocations,
+    S s,
   ) {
     if (payments.isEmpty) {
-      return pw.Text('No hay pagos registrados.');
+      return pw.Text(s.noPayments);
     }
 
-    final headers = ['Fecha', 'Recibo #', 'Monto', 'Interés', 'Capital'];
+    final headers = [
+      s.dateLabel.replaceAll(':', ''),
+      s.receiptNumber,
+      s.paymentAmount,
+      s.interest,
+      s.capital,
+    ];
 
     // Sort payments by date
     final sortedPayments = List<Payment>.from(payments);
@@ -506,14 +538,14 @@ class PdfGeneratorService {
     );
   }
 
-  pw.Widget _buildSummary(Loan loan, List<Payment> payments) {
+  pw.Widget _buildSummary(Loan loan, List<Payment> payments, S s) {
     final totalPaid = payments.fold<double>(0, (sum, p) => sum + p.amount);
 
     return pw.Column(
       crossAxisAlignment: pw.CrossAxisAlignment.end,
       children: [
         pw.Text(
-          'Total Pagado: ${_currencyFormat.format(totalPaid)}',
+          '${s.totalPaidLabel} ${_currencyFormat.format(totalPaid)}',
           style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
         ),
       ],
@@ -524,6 +556,7 @@ class PdfGeneratorService {
     Loan loan,
     Customer customer,
     AppSettings settings,
+    S s,
   ) {
     return pw.Column(
       mainAxisSize: pw.MainAxisSize.min,
@@ -554,19 +587,19 @@ class PdfGeneratorService {
 
         pw.SizedBox(height: 8),
         pw.Text(
-          'COMPROBANTE DE DESEMBOLSO',
+          s.disbursementReceipt.toUpperCase(),
           style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 12),
         ),
         pw.Divider(),
-        pw.Text('Fecha: ${_dateFormat.format(loan.disbursementDate)}'),
-        pw.Text('Préstamo #: ${loan.loanNumber ?? "Sin Número"}'),
+        pw.Text('${s.dateLabel} ${_dateFormat.format(loan.disbursementDate)}'),
+        pw.Text('${s.loanLabel} ${loan.loanNumber ?? "Sin Número"}'),
         pw.SizedBox(height: 10),
 
         // Client Info
         pw.Row(
           crossAxisAlignment: pw.CrossAxisAlignment.start,
           children: [
-            pw.Text('Cliente: '),
+            pw.Text('${s.clientLabel} '),
             pw.Expanded(
               child: pw.Text(
                 customer.displayName,
@@ -575,7 +608,7 @@ class PdfGeneratorService {
             ),
           ],
         ),
-        if (customer.dni != null) pw.Text('Cédula: ${customer.dni}'),
+        if (customer.dni != null) pw.Text('${s.dniLabel} ${customer.dni}'),
 
         pw.SizedBox(height: 10),
         pw.Divider(),
@@ -584,7 +617,7 @@ class PdfGeneratorService {
         pw.Row(
           mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
           children: [
-            pw.Text('Monto Otorgado:'),
+            pw.Text(s.amountGranted),
             pw.Text(
               _currencyFormat.format(loan.principalOriginal),
               style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
@@ -595,24 +628,24 @@ class PdfGeneratorService {
         pw.Row(
           mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
           children: [
-            pw.Text('Tasa Interés:'),
+            pw.Text(s.interestRateLabel),
             pw.Text(
-              '${loan.monthlyInterestRate}% Mensual',
+              '${loan.monthlyInterestRate}% ${s.freqMonthly}',
             ), // Assuming monthly for now
           ],
         ),
         pw.Row(
           mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
           children: [
-            pw.Text('Frecuencia:'),
-            pw.Text(_translateFrequency(loan.billingFrequency)),
+            pw.Text(s.frequencyLabel),
+            pw.Text(_translateFrequency(loan.billingFrequency, s)),
           ],
         ),
         if (loan.endDate != null)
           pw.Row(
             mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
             children: [
-              pw.Text('Vencimiento:'),
+              pw.Text(s.maturityDateLabel),
               pw.Text(_dateFormat.format(loan.endDate!)),
             ],
           ),
@@ -627,38 +660,35 @@ class PdfGeneratorService {
               children: [
                 pw.Container(width: 80, height: 1, color: PdfColors.black),
                 pw.SizedBox(height: 2),
-                pw.Text(
-                  'Entregado por',
-                  style: const pw.TextStyle(fontSize: 8),
-                ),
+                pw.Text(s.deliveredBy, style: const pw.TextStyle(fontSize: 8)),
               ],
             ),
             pw.Column(
               children: [
                 pw.Container(width: 80, height: 1, color: PdfColors.black),
                 pw.SizedBox(height: 2),
-                pw.Text('Recibido por', style: const pw.TextStyle(fontSize: 8)),
+                pw.Text(s.receivedBy, style: const pw.TextStyle(fontSize: 8)),
               ],
             ),
           ],
         ),
 
         pw.SizedBox(height: 20),
-        pw.Center(child: pw.Text('¡Gracias por su preferencia!')),
+        pw.Center(child: pw.Text(s.thankYouPreference)),
       ],
     );
   }
 
-  String _translateFrequency(String frequency) {
+  String _translateFrequency(String frequency, S s) {
     switch (frequency) {
       case 'DAILY':
-        return 'Diario';
+        return s.freqDaily;
       case 'WEEKLY':
-        return 'Semanal';
+        return s.freqWeekly;
       case 'BIWEEKLY':
-        return 'Quincenal';
+        return s.freqBiweekly;
       case 'MONTHLY':
-        return 'Mensual';
+        return s.freqMonthly;
       default:
         return frequency;
     }
@@ -670,6 +700,7 @@ class PdfGeneratorService {
     Customer customer,
     List<PaymentAllocation> allocations,
     AppSettings settings,
+    S s,
   ) {
     final interestPaid = allocations
         .where(
@@ -704,20 +735,22 @@ class PdfGeneratorService {
 
         pw.SizedBox(height: 4),
         pw.Text(
-          'RECIBO DE PAGO',
+          s.paymentReceipt.toUpperCase(),
           style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 12),
         ),
         pw.Divider(),
-        pw.Text('Fecha: ${_dateTimeFormat.format(payment.paymentDate)}'),
-        pw.Text('Recibo #: ${payment.receiptNumber}'),
+        pw.Text(
+          '${s.dateLabel} ${_dateTimeFormat.format(payment.paymentDate)}',
+        ),
+        pw.Text('${s.receiptNumber}: ${payment.receiptNumber}'),
         pw.SizedBox(height: 10),
-        pw.Text('Cliente: ${customer.displayName}'),
-        pw.Text('Préstamo #: ${loan.loanNumber ?? "Sin Número"}'),
+        pw.Text('${s.clientLabel} ${customer.displayName}'),
+        pw.Text('${s.loanLabel} ${loan.loanNumber ?? "Sin Número"}'),
         pw.SizedBox(height: 10),
         pw.Row(
           mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
           children: [
-            pw.Text('Monto Pagado:'),
+            pw.Text('${s.paymentAmount}:'),
             pw.Text(
               _currencyFormat.format(payment.amount),
               style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
@@ -725,27 +758,27 @@ class PdfGeneratorService {
           ],
         ),
         pw.Divider(),
-        pw.Text('Distribución:'),
+        pw.Text('${s.distribution}:'),
         pw.Row(
           mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
           children: [
-            pw.Text('Interés/Mora:'),
+            pw.Text(s.interestMoraLabel),
             pw.Text(_currencyFormat.format(interestPaid)),
           ],
         ),
         pw.Row(
           mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
           children: [
-            pw.Text('Capital:'),
+            pw.Text(s.capitalLabel),
             pw.Text(_currencyFormat.format(principalPaid)),
           ],
         ),
         pw.Divider(),
         pw.Text(
-          'Saldo Restante: ${_currencyFormat.format(loan.principalBalance)}',
+          '${s.remainingBalance}: ${_currencyFormat.format(loan.principalBalance)}',
         ),
         pw.SizedBox(height: 20),
-        pw.Center(child: pw.Text('¡Gracias por su pago!')),
+        pw.Center(child: pw.Text(s.thankYouPayment)),
       ],
     );
   }
@@ -753,6 +786,7 @@ class PdfGeneratorService {
   pw.Widget _buildReportHeader({
     required String title,
     required AppSettings settings,
+    required S s,
     String? subtitle,
   }) {
     return pw.Column(
@@ -771,7 +805,7 @@ class PdfGeneratorService {
         if (subtitle != null) ...[pw.SizedBox(height: 2), pw.Text(subtitle)],
         pw.SizedBox(height: 5),
         pw.Text(
-          'Generado: ${_dateTimeFormat.format(DateTime.now())}',
+          '${s.generated} ${_dateTimeFormat.format(DateTime.now())}',
           style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey700),
         ),
       ],

@@ -36,21 +36,18 @@ Future<void> _handleEditLoan(
       showDialog(
         context: context,
         builder: (ctx) => AlertDialog(
-          title: const Row(
+          title: Row(
             children: [
               Icon(Icons.lock_clock, color: AppColors.warning),
               SizedBox(width: 8),
-              Text('Edición Restringida'),
+              Text(S.of(context).restrictedEditTitle),
             ],
           ),
-          content: const Text(
-            'No se puede editar este préstamo porque ya tiene pagos o abonos registrados.\n\n'
-            'Solo se permite editar préstamos que no han iniciado su amortización (sin pagos).',
-          ),
+          content: Text(S.of(context).restrictedEditMessage),
           actions: [
             ElevatedButton(
               onPressed: () => Navigator.pop(ctx),
-              child: const Text('Entendido'),
+              child: Text(S.of(context).understood),
             ),
           ],
         ),
@@ -86,21 +83,18 @@ Future<void> _showDeleteConfirmation(
       showDialog(
         context: context,
         builder: (ctx) => AlertDialog(
-          title: const Row(
+          title: Row(
             children: [
               Icon(Icons.warning_amber, color: AppColors.warning),
               SizedBox(width: 8),
-              Text('No se puede eliminar'),
+              Text(S.of(context).cannotDeleteTitle),
             ],
           ),
-          content: const Text(
-            'Este préstamo tiene pagos registrados y no puede ser eliminado.\n\n'
-            'Si desea eliminarlo, primero debe anular todos los pagos asociados.',
-          ),
+          content: Text(S.of(context).cannotDeleteMessage),
           actions: [
             ElevatedButton(
               onPressed: () => Navigator.pop(ctx),
-              child: const Text('Entendido'),
+              child: Text(S.of(context).understood),
             ),
           ],
         ),
@@ -112,27 +106,23 @@ Future<void> _showDeleteConfirmation(
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Row(
+        title: Row(
           children: [
             Icon(Icons.delete_forever, color: AppColors.danger),
             SizedBox(width: 8),
-            Text('Eliminar Préstamo'),
+            Text(S.of(context).deleteLoanTitle),
           ],
         ),
-        content: const Text(
-          '¿Está seguro de eliminar este préstamo?\n\n'
-          'Esta acción eliminará también todos los ciclos de facturación asociados.\n\n'
-          'Esta acción no se puede deshacer.',
-        ),
+        content: Text(S.of(context).deleteLoanConfirmation),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancelar'),
+            child: Text(S.of(context).cancel),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.danger),
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Eliminar'),
+            child: Text(S.of(context).delete),
           ),
         ],
       ),
@@ -163,16 +153,16 @@ Future<void> _showDeleteConfirmation(
           }
 
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Préstamo eliminado exitosamente'),
+            SnackBar(
+              content: Text(S.of(context).loanDeletedSuccess),
               backgroundColor: AppColors.success,
             ),
           );
           context.pop(); // Go back
         } else if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Error al eliminar el préstamo'),
+            SnackBar(
+              content: Text(S.of(context).errorDeletingLoan),
               backgroundColor: AppColors.danger,
             ),
           );
@@ -181,7 +171,7 @@ Future<void> _showDeleteConfirmation(
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Error al procesar solicitud: $e'),
+              content: Text('${S.of(context).errorProcessingRequest}: $e'),
               backgroundColor: AppColors.danger,
             ),
           );
@@ -192,7 +182,7 @@ Future<void> _showDeleteConfirmation(
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Error al procesar solicitud: $e'),
+          content: Text('${S.of(context).errorProcessingRequest}: $e'),
           backgroundColor: AppColors.danger,
         ),
       );
@@ -206,9 +196,9 @@ Future<void> _shareStatement(
   String loanId,
 ) async {
   try {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Generando estado de cuenta...')),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(S.of(context).generatingStatement)));
 
     // Force refresh the loan to ensure we have the latest balance
     final loan = await ref.refresh(loanByIdProvider(loanId).future);
@@ -235,6 +225,7 @@ Future<void> _shareStatement(
       payments: payments,
       allocations: allocations, // Added argument
       settings: settings,
+      locale: S.of(context).locale,
     );
   } catch (e) {
     if (context.mounted) {
@@ -255,7 +246,7 @@ Future<void> _shareDisbursementReceipt(
 ) async {
   try {
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Generando comprobante de desembolso...')),
+      SnackBar(content: Text(S.of(context).generatingDisbursement)),
     );
 
     final loan = await ref.read(loanByIdProvider(loanId).future);
@@ -274,6 +265,7 @@ Future<void> _shareDisbursementReceipt(
       loan: loan,
       customer: customer,
       settings: settings,
+      locale: S.of(context).locale,
     );
   } catch (e) {
     if (context.mounted) {
@@ -295,7 +287,7 @@ Future<void> _shareReceipt(
   try {
     ScaffoldMessenger.of(
       context,
-    ).showSnackBar(const SnackBar(content: Text('Generando recibo...')));
+    ).showSnackBar(SnackBar(content: Text(S.of(context).generatingReceipt)));
 
     // Force refresh loan to get updated balance
     final loan = await ref.refresh(loanByIdProvider(payment.loanId).future);
@@ -321,6 +313,7 @@ Future<void> _shareReceipt(
           customer: customer,
           allocations: allocations,
           settings: settings,
+          locale: S.of(context).locale,
         );
   } catch (e) {
     if (context.mounted) {
@@ -532,7 +525,7 @@ class _LoanDetailScreenState extends ConsumerState<LoanDetailScreen> {
                         size: 20,
                         color: AppColors.primary,
                       ),
-                      tooltip: 'Comprobante Desembolso',
+                      tooltip: S.of(context).disbursementReceiptTooltip,
                       padding: EdgeInsets.zero,
                       constraints: const BoxConstraints(),
                       style: IconButton.styleFrom(
@@ -544,7 +537,7 @@ class _LoanDetailScreenState extends ConsumerState<LoanDetailScreen> {
                     const SizedBox(width: 4),
                     IconButton(
                       icon: const Icon(Icons.edit, size: 20),
-                      tooltip: 'Editar',
+                      tooltip: S.of(context).editTooltip,
                       padding: EdgeInsets.zero,
                       constraints: const BoxConstraints(),
                       style: IconButton.styleFrom(
@@ -560,7 +553,7 @@ class _LoanDetailScreenState extends ConsumerState<LoanDetailScreen> {
                         size: 20,
                         color: AppColors.danger,
                       ),
-                      tooltip: 'Eliminar',
+                      tooltip: S.of(context).deleteTooltip,
                       padding: EdgeInsets.zero,
                       constraints: const BoxConstraints(),
                       style: IconButton.styleFrom(
@@ -594,7 +587,7 @@ class _LoanDetailScreenState extends ConsumerState<LoanDetailScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      '${S.of(context).rate} ${loan.rateUnit == 'MONTHLY' ? S.of(context).monthly : 'Otro'}',
+                      '${S.of(context).rate} ${loan.rateUnit == 'MONTHLY' ? S.of(context).monthly : S.of(context).otherFreq}',
                       style: AppTypography.labelSmall,
                     ),
                     const SizedBox(height: 4),

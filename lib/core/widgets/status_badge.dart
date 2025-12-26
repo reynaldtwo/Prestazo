@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../constants/app_status.dart';
 import '../theme/app_typography.dart';
+import '../../core/localization/locale_provider.dart';
 
 /// Status badge for visual status indication
 /// Uses [AppStatus] to determine colors and labels
@@ -19,7 +20,8 @@ class StatusBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = AppStatus.getColor(status);
-    final label = customLabel ?? AppStatus.getLabel(status);
+    // Use localized label if available, otherwise fallback to default
+    final label = customLabel ?? _getLocalizedLabel(context, status);
 
     return Container(
       padding: EdgeInsets.symmetric(
@@ -33,14 +35,6 @@ class StatusBadge extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // We don't have icons in AppStatus yet, but we can infer or skip for now.
-          // The previous version had icons.
-          // For now, let's omit the icon to simplify or relying on text.
-          // Or we can add getIcon to AppStatus later.
-          // Given the "Visual Excellence" requirement, icons are nice.
-          // I will use a local helper map for icons if needed, but for now removing icons is safer
-          // than guessing. The previous implementation had icons.
-          // Let's add a simple icon mapper here to maintain visual quality.
           if (!isCompact) ...[
             Icon(_getIconForStatus(status), size: 14, color: color),
             const SizedBox(width: 4),
@@ -56,6 +50,52 @@ class StatusBadge extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  String _getLocalizedLabel(BuildContext context, String status) {
+    try {
+      final s = S.of(context);
+      switch (status) {
+        // LOANS
+        case AppStatus.loanActive:
+          return s.statusActive;
+        case AppStatus.loanOverdue:
+          return s.statusInMora;
+        case AppStatus.loanClosed:
+          return s.statusClosed;
+        case AppStatus.loanLegal:
+          return 'Legal'; // Need to add if missing, or use fallback
+
+        // CYCLES
+        case AppStatus.cyclePending:
+          return s.statusPending; // "Pendiente"
+        case AppStatus.cyclePaid:
+          return s.statusPaid; // "Pagado"
+        case AppStatus.cyclePartial:
+          return 'Parcial'; // Need key?
+        case AppStatus.cycleOverdue:
+          return s.statusOverdue; // "Vencido"
+        case AppStatus.cycleAnulled:
+          return 'Anulado';
+
+        // CUSTOMERS
+        case AppStatus.customerActive:
+          return s.statusActive;
+        case AppStatus.customerInactive:
+          return s.statusInactive;
+
+        // PAYMENTS
+        case AppStatus.paymentValid:
+          return 'Valid'; // Use key if available
+        case AppStatus.paymentVoided:
+          return 'Anulado';
+
+        default:
+          return AppStatus.getLabel(status);
+      }
+    } catch (_) {
+      return AppStatus.getLabel(status);
+    }
   }
 
   IconData _getIconForStatus(String status) {

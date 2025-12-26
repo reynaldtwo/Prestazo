@@ -90,7 +90,7 @@ class S {
   bool get isSpanish => locale.languageCode == 'es';
 
   // ===== GENERAL =====
-  String get appName => 'PrestamosApp';
+  String get appName => 'Prestazo';
   String get save => isSpanish ? 'Guardar' : 'Save';
   String get cancel => isSpanish ? 'Cancelar' : 'Cancel';
   String get confirm => isSpanish ? 'Confirmar' : 'Confirm';
@@ -469,6 +469,313 @@ class S {
   String get createLoanAction => isSpanish ? 'Crear Préstamo' : 'Create Loan';
   String get errorLoadCustomer =>
       isSpanish ? 'Error al cargar cliente' : 'Error loading customer';
+
+  // Recovery Feature
+  String get recoverLoan => isSpanish ? 'Recuperar Préstamo' : 'Recover Loan';
+  String get recoverLoanDescPart1 => isSpanish
+      ? 'Esta opción cerrará el préstamo pagando solo el capital pendiente (C\$ '
+      : 'This option will close the loan by paying only the outstanding principal (C\$ ';
+  String get recoverLoanDescPart2 => isSpanish
+      ? ').\n\nLos intereses y moras pendientes serán ANULADOS.\n\n¿Está seguro de continuar?'
+      : ').\n\nOutstanding interest and late fees will be VOIDED.\n\nAre you sure you want to continue?';
+  String get approveRecovery =>
+      isSpanish ? 'Aprobar Recuperación' : 'Approve Recovery';
+  String get finalizeRecovery =>
+      isSpanish ? 'Finalizar Recuperación' : 'Finalize Recovery';
+  String get recoveryNotePrompt => isSpanish
+      ? 'Ingrese una nota sobre esta recuperación:'
+      : 'Enter a note about this recovery:';
+  String get recoveryReasonHint => isSpanish
+      ? 'Motivo de la recuperación/cierre...'
+      : 'Reason for recovery/closure...';
+  String get markRestricted => isSpanish
+      ? 'Marcar cliente como "NO VOLVER A PRESTAR"'
+      : 'Mark customer as "DO NOT LEND AGAIN"';
+  String get recoverySuccess => isSpanish
+      ? 'Recuperación registrada con éxito'
+      : 'Recovery successfully registered';
+
+  // Restricted Customer
+  String get restrictedCustomerTitle =>
+      isSpanish ? 'Cliente Restringido' : 'Restricted Customer';
+  String get restrictedCustomerWarning => isSpanish
+      ? 'Advertencia: Este cliente está marcado como "NO PRESTAR".'
+      : 'Warning: This customer is marked as "DO NOT LEND".';
+  String get reasonLabel => isSpanish ? 'Motivo:' : 'Reason:';
+  String get noReasonSpecified =>
+      isSpanish ? 'Sin motivo especificado' : 'No reason specified';
+  String get continueAnywayPrompt => isSpanish
+      ? '¿Desea continuar con el préstamo de todas formas?'
+      : 'Do you wish to proceed with the loan anyway?';
+  String get cancelReturn =>
+      isSpanish ? 'Cancelar (Volver)' : 'Cancel (Return)';
+  // ===== DASHBOARD GREETINGS =====
+  String get goodMorning => isSpanish ? 'Buenos días' : 'Good morning';
+  String get goodAfternoon => isSpanish ? 'Buenas tardes' : 'Good afternoon';
+  String get goodEvening => isSpanish ? 'Buenas noches' : 'Good evening';
+
+  // ===== PDF REPORTS & RECEIPTS =====
+  String get loanStatement => isSpanish ? 'Estado de Cuenta' : 'Loan Statement';
+  String get disbursementReceipt =>
+      isSpanish ? 'Comprobante de Desembolso' : 'Disbursement Receipt';
+  String get paymentReceipt => isSpanish ? 'Recibo de Pago' : 'Payment Receipt';
+  String get thankYouPreference => isSpanish
+      ? '¡Gracias por su preferencia!'
+      : 'Thank you for your business!';
+  String get thankYouPayment =>
+      isSpanish ? '¡Gracias por su pago!' : 'Thank you for your payment!';
+  String get receivedBy => isSpanish ? 'Recibido por' : 'Received by';
+  String get deliveredBy => isSpanish ? 'Entregado por' : 'Delivered by';
+  String get distribution => isSpanish ? 'Distribución' : 'Distribution';
+  String get remainingBalance =>
+      isSpanish ? 'Saldo Restante' : 'Remaining Balance';
+  String get dateLabel => isSpanish ? 'Fecha:' : 'Date:'; // explicit with colon
+  String get amountGranted => isSpanish ? 'Monto Otorgado:' : 'Amount Granted:';
+  String get interestRateLabel =>
+      isSpanish ? 'Tasa Interés:' : 'Interest Rate:';
+  String get frequencyLabel => isSpanish ? 'Frecuencia:' : 'Frequency:';
+  String get maturityDateLabel => isSpanish ? 'Vencimiento:' : 'Maturity Date:';
+  String get totalPaidLabel => isSpanish ? 'Total Pagado:' : 'Total Paid:';
+  String get interestMoraLabel =>
+      isSpanish ? 'Interés/Mora:' : 'Interest/Late Fee:';
+  String get capitalLabel => isSpanish ? 'Capital:' : 'Principal:';
+  String get loanLabel => isSpanish ? 'Préstamo #:' : 'Loan #:';
+  String get clientLabel => isSpanish ? 'Cliente:' : 'Customer:';
+  String get dniLabel => isSpanish ? 'Cédula:' : 'ID Card:';
+
+  // Common Frequencies (if not already present elsewhere with different names)
+  // ===== LOAN DETAIL / DIALOGS =====
+  String get restrictedEditTitle =>
+      isSpanish ? 'Edición Restringida' : 'Restricted Edit';
+  String get restrictedEditMessage => isSpanish
+      ? 'No se puede editar este préstamo porque ya tiene pagos o abonos registrados.\n\nSolo se permite editar préstamos que no han iniciado su amortización (sin pagos).'
+      : 'This loan cannot be edited because it already has registered payments.\n\nOnly loans that have not started amortization (no payments) can be edited.';
+
+  String get errorVerifyingPayments =>
+      isSpanish ? 'Error al verificar pagos' : 'Error verifying payments';
+  String get cannotDeleteTitle =>
+      isSpanish ? 'No se puede eliminar' : 'Cannot Delete';
+  String get cannotDeleteMessage => isSpanish
+      ? 'Este préstamo tiene pagos registrados y no puede ser eliminado.\n\nSi desea eliminarlo, primero debe anular todos los pagos asociados.'
+      : 'This loan has registered payments and cannot be deleted.\n\nIf you wish to delete it, you must first void all associated payments.';
+  String get deleteLoanTitle => isSpanish ? 'Eliminar Préstamo' : 'Delete Loan';
+  String get deleteLoanConfirmation => isSpanish
+      ? '¿Está seguro de eliminar este préstamo?\n\nEsta acción eliminará también todos los ciclos de facturación asociados.\n\nEsta acción no se puede deshacer.'
+      : 'Are you sure you want to delete this loan?\n\nThis action will also delete all associated billing cycles.\n\nThis action cannot be undone.';
+
+  String get loanDeletedSuccess => isSpanish
+      ? 'Préstamo eliminado exitosamente'
+      : 'Loan deleted successfully';
+  String get errorDeletingLoan =>
+      isSpanish ? 'Error al eliminar el préstamo' : 'Error deleting loan';
+  String get errorProcessingRequest =>
+      isSpanish ? 'Error al procesar solicitud' : 'Error processing request';
+  String get generatingStatement =>
+      isSpanish ? 'Generando estado de cuenta...' : 'Generating statement...';
+  String get loanNotLoaded =>
+      isSpanish ? 'Préstamo no cargado' : 'Loan not loaded';
+  String get customerNotFound =>
+      isSpanish ? 'Cliente no encontrado' : 'Customer not found';
+  String get generatingReceipt =>
+      isSpanish ? 'Generando recibo...' : 'Generating receipt...';
+  String get errorGeneratingReceipt =>
+      isSpanish ? 'Error al generar recibo' : 'Error generating receipt';
+  String get generatingDisbursement => isSpanish
+      ? 'Generando comprobante de desembolso...'
+      : 'Generating disbursement receipt...';
+  String get errorGeneratingDisbursement =>
+      isSpanish ? 'Error al generar comprobante' : 'Error generating receipt';
+  String get disbursementReceiptTooltip =>
+      isSpanish ? 'Comprobante Desembolso' : 'Disbursement Receipt';
+  String get editTooltip => isSpanish ? 'Editar' : 'Edit';
+  String get deleteTooltip => isSpanish ? 'Eliminar' : 'Delete';
+  String get otherFreq => isSpanish ? 'Otro' : 'Other';
+
+  String get freqDaily => isSpanish ? 'Diario' : 'Daily';
+  String get freqWeekly => isSpanish ? 'Semanal' : 'Weekly';
+  String get freqBiweekly => isSpanish ? 'Quincenal' : 'Biweekly';
+  // ===== COBRAR (COLLECTION) =====
+  String get collectionTitle => isSpanish ? 'A Cobrar' : 'To Collect';
+  String get tabBiweekly => isSpanish ? 'Quincena' : 'Biweekly';
+  String get tabMonthly => isSpanish ? 'Mes' : 'Month';
+  String get tabOverdue => isSpanish ? 'Atrasados' : 'Overdue';
+
+  // ===== CUSTOMER DETAIL =====
+  String get accountSummary =>
+      isSpanish ? 'Resumen de Cuenta' : 'Account Summary';
+  String get totalCapital => isSpanish ? 'Capital Total' : 'Total Principal';
+  String get monthlyInterest =>
+      isSpanish ? 'Interés Mensual' : 'Monthly Interest';
+  String get closedLoansTitle =>
+      isSpanish ? 'Préstamos cerrados' : 'Closed loans';
+  String get activeLoansTitle =>
+      isSpanish ? 'Préstamos activos' : 'Active loans';
+  String get noLoans => isSpanish ? 'Sin préstamos' : 'No loans';
+  String get noLoansDesc => isSpanish
+      ? 'Este cliente no tiene préstamos registrados'
+      : 'This customer has no registered loans';
+  String get actionDenied => isSpanish ? 'Acción denegada' : 'Action denied';
+  String get cannotDeleteWithPayments => isSpanish
+      ? 'No se puede eliminar un préstamo con pagos registrados.'
+      : 'Cannot delete a loan with registered payments.';
+  String get registeredDate => isSpanish ? 'Registrado:' : 'Registered:';
+  String get deactivateCustomer =>
+      isSpanish ? 'Desactivar cliente' : 'Deactivate customer';
+  String get viewFullHistory =>
+      isSpanish ? 'Ver historial completo' : 'View full history';
+  String get confirmDelete =>
+      isSpanish ? 'Confirmar eliminación' : 'Confirm deletion';
+  String get deleteLoanConfirmationMsg => isSpanish
+      ? '¿Está seguro de que desea eliminar este préstamo?\nEsta acción no se puede deshacer.'
+      : 'Are you sure you want to delete this loan?\nThis action cannot be undone.';
+  String get loanDeleted => isSpanish
+      ? 'Préstamo eliminado correctamente'
+      : 'Loan deleted successfully';
+  String get errorDeleting =>
+      isSpanish ? 'Error al eliminar:' : 'Error deleting:';
+
+  // ===== PAYMENT FORM =====
+  String get selectCustomer =>
+      isSpanish ? 'Seleccionar Cliente' : 'Select Customer';
+  String get createCustomer => isSpanish ? 'Crear Cliente' : 'Create Customer';
+  String get paymentAmountLabel =>
+      isSpanish ? 'Monto del Pago *' : 'Payment Amount *';
+  String get invalidAmountMsg =>
+      isSpanish ? 'Ingrese un monto válido' : 'Enter a valid amount';
+
+  // ===== COMPANY SETTINGS =====
+  String get identity => isSpanish ? 'Identidad' : 'Identity';
+  String get contact => isSpanish ? 'Contacto' : 'Contact';
+  String get location => isSpanish ? 'Ubicación' : 'Location';
+  String get branding => isSpanish ? 'Branding' : 'Branding';
+  String get companyName => isSpanish ? 'Nombre de la Empresa' : 'Company Name';
+  String get rucId =>
+      isSpanish ? 'RUC / Identificación' : 'TAX ID / Identification';
+  String get phoneFixed => isSpanish ? 'Teléfono Fijo' : 'Landline';
+  String get cellPhone => isSpanish ? 'Celular' : 'Mobile';
+  String get whatsapp => isSpanish ? 'WhatsApp' : 'WhatsApp';
+  String get address => isSpanish ? 'Dirección' : 'Address';
+  String get logoPath => isSpanish ? 'Ruta del Logo (PNG)' : 'Logo Path (PNG)';
+  String get selectFile =>
+      isSpanish ? 'Seleccione archivo...' : 'Select file...';
+  String get visible => isSpanish ? 'Visible' : 'Visible';
+  String get hidden => isSpanish ? 'Oculto' : 'Hidden';
+  String get companyInfoHelp => isSpanish
+      ? 'Activa el interruptor para mostrar el dato en los recibos y reportes.'
+      : 'Toggle the switch to show this data on receipts and reports.';
+  String get saveChanges => isSpanish ? 'Guardar Cambios' : 'Save Changes';
+  String get onlyPng => isSpanish
+      ? 'Solo se permiten imágenes PNG'
+      : 'Only PNG images are allowed';
+  String get errorPickingImage =>
+      isSpanish ? 'Error al seleccionar imagen:' : 'Error picking image:';
+
+  String get searchCollectionHint => isSpanish
+      ? 'Buscar por nombre o monto...'
+      : 'Search by name or amount...';
+
+  // ===== PAYMENT FORM EXTENDED =====
+  String get noActiveLoans => isSpanish
+      ? 'Este cliente no tiene préstamos activos'
+      : 'This customer has no active loans';
+  String get createLoan => isSpanish ? 'Crear Préstamo' : 'Create Loan';
+  String get originalAmount => isSpanish ? 'Original' : 'Original';
+  // monthly already exists
+  // selectLoan already exists
+  String get selectedLoan =>
+      isSpanish ? 'Préstamo Seleccionado' : 'Selected Loan';
+  // capital already exists
+  // pendingInterest already exists
+  // pendingCycles already exists
+  // expires - use dueDate (Vence:) or define if strictly needed without colon.
+  // Let's use dueDate in UI and remove colon there.
+
+  // paymentType already exists
+  String get paymentTypeMixed => isSpanish ? 'Mixto' : 'Mixed';
+  // paymentTypeInterestOnly -> use typeInterest
+  // paymentTypeCapitalOnly -> use typePrincipal
+  // paymentTypeCancel -> use typeCancel
+  String get paymentTypeRecovery => isSpanish ? 'Recuperar' : 'Recovery';
+  // paymentDate already exists
+  String get paymentApplication =>
+      isSpanish ? 'Aplicación del Pago' : 'Payment Application';
+  String get toOverdueInterest =>
+      isSpanish ? 'A interés vencido' : 'To Overdue Interest';
+  String get toCurrentInterest =>
+      isSpanish ? 'A interés actual' : 'To Current Interest';
+  String get toPrincipal => isSpanish ? 'A capital' : 'To Principal';
+  String get totalApplied => isSpanish ? 'Total aplicado' : 'Total Applied';
+
+  String get projectedMonthlyEarnings => isSpanish
+      ? 'Ganancias Mensuales Proyectadas'
+      : 'Projected Monthly Earnings';
+
+  String get paymentsInRange =>
+      isSpanish ? 'pagos en el rango' : 'payments in range';
+  String get noResultsFor => isSpanish ? 'para' : 'for';
+  String get noCollectionBiweeklyTitle => isSpanish
+      ? 'No hay cobros pendientes esta quincena'
+      : 'No pending collections this fortnight';
+  String get noCollectionBiweeklyMsg => isSpanish
+      ? 'Los clientes quincenales aparecerán aquí cuando tengan pagos pendientes'
+      : 'Biweekly customers will appear here when they have pending payments';
+  String get noCollectionMonthlyTitle => isSpanish
+      ? 'No hay cobros pendientes este mes'
+      : 'No pending collections this month';
+  String get noCollectionMonthlyMsg => isSpanish
+      ? 'Los clientes con pagos pendientes aparecerán aquí'
+      : 'Customers with pending payments will appear here';
+  String get noCollectionOverdueTitle =>
+      isSpanish ? '¡Sin clientes atrasados!' : 'No overdue customers!';
+  String get noCollectionOverdueMsg => isSpanish
+      ? 'Todos tus clientes están al día'
+      : 'All your customers are up to date';
+  String get noData => isSpanish ? 'Sin datos' : 'No data';
+  String get interestExpected =>
+      isSpanish ? 'Interés esperado' : 'Expected Interest';
+  String get capitalPending =>
+      isSpanish ? 'Capital Pendiente' : 'Pending Principal';
+  String get daysOverdue => isSpanish ? 'días de atraso' : 'days overdue';
+  String get activeLoansCount =>
+      isSpanish ? 'préstamos activos' : 'active loans';
+  String get lastPayment => isSpanish ? 'Último pago' : 'Last payment';
+
+  // ===== PAYMENT HISTORY =====
+  String get historyTitle =>
+      isSpanish ? 'Historial de Pagos' : 'Payment History';
+  String get noPaymentsTitle =>
+      isSpanish ? 'Sin pagos registrados' : 'No payments registered';
+  String get noPaymentsMsg => isSpanish
+      ? 'Los pagos registrados aparecerán aquí'
+      : 'Registered payments will appear here';
+
+  // ===== DATE FORMATTING =====
+  String get dateToday => isSpanish ? 'Hoy' : 'Today';
+  String get dateYesterday => isSpanish ? 'Ayer' : 'Yesterday';
+  String get dateDaysAgo => isSpanish ? 'Hace {days} días' : '{days} days ago';
+
+  // ===== DASHBOARD KPI =====
+  String get activeCustomersLabel =>
+      isSpanish ? 'Clientes Activos' : 'Active Customers';
+  String get activeLoansLabel =>
+      isSpanish ? 'Préstamos Activos' : 'Active Loans';
+  String get overdueLoansLabel =>
+      isSpanish ? 'Préstamos Vencidos' : 'Overdue Loans';
+  String get earningsMonthLabel =>
+      isSpanish ? 'Ganancias (Mes)' : 'Earnings (Mes)';
+  String get projectedMonthLabel =>
+      isSpanish ? 'Proyección Mes' : 'Projected Month';
+  String get capitalPlacedLabel =>
+      isSpanish ? 'Capital Colocado' : 'Capital Placed';
+  String get ofLabel => isSpanish ? 'de' : 'of'; // for "50% de 1000"
+  String get newCustomerLabel => isSpanish ? 'Nuevo Cliente' : 'New Customer';
+
+  String get freqMonthly => isSpanish ? 'Mensual' : 'Monthly';
+
+  String get generated => isSpanish ? 'Generado:' : 'Generated:';
+
+  String get ignoreAndContinue =>
+      isSpanish ? 'Ignorar y Continuar' : 'Ignore and Continue';
 }
 
 /// Localizations delegate

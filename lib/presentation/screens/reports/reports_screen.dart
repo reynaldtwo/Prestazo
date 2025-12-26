@@ -114,69 +114,72 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
           ),
         ],
         bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(60),
+          preferredSize: const Size.fromHeight(48),
           child: Container(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
             color: colorScheme.surface,
-            child: Container(
-              decoration: BoxDecoration(
-                color: colorScheme.surfaceContainerHighest,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: colorScheme.outlineVariant, width: 1),
-              ),
-              padding: const EdgeInsets.all(4),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: GestureDetector(
-                      onTap: () => setState(() => _selectedTab = 0),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 10),
-                        decoration: BoxDecoration(
+            child: Row(
+              children: [
+                Expanded(
+                  child: InkWell(
+                    onTap: () => setState(() => _selectedTab = 0),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      decoration: BoxDecoration(
+                        border: Border(
+                          bottom: BorderSide(
+                            color: _selectedTab == 0
+                                ? colorScheme.primary
+                                : Colors.transparent,
+                            width: 2,
+                          ),
+                        ),
+                      ),
+                      alignment: Alignment.center,
+                      child: Text(
+                        S.of(context).realizedEarnings,
+                        style: TextStyle(
                           color: _selectedTab == 0
                               ? colorScheme.primary
-                              : Colors.transparent,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        alignment: Alignment.center,
-                        child: Text(
-                          S.of(context).realizedEarnings,
-                          style: TextStyle(
-                            color: _selectedTab == 0
-                                ? colorScheme.onPrimary
-                                : colorScheme.onSurfaceVariant,
-                            fontWeight: FontWeight.w600,
-                          ),
+                              : colorScheme.onSurfaceVariant,
+                          fontWeight: _selectedTab == 0
+                              ? FontWeight.bold
+                              : FontWeight.normal,
                         ),
                       ),
                     ),
                   ),
-                  Expanded(
-                    child: GestureDetector(
-                      onTap: () => setState(() => _selectedTab = 1),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 10),
-                        decoration: BoxDecoration(
+                ),
+                Expanded(
+                  child: InkWell(
+                    onTap: () => setState(() => _selectedTab = 1),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      decoration: BoxDecoration(
+                        border: Border(
+                          bottom: BorderSide(
+                            color: _selectedTab == 1
+                                ? colorScheme.primary
+                                : Colors.transparent,
+                            width: 2,
+                          ),
+                        ),
+                      ),
+                      alignment: Alignment.center,
+                      child: Text(
+                        S.of(context).projectedEarnings,
+                        style: TextStyle(
                           color: _selectedTab == 1
                               ? colorScheme.primary
-                              : Colors.transparent,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        alignment: Alignment.center,
-                        child: Text(
-                          S.of(context).projectedEarnings,
-                          style: TextStyle(
-                            color: _selectedTab == 1
-                                ? colorScheme.onPrimary
-                                : colorScheme.onSurfaceVariant,
-                            fontWeight: FontWeight.w600,
-                          ),
+                              : colorScheme.onSurfaceVariant,
+                          fontWeight: _selectedTab == 1
+                              ? FontWeight.bold
+                              : FontWeight.normal,
                         ),
                       ),
                     ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ),
@@ -256,7 +259,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    '${_paymentsDetail.length} pagos en el rango',
+                    '${_paymentsDetail.length} ${S.of(context).paymentsInRange}',
                     style: AppTypography.labelSmall,
                   ),
                 ],
@@ -341,14 +344,16 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           AppCard(
             backgroundColor: AppColors.info.withValues(alpha: 0.1),
             child: Column(
               children: [
                 Text(
-                  'Ganancias Mensuales Proyectadas',
+                  S.of(context).projectedMonthlyEarnings,
                   style: AppTypography.titleSmall,
+                  textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 8),
                 MoneyDisplay(
@@ -360,6 +365,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                 Text(
                   '${S.of(context).basedOn} ${_activeLoans.length} ${S.of(context).activeLoansLower}',
                   style: AppTypography.labelSmall,
+                  textAlign: TextAlign.center,
                 ),
               ],
             ),
@@ -402,6 +408,19 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                 ),
               );
             }),
+          ] else ...[
+            SizedBox(
+              height: 200,
+              child: Center(
+                child: Text(
+                  S.of(context).noActiveLoans,
+                  style: AppTypography.bodyMedium.copyWith(
+                    color: AppColors.textSecondary,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ),
           ],
         ],
       ),
@@ -442,6 +461,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
               _endDate, // Logic handles end-of-day in query, displayed as date only
           paymentsData: _paymentsDetail,
           settings: settings,
+          locale: S.of(context).locale,
         );
       } else {
         // Consolidated Active Loans Report
@@ -466,6 +486,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
         await pdfService.generateConsolidatedActiveLoansReport(
           loansData: loansData,
           settings: settings,
+          locale: S.of(context).locale,
         );
       }
     } catch (e) {

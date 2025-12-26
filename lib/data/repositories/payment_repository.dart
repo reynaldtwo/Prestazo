@@ -453,6 +453,98 @@ class PaymentRepository {
     return result.first['max_number']?.toString();
   }
 
+  /// Register recovery payment (Capital only), close loan, and optionally restrict customer
+  Future<Payment> registerRecoveryPayment({
+    required Payment payment,
+    required List<PaymentAllocation> allocations,
+    required bool restrictCustomer,
+    required String? restrictionReason,
+  }) async {
+    final db = await _databaseHelper.database;
+
+    await db.transaction((txn) async {
+      // 1. Get next receipt number
+      final settingsResult = await txn.query(
+        'app_settings',
+        columns: ['receipt_next_number'],
+        where: 'settings_id = ?',
+        whereArgs: ['global'],
+      );
+      final nextNumber =
+          settingsResult.first['receipt_next_number']?.toString() ?? '1';
+      final paymentWithNumber = payment.copyWith(receiptNumber: nextNumber);
+
+      // 2. Insert payment
+      await txn.insert('payments', paymentWithNumber.toMap());
+
+      // 3. Increment receipt number
+      final newNextNumber = _incrementStringCode(nextNumber);
+      await txn.rawUpdate(
+        'UPDATE app_settings SET receipt_next_number = ?, updated_at = ? WHERE settings_id = ?',
+        [newNextNumber, DateTime.now().toIso8601String(), 'global'],
+      );
+
+      // 4. Insert allocations
+      for (final allocation in allocations) {
+        await txn.insert('payment_allocations', allocation.toMap());
+      }
+
+      // 5. Update loan - DEDUCT Principal
+      final principalAllocation = allocations
+          .where((a) => a.allocationType == 'PRINCIPAL')
+          .fold<double>(0, (sum, a) => sum + a.amount);
+
+      if (principalAllocation > 0) {
+        await txn.rawUpdate(
+          'UPDATE loans SET principal_balance = principal_balance - ?, updated_at = ? WHERE loan_id = ?',
+          [
+            principalAllocation,
+            DateTime.now().toIso8601String(),
+            payment.loanId,
+          ],
+        );
+      }
+
+      // 6. FORCE CLOSE LOAN (Recovered/Cancelled)
+      await txn.rawUpdate(
+        'UPDATE loans SET status = ?, closed_at = ?, updated_at = ? WHERE loan_id = ?',
+        [
+          'CLOSED', // Using CLOSED as standard for finished loans
+          DateTime.now().toIso8601String(),
+          DateTime.now().toIso8601String(),
+          payment.loanId,
+        ],
+      );
+
+      // 7. FORCE CLOSE/ANNUL CYCLES
+      // "Cancelar el prestamo sin considerar los intereses"
+      await txn.rawUpdate(
+        'UPDATE billing_cycles SET status = ?, interest_pending = 0, closed_at = ?, updated_at = ? WHERE loan_id = ? AND status != ?',
+        [
+          'ANULLED',
+          DateTime.now().toIso8601String(),
+          DateTime.now().toIso8601String(),
+          payment.loanId,
+          'PAID', // Don't touch already paid cycles
+        ],
+      );
+
+      // 8. RESTRICT CUSTOMER
+      if (restrictCustomer) {
+        await txn.rawUpdate(
+          'UPDATE customers SET is_restricted = 1, restriction_reason = ?, updated_at = ? WHERE customer_id = ?',
+          [
+            restrictionReason ?? 'Restringido por recuperación de capital',
+            DateTime.now().toIso8601String(),
+            payment.customerId,
+          ],
+        );
+      }
+    });
+
+    return payment;
+  }
+
   /// Helper to increment alphanumeric codes
   String _incrementStringCode(String code) {
     if (code.isEmpty) return '1';

@@ -5,6 +5,7 @@ import 'package:file_picker/file_picker.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/widgets.dart';
 import '../../../data/providers/providers.dart';
+import '../../../core/localization/locale_provider.dart';
 
 class CompanySettingsScreen extends ConsumerStatefulWidget {
   const CompanySettingsScreen({super.key});
@@ -81,7 +82,7 @@ class _CompanySettingsScreenState extends ConsumerState<CompanySettingsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Datos de la Empresa')),
+      appBar: AppBar(title: Text(S.of(context).companyData)),
       body: Form(
         key: _formKey,
         child: ListView(
@@ -89,25 +90,25 @@ class _CompanySettingsScreenState extends ConsumerState<CompanySettingsScreen> {
           children: [
             _buildInfoCard(),
             const SizedBox(height: 24),
-            _buildSectionHeader('Identidad'),
+            _buildSectionHeader(S.of(context).identity),
             _buildFieldWithToggle(
               controller: _nameController,
-              label: 'Nombre de la Empresa',
+              label: S.of(context).companyName,
               icon: Icons.business,
               value: _showName,
               onChanged: (v) => setState(() => _showName = v),
             ),
             _buildFieldWithToggle(
               controller: _rucController,
-              label: 'RUC / Identificación',
+              label: S.of(context).rucId,
               icon: Icons.confirmation_number,
               value: _showRuc,
               onChanged: (v) => setState(() => _showRuc = v),
             ),
-            _buildSectionHeader('Contacto'),
+            _buildSectionHeader(S.of(context).contact),
             _buildFieldWithToggle(
               controller: _phoneController,
-              label: 'Teléfono Fijo',
+              label: S.of(context).phoneFixed,
               icon: Icons.phone,
               value: _showPhone,
               onChanged: (v) => setState(() => _showPhone = v),
@@ -115,7 +116,7 @@ class _CompanySettingsScreenState extends ConsumerState<CompanySettingsScreen> {
             ),
             _buildFieldWithToggle(
               controller: _cellController,
-              label: 'Celular',
+              label: S.of(context).cellPhone,
               icon: Icons.smartphone,
               value: _showCell,
               onChanged: (v) => setState(() => _showCell = v),
@@ -123,26 +124,26 @@ class _CompanySettingsScreenState extends ConsumerState<CompanySettingsScreen> {
             ),
             _buildFieldWithToggle(
               controller: _whatsappController,
-              label: 'WhatsApp',
+              label: S.of(context).whatsapp,
               icon: Icons.chat,
               value: _showWhatsapp,
               onChanged: (v) => setState(() => _showWhatsapp = v),
               keyboardType: TextInputType.phone,
             ),
-            _buildSectionHeader('Ubicación'),
+            _buildSectionHeader(S.of(context).location),
             _buildFieldWithToggle(
               controller: _addressController,
-              label: 'Dirección',
+              label: S.of(context).address,
               icon: Icons.location_on,
               value: _showAddress,
               onChanged: (v) => setState(() => _showAddress = v),
               maxLines: 2,
             ),
-            _buildSectionHeader('Branding'),
+            _buildSectionHeader(S.of(context).branding),
             _buildLogoField(),
             const SizedBox(height: 32),
             AppButton(
-              label: 'Guardar Cambios',
+              label: S.of(context).saveChanges,
               variant: AppButtonVariant.primary,
               isFullWidth: true,
               isLoading: _isLoading,
@@ -169,7 +170,7 @@ class _CompanySettingsScreenState extends ConsumerState<CompanySettingsScreen> {
           const SizedBox(width: 12),
           Expanded(
             child: Text(
-              'Activa el interruptor para mostrar el dato en los recibos y reportes.',
+              S.of(context).companyInfoHelp,
               style: Theme.of(
                 context,
               ).textTheme.bodySmall?.copyWith(color: AppColors.textSecondary),
@@ -228,7 +229,7 @@ class _CompanySettingsScreenState extends ConsumerState<CompanySettingsScreen> {
                 activeColor: AppColors.primary,
               ),
               Text(
-                value ? 'Visible' : 'Oculto',
+                value ? S.of(context).visible : S.of(context).hidden,
                 style: const TextStyle(fontSize: 10, color: Colors.grey),
               ),
             ],
@@ -250,8 +251,8 @@ class _CompanySettingsScreenState extends ConsumerState<CompanySettingsScreen> {
                 Expanded(
                   child: AppTextField(
                     controller: _logoPathController,
-                    label: 'Ruta del Logo (PNG)',
-                    hint: 'Seleccione archivo...',
+                    label: S.of(context).logoPath,
+                    hint: S.of(context).selectFile,
                     prefixIcon: Icons.image,
                     readOnly: true, // Only allow picking via button
                     onTap: _pickLogo,
@@ -275,7 +276,7 @@ class _CompanySettingsScreenState extends ConsumerState<CompanySettingsScreen> {
                 activeColor: AppColors.primary,
               ),
               Text(
-                _showLogo ? 'Visible' : 'Oculto',
+                _showLogo ? S.of(context).visible : S.of(context).hidden,
                 style: const TextStyle(fontSize: 10, color: Colors.grey),
               ),
             ],
@@ -298,8 +299,8 @@ class _CompanySettingsScreenState extends ConsumerState<CompanySettingsScreen> {
         if (!path.toLowerCase().endsWith('.png')) {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Solo se permiten imágenes PNG'),
+              SnackBar(
+                content: Text(S.of(context).onlyPng),
                 backgroundColor: AppColors.danger,
               ),
             );
@@ -316,7 +317,7 @@ class _CompanySettingsScreenState extends ConsumerState<CompanySettingsScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error al seleccionar imagen: $e'),
+            content: Text('${S.of(context).errorPickingImage} $e'),
             backgroundColor: AppColors.danger,
           ),
         );

@@ -6,6 +6,7 @@ import '../../../core/theme/app_typography.dart';
 import '../../../core/widgets/widgets.dart';
 import '../../../data/providers/cobrar_provider.dart';
 import '../../../core/constants/app_status.dart';
+import '../../../core/localization/locale_provider.dart';
 
 /// "A Cobrar" screen - Main operational screen for due payments
 class CobrarScreen extends ConsumerStatefulWidget {
@@ -20,23 +21,26 @@ class _CobrarScreenState extends ConsumerState<CobrarScreen>
   late TabController _tabController;
   final _searchController = TextEditingController();
 
-  final List<_FilterTab> _tabs = [
-    _FilterTab('Quincena', CobrarFilter.biweekly),
-    _FilterTab('Mes', CobrarFilter.monthly),
-    _FilterTab('Atrasados', CobrarFilter.overdue),
-  ];
-
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: _tabs.length, vsync: this);
+    _tabController = TabController(length: 3, vsync: this);
     _tabController.addListener(_onTabChanged);
   }
 
   void _onTabChanged() {
     if (_tabController.indexIsChanging) return;
-    final filter = _tabs[_tabController.index].filter;
-    ref.read(cobrarProvider.notifier).setFilter(filter);
+    // logic remains same mapping index to filter
+    final filters = [
+      CobrarFilter.biweekly,
+      CobrarFilter.monthly,
+      CobrarFilter.overdue,
+    ];
+    if (_tabController.index < filters.length) {
+      ref
+          .read(cobrarProvider.notifier)
+          .setFilter(filters[_tabController.index]);
+    }
     _searchController.clear();
   }
 
@@ -53,55 +57,30 @@ class _CobrarScreenState extends ConsumerState<CobrarScreen>
     final cobrarState = ref.watch(cobrarProvider);
     final colorScheme = Theme.of(context).colorScheme;
 
+    // Localized tabs
+    final tabLabels = [
+      S.of(context).tabBiweekly,
+      S.of(context).tabMonthly,
+      S.of(context).tabOverdue,
+    ];
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('A Cobrar'),
+        title: Text(S.of(context).collectionTitle),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: () => ref.read(cobrarProvider.notifier).refresh(),
           ),
         ],
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(60),
-          child: Container(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-            color: colorScheme.surface,
-            child: Container(
-              decoration: BoxDecoration(
-                color: colorScheme.surfaceContainerHighest,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: colorScheme.outlineVariant, width: 1),
-              ),
-              padding: const EdgeInsets.all(4),
-              child: TabBar(
-                controller: _tabController,
-                labelColor: colorScheme.onPrimary,
-                unselectedLabelColor: colorScheme.onSurfaceVariant,
-                indicator: BoxDecoration(
-                  color: colorScheme.primary,
-                  borderRadius: BorderRadius.circular(10),
-                  boxShadow: [
-                    BoxShadow(
-                      color: colorScheme.primary.withValues(alpha: 0.3),
-                      blurRadius: 4,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-                indicatorSize: TabBarIndicatorSize.tab,
-                labelStyle: AppTypography.labelMedium.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
-                unselectedLabelStyle: AppTypography.labelMedium,
-                dividerColor: Colors.transparent,
-                splashBorderRadius: BorderRadius.circular(10),
-                tabs: _tabs
-                    .map((tab) => Tab(height: 36, text: tab.label))
-                    .toList(),
-              ),
-            ),
-          ),
+        bottom: TabBar(
+          controller: _tabController,
+          labelColor: Colors.white,
+          unselectedLabelColor: Colors.white70,
+          indicatorColor: Colors.white,
+          indicatorSize: TabBarIndicatorSize.label,
+          labelStyle: const TextStyle(fontWeight: FontWeight.bold),
+          tabs: tabLabels.map((l) => Tab(text: l)).toList(),
         ),
       ),
       body: Column(
@@ -114,7 +93,7 @@ class _CobrarScreenState extends ConsumerState<CobrarScreen>
               controller: _searchController,
               style: TextStyle(color: colorScheme.onSurface),
               decoration: InputDecoration(
-                hintText: 'Buscar por nombre o monto...',
+                hintText: S.of(context).searchCollectionHint,
                 hintStyle: TextStyle(color: colorScheme.onSurfaceVariant),
                 prefixIcon: Icon(
                   Icons.search,
@@ -171,7 +150,7 @@ class _CobrarScreenState extends ConsumerState<CobrarScreen>
 
     if (state.error != null) {
       return AppError(
-        title: 'Error',
+        title: S.of(context).error,
         message: state.error,
         onRetry: () => ref.read(cobrarProvider.notifier).refresh(),
       );
@@ -190,13 +169,13 @@ class _CobrarScreenState extends ConsumerState<CobrarScreen>
               ),
               const SizedBox(height: 16),
               Text(
-                'No se encontraron resultados',
+                S.of(context).noResults,
                 style: AppTypography.titleMedium.copyWith(
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
               ),
               Text(
-                'para "${state.searchQuery}"',
+                '${S.of(context).noResultsFor} "${state.searchQuery}"',
                 style: AppTypography.bodyMedium.copyWith(
                   color: Theme.of(context).colorScheme.outline,
                 ),
@@ -238,20 +217,19 @@ class _CobrarScreenState extends ConsumerState<CobrarScreen>
 
     switch (filter) {
       case CobrarFilter.biweekly:
-        title = 'No hay cobros pendientes esta quincena';
-        message =
-            'Los clientes quincenales aparecerán aquí cuando tengan pagos pendientes';
+        title = S.of(context).noCollectionBiweeklyTitle;
+        message = S.of(context).noCollectionBiweeklyMsg;
         break;
       case CobrarFilter.monthly:
-        title = 'No hay cobros pendientes este mes';
-        message = 'Los clientes con pagos pendientes aparecerán aquí';
+        title = S.of(context).noCollectionMonthlyTitle;
+        message = S.of(context).noCollectionMonthlyMsg;
         break;
       case CobrarFilter.overdue:
-        title = '¡Sin clientes atrasados!';
-        message = 'Todos tus clientes están al día';
+        title = S.of(context).noCollectionOverdueTitle;
+        message = S.of(context).noCollectionOverdueMsg;
         break;
       default:
-        title = 'Sin datos';
+        title = S.of(context).noData;
         message = null;
     }
 
@@ -261,17 +239,10 @@ class _CobrarScreenState extends ConsumerState<CobrarScreen>
           : Icons.receipt_long,
       title: title,
       message: message,
-      actionLabel: 'Crear Cliente',
+      actionLabel: S.of(context).newCustomer,
       onAction: () => context.push('/customer/new'),
     );
   }
-}
-
-class _FilterTab {
-  final String label;
-  final CobrarFilter filter;
-
-  _FilterTab(this.label, this.filter);
 }
 
 class _CustomerDueCard extends StatelessWidget {
@@ -360,13 +331,13 @@ class _CustomerDueCard extends StatelessWidget {
             children: [
               Expanded(
                 child: MoneyLabel(
-                  label: 'Interés esperado',
+                  label: S.of(context).interestExpected,
                   amount: customer.totalInterestExpected,
                 ),
               ),
               Expanded(
                 child: MoneyLabel(
-                  label: 'Pendiente',
+                  label: S.of(context).pending,
                   amount: customer.totalInterestPending,
                   amountColor: customer.totalInterestPending > 0
                       ? AppColors.danger
@@ -382,7 +353,7 @@ class _CustomerDueCard extends StatelessWidget {
             children: [
               Expanded(
                 child: MoneyLabel(
-                  label: 'Capital',
+                  label: S.of(context).capital,
                   amount: customer.totalCapitalBalance,
                 ),
               ),
@@ -391,10 +362,13 @@ class _CustomerDueCard extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Último pago', style: AppTypography.labelSmall),
+                      Text(
+                        S.of(context).lastPayment,
+                        style: AppTypography.labelSmall,
+                      ),
                       const SizedBox(height: 4),
                       Text(
-                        _formatDate(customer.lastPaymentDate!),
+                        _formatDate(context, customer.lastPaymentDate!),
                         style: AppTypography.bodyMedium,
                       ),
                     ],
@@ -412,7 +386,7 @@ class _CustomerDueCard extends StatelessWidget {
                 borderRadius: BorderRadius.circular(4),
               ),
               child: Text(
-                '${customer.daysOverdue} días de atraso',
+                '${customer.daysOverdue} ${S.of(context).daysOverdue}',
                 style: AppTypography.labelSmall.copyWith(
                   color: AppColors.danger,
                 ),
@@ -434,7 +408,7 @@ class _CustomerDueCard extends StatelessWidget {
                 borderRadius: BorderRadius.circular(4),
               ),
               child: Text(
-                '${customer.loans.length} préstamos activos',
+                '${customer.loans.length} ${S.of(context).activeLoansCount}',
                 style: AppTypography.labelSmall.copyWith(
                   color: Theme.of(context).brightness == Brightness.dark
                       ? AppColors.info
@@ -450,7 +424,7 @@ class _CustomerDueCard extends StatelessWidget {
           SizedBox(
             width: double.infinity,
             child: AppButton(
-              label: 'Registrar Pago',
+              label: S.of(context).registerPayment,
               icon: Icons.payment,
               variant: AppButtonVariant.secondary,
               size: AppButtonSize.small,
@@ -462,13 +436,15 @@ class _CustomerDueCard extends StatelessWidget {
     );
   }
 
-  String _formatDate(DateTime date) {
+  String _formatDate(BuildContext context, DateTime date) {
     final now = DateTime.now();
     final diff = now.difference(date).inDays;
 
-    if (diff == 0) return 'Hoy';
-    if (diff == 1) return 'Ayer';
-    if (diff < 7) return 'Hace $diff días';
+    if (diff == 0) return S.of(context).dateToday;
+    if (diff == 1) return S.of(context).dateYesterday;
+    if (diff < 7) {
+      return S.of(context).dateDaysAgo.replaceAll('{days}', diff.toString());
+    }
 
     return '${date.day}/${date.month}/${date.year}';
   }

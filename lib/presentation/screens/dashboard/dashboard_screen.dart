@@ -16,97 +16,111 @@ class DashboardScreen extends ConsumerWidget {
     final dashboardState = ref.watch(dashboardProvider);
 
     return Scaffold(
-      body: SafeArea(
-        child: RefreshIndicator(
-          onRefresh: () => ref.read(dashboardProvider.notifier).refresh(),
-          child: CustomScrollView(
-            slivers: [
-              // Header
-              SliverToBoxAdapter(child: _buildHeader(context, ref)),
+      body: RefreshIndicator(
+        onRefresh: () => ref.read(dashboardProvider.notifier).refresh(),
+        child: CustomScrollView(
+          slivers: [
+            // Header (SliverAppBar)
+            _buildHeader(context, ref),
 
-              // Quick Actions
-              SliverToBoxAdapter(child: _buildQuickActions(context)),
+            // Quick Actions
+            SliverToBoxAdapter(child: _buildQuickActions(context)),
 
-              // KPI Cards
-              SliverPadding(
-                padding: const EdgeInsets.all(16),
-                sliver: _buildKpiGrid(context, dashboardState, ref),
-              ),
+            // KPI Cards
+            SliverPadding(
+              padding: const EdgeInsets.all(16),
+              sliver: _buildKpiGrid(context, dashboardState, ref),
+            ),
 
-              // Today's Summary
-              SliverToBoxAdapter(
-                child: _buildTodaySummary(context, dashboardState),
-              ),
+            // Today's Summary
+            SliverToBoxAdapter(
+              child: _buildTodaySummary(context, dashboardState),
+            ),
 
-              // Recent Activity Section
-              SliverToBoxAdapter(child: _buildRecentSection(context)),
-            ],
-          ),
+            // Recent Activity Section
+            SliverToBoxAdapter(child: _buildRecentSection(context)),
+          ],
         ),
       ),
     );
   }
 
   Widget _buildHeader(BuildContext context, WidgetRef ref) {
-    final colorScheme = Theme.of(context).colorScheme;
     final settingsAsync = ref.watch(appSettingsProvider);
     final settings = settingsAsync.value;
 
-    String title = 'Prestazo';
+    String title = S.of(context).appName;
     if (settings != null &&
         settings.showCompanyName &&
         settings.companyName != null &&
         settings.companyName!.isNotEmpty) {
-      title = 'Prestazo - ${settings.companyName}';
+      title = '${S.of(context).appName} - ${settings.companyName}';
     }
 
-    return Container(
-      padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: AppTypography.displaySmall.copyWith(
-              color: colorScheme.primary,
+    return SliverAppBar(
+      pinned: true,
+      floating: false,
+      expandedHeight: 100.0,
+      backgroundColor: AppColors.primary,
+      // No shape allows it to be flat/rectangular like other screens
+      flexibleSpace: FlexibleSpaceBar(
+        titlePadding: const EdgeInsets.only(left: 20, bottom: 16),
+        title: Column(
+          mainAxisAlignment: MainAxisAlignment.end,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              title,
+              style: AppTypography.titleMedium.copyWith(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
             ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            _getGreeting(),
-            style: AppTypography.bodyMedium.copyWith(
-              color: colorScheme.onSurfaceVariant,
+            Text(
+              _getGreeting(context),
+              style: AppTypography.bodySmall.copyWith(
+                color: Colors.white.withOpacity(0.9),
+                fontSize: 10,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
-  String _getGreeting() {
+  String _getGreeting(BuildContext context) {
     final hour = DateTime.now().hour;
-    if (hour < 12) return 'Buenos días';
-    if (hour < 18) return 'Buenas tardes';
-    return 'Buenas noches';
+    final s = S.of(context);
+    if (hour < 12) return s.goodMorning;
+    if (hour < 18) return s.goodAfternoon;
+    return s.goodEvening;
   }
 
   Widget _buildQuickActions(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.fromLTRB(
+        16,
+        24,
+        16,
+        0,
+      ), // Added top padding (24) to separate from header
       child: Row(
         children: [
           Expanded(
             child: AppButton(
-              label: 'Registrar Pago',
+              label: S.of(context).registerPayment,
               icon: Icons.add_circle_outline,
-              variant: AppButtonVariant.primary,
+              // Changed variant to secondary to distinguish from primary header
+              variant: AppButtonVariant.secondary,
               onPressed: () => context.push('/payment/new'),
             ),
           ),
           const SizedBox(width: 12),
           Expanded(
             child: AppButton(
-              label: 'Nuevo Cliente',
+              label: S.of(context).newCustomerLabel,
               icon: Icons.person_add_outlined,
               variant: AppButtonVariant.outline,
               onPressed: () => context.push('/customer/new'),
@@ -173,7 +187,7 @@ class DashboardScreen extends ConsumerWidget {
         context,
         icon: Icons.people,
         iconColor: AppColors.accent,
-        label: 'Clientes Activos',
+        label: S.of(context).activeCustomersLabel,
         valueText: '${stats.activeCustomers}',
         onTap: () => context.go('/customers'),
       ),
@@ -181,7 +195,7 @@ class DashboardScreen extends ConsumerWidget {
         context,
         icon: Icons.receipt_long,
         iconColor: AppColors.info,
-        label: 'Préstamos Activos',
+        label: S.of(context).activeLoansLabel,
         valueText: '${stats.activeLoans}',
         onTap: () => context.go('/customers'),
       ),
@@ -189,7 +203,7 @@ class DashboardScreen extends ConsumerWidget {
         context,
         icon: Icons.warning_amber,
         iconColor: AppColors.danger,
-        label: 'Préstamos Vencidos',
+        label: S.of(context).overdueLoansLabel,
         valueText: '${stats.overdueCount}',
         isWarning: stats.overdueCount > 0,
         onTap: () => context.go('/cobrar'),
@@ -198,7 +212,7 @@ class DashboardScreen extends ConsumerWidget {
         context,
         icon: Icons.trending_up,
         iconColor: AppColors.success,
-        label: 'Ganancias (Mes)',
+        label: S.of(context).earningsMonthLabel,
         value: stats.earningsMonth,
         onTap: () => context.go('/reports?tab=0'),
       ),
@@ -206,7 +220,7 @@ class DashboardScreen extends ConsumerWidget {
         context,
         icon: Icons.show_chart,
         iconColor: AppColors.info,
-        label: 'Proyección Mes',
+        label: S.of(context).projectedMonthLabel,
         value: stats.projectedEarnings,
         onTap: () => context.go('/reports?tab=1'),
       ),
@@ -263,7 +277,7 @@ class DashboardScreen extends ConsumerWidget {
           ),
           const SizedBox(height: 2),
           Text(
-            'Capital Colocado',
+            S.of(context).capitalPlacedLabel,
             style: AppTypography.labelSmall.copyWith(
               color: Theme.of(context).colorScheme.onSurface,
             ),
@@ -283,7 +297,7 @@ class DashboardScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 2),
             Text(
-              '${stats.capitalUsagePercentage.toStringAsFixed(0)}% de C\$${stats.availableCapital.toStringAsFixed(0)}',
+              '${stats.capitalUsagePercentage.toStringAsFixed(0)}% ${S.of(context).ofLabel} C\$${stats.availableCapital.toStringAsFixed(0)}',
               style: AppTypography.labelSmall.copyWith(
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
                 fontSize: 8,
