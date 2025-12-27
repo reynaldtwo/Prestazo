@@ -1,0 +1,72 @@
+﻿Analyzing AppPrestamos...                                       
+
+   info - The private field _ffiInitialized could be 'final' - lib\data\database\database_helper.dart:16:15 - prefer_final_fields
+warning - The value of the field '_ffiInitialized' isn't used - lib\data\database\database_helper.dart:16:15 - unused_field
+warning - Dead code - lib\data\providers\billing_cycle_provider.dart:114:64 - dead_code
+warning - The left operand can't be null, so the right operand is never executed - lib\data\providers\billing_cycle_provider.dart:114:67 - dead_null_aware_expression
+warning - Unused import: 'data/database/database_helper.dart' - lib\main.dart:7:8 - unused_import
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\screens\customers\customer_detail_screen.dart:116:47 - deprecated_member_use
+warning - A value for optional parameter 'subtitle' isn't ever given - lib\presentation\screens\customers\customer_detail_screen.dart:496:10 - unused_element_parameter
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\screens\dashboard\dashboard_screen.dart:83:37 - deprecated_member_use
+   info - The import of '../../../data/providers/loan_provider.dart' is unnecessary because all of the used elements are also provided by the import of '../../../data/providers/providers.dart' - lib\presentation\screens\loans\loan_detail_screen.dart:10:8 - unnecessary_import
+   info - The import of '../../../data/providers/billing_cycle_provider.dart' is unnecessary because all of the used elements are also provided by the import of '../../../data/providers/providers.dart' - lib\presentation\screens\loans\loan_detail_screen.dart:11:8 - unnecessary_import
+   info - The import of '../../../data/providers/payment_provider.dart' is unnecessary because all of the used elements are also provided by the import of '../../../data/providers/providers.dart' - lib\presentation\screens\loans\loan_detail_screen.dart:12:8 - unnecessary_import
+   info - The import of '../../../data/providers/customer_provider.dart' is unnecessary because all of the used elements are also provided by the import of '../../../data/providers/providers.dart' - lib\presentation\screens\loans\loan_detail_screen.dart:14:8 - unnecessary_import
+   info - The import of '../../../data/providers/database_providers.dart' is unnecessary because all of the used elements are also provided by the import of '../../../data/providers/providers.dart' - lib\presentation\screens\loans\loan_detail_screen.dart:17:8 - unnecessary_import
+   info - The import of '../../../data/providers/dashboard_provider.dart' is unnecessary because all of the used elements are also provided by the import of '../../../data/providers/providers.dart' - lib\presentation\screens\loans\loan_detail_screen.dart:18:8 - unnecessary_import
+   info - Don't use 'BuildContext's across async gaps - lib\presentation\screens\loans\loan_detail_screen.dart:228:20 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib\presentation\screens\loans\loan_detail_screen.dart:268:20 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib\presentation\screens\loans\loan_detail_screen.dart:316:24 - use_build_context_synchronously
+   info - Unnecessary use of multiple underscores - lib\presentation\screens\loans\loan_detail_screen.dart:649:18 - unnecessary_underscores
+   info - Unnecessary use of multiple underscores - lib\presentation\screens\loans\loan_detail_screen.dart:890:24 - unnecessary_underscores
+   info - Statements in an if should be enclosed in a block - lib\presentation\screens\loans\loan_detail_screen.dart:893:17 - curly_braces_in_flow_control_structures
+   info - The import of '../../../data/providers/database_providers.dart' is unnecessary because all of the used elements are also provided by the import of '../../../data/providers/providers.dart' - lib\presentation\screens\loans\loan_form_screen.dart:11:8 - unnecessary_import
+warning - The value of the field '_calculatedAdjustedInterest' isn't used - lib\presentation\screens\payments\payment_form_screen.dart:55:10 - unused_field
+   info - Statements in an if should be enclosed in a block - lib\presentation\screens\payments\payment_form_screen.dart:69:7 - curly_braces_in_flow_control_structures
+   info - Statements in an if should be enclosed in a block - lib\presentation\screens\payments\payment_form_screen.dart:255:21 - curly_braces_in_flow_control_structures
+   info - Statements in an if should be enclosed in a block - lib\presentation\screens\payments\payment_form_screen.dart:258:21 - curly_braces_in_flow_control_structures
+   info - Don't use 'BuildContext's across async gaps - lib\presentation\screens\payments\payment_form_screen.dart:892:9 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib\presentation\screens\payments\payment_form_screen.dart:1037:7 - use_build_context_synchronously
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\screens\settings\about_screen.dart:29:41 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\screens\settings\company_settings_screen.dart:163:31 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\screens\settings\company_settings_screen.dart:165:50 - deprecated_member_use
+   info - 'activeColor' is deprecated and shouldn't be used. Use activeThumbColor instead. This feature was deprecated after v3.31.0-2.0.pre - lib\presentation\screens\settings\company_settings_screen.dart:229:17 - deprecated_member_use
+   info - 'activeColor' is deprecated and shouldn't be used. Use activeThumbColor instead. This feature was deprecated after v3.31.0-2.0.pre - lib\presentation\screens\settings\company_settings_screen.dart:276:17 - deprecated_member_use
+   info - 'groupValue' is deprecated and shouldn't be used. Use a RadioGroup ancestor to manage group value instead. This feature was deprecated after v3.32.0-0.0.pre - lib\presentation\screens\settings\settings_screen.dart:974:15 - deprecated_member_use
+   info - 'onChanged' is deprecated and shouldn't be used. Use RadioGroup to handle value change instead. This feature was deprecated after v3.32.0-0.0.pre - lib\presentation\screens\settings\settings_screen.dart:975:15 - deprecated_member_use
+   info - 'groupValue' is deprecated and shouldn't be used. Use a RadioGroup ancestor to manage group value instead. This feature was deprecated after v3.32.0-0.0.pre - lib\presentation\screens\settings\settings_screen.dart:984:15 - deprecated_member_use
+   info - 'onChanged' is deprecated and shouldn't be used. Use RadioGroup to handle value change instead. This feature was deprecated after v3.32.0-0.0.pre - lib\presentation\screens\settings\settings_screen.dart:985:15 - deprecated_member_use
+   info - Don't use 'BuildContext's across async gaps - lib\presentation\screens\settings\settings_screen.dart:1012:30 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib\presentation\screens\settings\settings_screen.dart:1107:49 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib\presentation\screens\settings\settings_screen.dart:1237:25 - use_build_context_synchronously
+   info - Don't invoke 'print' in production code - lib\services\backup_service.dart:106:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\backup_service.dart:208:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\backup_service.dart:264:7 - avoid_print
+   info - Dangling library doc comment - lib\services\interest_calculation_service.dart:1:1 - dangling_library_doc_comments
+   info - Don't invoke 'print' in production code - lib\services\interest_calculation_service.dart:156:5 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\interest_calculation_service.dart:254:5 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\interest_calculation_service.dart:255:5 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\interest_calculation_service.dart:256:5 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\interest_calculation_service.dart:265:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\interest_calculation_service.dart:272:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\interest_calculation_service.dart:279:11 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\interest_calculation_service.dart:289:5 - avoid_print
+   info - 'Table.fromTextArray' is deprecated and shouldn't be used. Use TableHelper.fromTextArray() instead - lib\services\pdf_generator_service.dart:165:11 - deprecated_member_use
+   info - 'Table.fromTextArray' is deprecated and shouldn't be used. Use TableHelper.fromTextArray() instead - lib\services\pdf_generator_service.dart:333:11 - deprecated_member_use
+   info - 'Table.fromTextArray' is deprecated and shouldn't be used. Use TableHelper.fromTextArray() instead - lib\services\pdf_generator_service.dart:509:12 - deprecated_member_use
+   info - Don't invoke 'print' in production code - test\logic_repro_test.dart:116:9 - avoid_print
+   info - Don't invoke 'print' in production code - test\logic_repro_test.dart:117:9 - avoid_print
+   info - Don't invoke 'print' in production code - test\logic_repro_test.dart:119:11 - avoid_print
+   info - Don't invoke 'print' in production code - test\logic_repro_test.dart:207:9 - avoid_print
+   info - Don't invoke 'print' in production code - test\logic_repro_test.dart:208:9 - avoid_print
+   info - Don't invoke 'print' in production code - test\logic_repro_test.dart:209:9 - avoid_print
+   info - Don't invoke 'print' in production code - test\logic_repro_test.dart:210:9 - avoid_print
+
+flutter : 61 issues found. (ran in 9.9s)
+En línea: 1 Carácter: 1
++ flutter analyze 2>&1 | Out-File -FilePath "analysis_report_v2.txt" -E ...
++ ~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (61 issues found. (ran in 
+9.9s):String    ) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 

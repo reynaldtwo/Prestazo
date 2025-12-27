@@ -111,7 +111,7 @@ final loanCalculationProvider =
       // Get settings (reactive)
       final settingsRepo = ref.watch(settingsRepositoryProvider);
       final settings = await settingsRepo.getSettings();
-      final dailyAccrualEnabled = settings.dailyAccrualEnabled ?? false;
+      final dailyAccrualEnabled = settings.dailyAccrualEnabled;
 
       // Calculate using centralized service
       final service = InterestCalculationService.instance;

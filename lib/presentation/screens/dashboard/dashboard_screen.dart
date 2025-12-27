@@ -80,7 +80,7 @@ class DashboardScreen extends ConsumerWidget {
             Text(
               _getGreeting(context),
               style: AppTypography.bodySmall.copyWith(
-                color: Colors.white.withOpacity(0.9),
+                color: Colors.white.withValues(alpha: 0.9),
                 fontSize: 10,
               ),
             ),

@@ -55,41 +55,33 @@ class StatusBadge extends StatelessWidget {
   String _getLocalizedLabel(BuildContext context, String status) {
     try {
       final s = S.of(context);
+      // Using string literals to avoid unreachable case warnings
+      // (several AppStatus constants share the same string value)
       switch (status) {
-        // LOANS
-        case AppStatus.loanActive:
+        case 'ACTIVE':
           return s.statusActive;
-        case AppStatus.loanOverdue:
+        case 'IN_MORA':
           return s.statusInMora;
-        case AppStatus.loanClosed:
+        case 'CLOSED':
           return s.statusClosed;
-        case AppStatus.loanLegal:
-          return 'Legal'; // Need to add if missing, or use fallback
-
-        // CYCLES
-        case AppStatus.cyclePending:
-          return s.statusPending; // "Pendiente"
-        case AppStatus.cyclePaid:
-          return s.statusPaid; // "Pagado"
-        case AppStatus.cyclePartial:
-          return 'Parcial'; // Need key?
-        case AppStatus.cycleOverdue:
-          return s.statusOverdue; // "Vencido"
-        case AppStatus.cycleAnulled:
+        case 'LEGAL':
+          return 'Legal';
+        case 'PENDING':
+          return s.statusPending;
+        case 'PAID':
+          return s.statusPaid;
+        case 'PARTIAL':
+          return 'Parcial';
+        case 'OVERDUE':
+          return s.statusOverdue;
+        case 'ANULLED':
           return 'Anulado';
-
-        // CUSTOMERS
-        case AppStatus.customerActive:
-          return s.statusActive;
-        case AppStatus.customerInactive:
+        case 'INACTIVE':
           return s.statusInactive;
-
-        // PAYMENTS
-        case AppStatus.paymentValid:
-          return 'Valid'; // Use key if available
-        case AppStatus.paymentVoided:
+        case 'VALID':
+          return 'Completado';
+        case 'VOIDED':
           return 'Anulado';
-
         default:
           return AppStatus.getLabel(status);
       }

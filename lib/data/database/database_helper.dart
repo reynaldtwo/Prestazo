@@ -13,7 +13,6 @@ import '../../core/constants/app_status.dart';
 class DatabaseHelper {
   static final DatabaseHelper _instance = DatabaseHelper._internal();
   static Database? _database;
-  static bool _ffiInitialized = false;
 
   factory DatabaseHelper() => _instance;
 
@@ -94,6 +93,7 @@ class DatabaseHelper {
         validate_capital INTEGER NOT NULL DEFAULT 0,
         daily_accrual_enabled INTEGER NOT NULL DEFAULT 0,
         allow_multiple_loans INTEGER NOT NULL DEFAULT 0,
+        validate_dni INTEGER NOT NULL DEFAULT 0,
         loan_next_number INTEGER NOT NULL DEFAULT 1,
         company_name TEXT,
         show_company_name INTEGER NOT NULL DEFAULT 0,
@@ -462,6 +462,14 @@ class DatabaseHelper {
       try {
         await db.execute(
           'ALTER TABLE customers ADD COLUMN restriction_reason TEXT',
+        );
+      } catch (_) {}
+    }
+    // Migration from v11 to v12 (DNI validation setting)
+    if (oldVersion < 12) {
+      try {
+        await db.execute(
+          'ALTER TABLE app_settings ADD COLUMN validate_dni INTEGER DEFAULT 0',
         );
       } catch (_) {}
     }

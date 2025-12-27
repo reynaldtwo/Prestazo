@@ -7,15 +7,12 @@ class CustomerRepository {
   final DatabaseHelper _databaseHelper;
 
   CustomerRepository({DatabaseHelper? databaseHelper})
-      : _databaseHelper = databaseHelper ?? DatabaseHelper();
+    : _databaseHelper = databaseHelper ?? DatabaseHelper();
 
   /// Get all customers
   Future<List<Customer>> getAllCustomers() async {
     final db = await _databaseHelper.database;
-    final maps = await db.query(
-      'customers',
-      orderBy: 'full_name ASC',
-    );
+    final maps = await db.query('customers', orderBy: 'full_name ASC');
     return maps.map((map) => Customer.fromMap(map)).toList();
   }
 
@@ -96,10 +93,7 @@ class CustomerRepository {
     final db = await _databaseHelper.database;
     return await db.update(
       'customers',
-      {
-        'status': 'INACTIVE',
-        'updated_at': DateTime.now().toIso8601String(),
-      },
+      {'status': 'INACTIVE', 'updated_at': DateTime.now().toIso8601String()},
       where: 'customer_id = ?',
       whereArgs: [customerId],
     );
@@ -110,10 +104,7 @@ class CustomerRepository {
     final db = await _databaseHelper.database;
     return await db.update(
       'customers',
-      {
-        'status': 'ACTIVE',
-        'updated_at': DateTime.now().toIso8601String(),
-      },
+      {'status': 'ACTIVE', 'updated_at': DateTime.now().toIso8601String()},
       where: 'customer_id = ?',
       whereArgs: [customerId],
     );
@@ -149,5 +140,25 @@ class CustomerRepository {
       [customerId, 'ACTIVE'],
     );
     return (Sqflite.firstIntValue(result) ?? 0) > 0;
+  }
+
+  /// Get customer by DNI (for duplicate validation)
+  /// Returns null if no customer found with that DNI
+  /// Use excludeId to exclude a specific customer (for edit mode)
+  Future<Customer?> getCustomerByDni(String dni, {String? excludeId}) async {
+    final db = await _databaseHelper.database;
+    final normalizedDni = dni.trim().toUpperCase();
+
+    String query = 'SELECT * FROM customers WHERE UPPER(dni) = ?';
+    List<dynamic> args = [normalizedDni];
+
+    if (excludeId != null) {
+      query += ' AND customer_id != ?';
+      args.add(excludeId);
+    }
+
+    final maps = await db.rawQuery(query, args);
+    if (maps.isEmpty) return null;
+    return Customer.fromMap(maps.first);
   }
 }

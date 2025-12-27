@@ -8,7 +8,6 @@ import '../../../core/widgets/widgets.dart';
 import '../../../data/models/customer.dart';
 import '../../../data/models/loan.dart';
 import '../../../data/providers/providers.dart';
-import '../../../data/providers/database_providers.dart';
 import '../../../core/localization/locale_provider.dart';
 
 /// Loan form screen for creating new loans with Riverpod

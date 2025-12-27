@@ -7,16 +7,10 @@ import '../../../core/widgets/widgets.dart';
 import '../../../data/models/loan.dart';
 import '../../../data/models/billing_cycle.dart';
 import '../../../data/models/payment.dart';
-import '../../../data/providers/loan_provider.dart';
-import '../../../data/providers/billing_cycle_provider.dart';
-import '../../../data/providers/payment_provider.dart';
+import '../../../data/providers/providers.dart';
 import '../../../data/providers/service_providers.dart';
-import '../../../data/providers/customer_provider.dart';
 import 'package:go_router/go_router.dart';
 import '../../../services/billing_cycle_service.dart';
-import '../../../data/providers/database_providers.dart';
-import '../../../data/providers/dashboard_provider.dart';
-import '../../../data/providers/providers.dart'; // Ensure appSettingsProvider is available
 import '../../../core/constants/app_status.dart';
 import '../../../core/localization/locale_provider.dart';
 
@@ -645,18 +639,9 @@ class _PendingInterestLabel extends ConsumerWidget {
     final calcAsync = ref.watch(loanCalculationProvider(calcParams));
 
     return calcAsync.when(
-      loading: () {
-        print('DEBUG UI: _PendingInterestLabel is LOADING');
-        return const Text('Calculando...');
-      },
-      error: (e, __) {
-        print('DEBUG UI: _PendingInterestLabel ERROR: $e');
-        return const Text('-');
-      },
+      loading: () => const Text('Calculando...'),
+      error: (e, __) => const Text('-'),
       data: (calc) {
-        print(
-          'DEBUG UI: _PendingInterestLabel received calc.overdueInterest=${calc.overdueInterest}, totalPendingInterest=${calc.totalPendingInterest}',
-        );
         // overdueInterest is the correct value from centralized service
         return MoneyLabel(
           label: S.of(context).pendingInterest,

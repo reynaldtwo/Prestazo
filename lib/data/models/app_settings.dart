@@ -14,6 +14,7 @@ class AppSettings extends Equatable {
   final bool validateCapital;
   final bool dailyAccrualEnabled;
   final bool allowMultipleLoans;
+  final bool validateDni;
   final String? companyName;
   final bool showCompanyName;
   final String? companyRuc;
@@ -45,6 +46,7 @@ class AppSettings extends Equatable {
     this.validateCapital = false,
     this.dailyAccrualEnabled = false,
     this.allowMultipleLoans = false,
+    this.validateDni = false,
     this.companyName,
     this.showCompanyName = false,
     this.companyRuc,
@@ -86,6 +88,7 @@ class AppSettings extends Equatable {
       validateCapital: (map['validate_capital'] as int? ?? 0) == 1,
       dailyAccrualEnabled: (map['daily_accrual_enabled'] as int? ?? 0) == 1,
       allowMultipleLoans: (map['allow_multiple_loans'] as int? ?? 0) == 1,
+      validateDni: (map['validate_dni'] as int? ?? 0) == 1,
       companyName: map['company_name'] as String?,
       showCompanyName: (map['show_company_name'] as int? ?? 0) == 1,
       companyRuc: map['company_ruc'] as String?,
@@ -120,6 +123,7 @@ class AppSettings extends Equatable {
       'validate_capital': validateCapital ? 1 : 0,
       'daily_accrual_enabled': dailyAccrualEnabled ? 1 : 0,
       'allow_multiple_loans': allowMultipleLoans ? 1 : 0,
+      'validate_dni': validateDni ? 1 : 0,
       'company_name': companyName,
       'show_company_name': showCompanyName ? 1 : 0,
       'company_ruc': companyRuc,
@@ -152,6 +156,7 @@ class AppSettings extends Equatable {
     bool? validateCapital,
     bool? dailyAccrualEnabled,
     bool? allowMultipleLoans,
+    bool? validateDni,
     String? companyName,
     bool? showCompanyName,
     String? companyRuc,
@@ -182,6 +187,7 @@ class AppSettings extends Equatable {
       validateCapital: validateCapital ?? this.validateCapital,
       dailyAccrualEnabled: dailyAccrualEnabled ?? this.dailyAccrualEnabled,
       allowMultipleLoans: allowMultipleLoans ?? this.allowMultipleLoans,
+      validateDni: validateDni ?? this.validateDni,
       companyName: companyName ?? this.companyName,
       showCompanyName: showCompanyName ?? this.showCompanyName,
       companyRuc: companyRuc ?? this.companyRuc,
@@ -221,6 +227,7 @@ class AppSettings extends Equatable {
     validateCapital,
     dailyAccrualEnabled,
     allowMultipleLoans,
+    validateDni,
     companyName,
     showCompanyName,
     companyRuc,

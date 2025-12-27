@@ -136,8 +136,8 @@ void showLoadingDialog({
   showDialog<void>(
     context: context,
     barrierDismissible: false,
-    builder: (ctx) => WillPopScope(
-      onWillPop: () async => false,
+    builder: (ctx) => PopScope(
+      canPop: false,
       child: AlertDialog(
         content: Row(
           children: [

@@ -27,33 +27,35 @@ class AppStatus {
   static const String paymentVoided = 'VOIDED';
 
   /// Get color for a given status
+  /// Note: Uses string values directly to avoid unreachable case warnings
+  /// when constants share the same string value (e.g., loanActive = customerActive = 'ACTIVE')
   static Color getColor(String status) {
     switch (status) {
-      // Success / Active
-      case loanActive:
-      case customerActive:
-      case paymentValid:
+      // Success / Active (ACTIVE, VALID)
+      case 'ACTIVE':
+      case 'VALID':
         return AppColors.success;
 
       // Danger / Urgent
-      case loanOverdue:
-      case cycleOverdue:
-      case loanLegal:
+      case 'IN_MORA':
+      case 'OVERDUE':
+      case 'LEGAL':
         return AppColors.danger;
 
       // Neutral / History
-      case loanClosed:
-      case cyclePaid:
-      case customerInactive:
-      case paymentVoided:
+      case 'CLOSED':
+      case 'PAID':
+      case 'INACTIVE':
+      case 'VOIDED':
+      case 'ANULLED':
         return const Color(0xFF757575);
 
       // Warning / Pending
-      case cyclePending:
+      case 'PENDING':
         return const Color(0xFFF57F17);
 
       // Info
-      case cyclePartial:
+      case 'PARTIAL':
         return AppColors.info;
 
       default:
@@ -62,40 +64,39 @@ class AppStatus {
   }
 
   /// Get localized label for status
+  /// Note: Uses string values directly to avoid unreachable case warnings
   static String getLabel(String status) {
     switch (status) {
-      // LOANS
-      case loanActive:
+      // ACTIVE applies to loans, customers
+      case 'ACTIVE':
         return 'Activo';
-      case loanOverdue:
+      case 'IN_MORA':
         return 'En Mora';
-      case loanClosed:
+      case 'CLOSED':
         return 'Cerrado';
-      case loanLegal:
+      case 'LEGAL':
         return 'Legal';
 
       // CYCLES
-      case cyclePending:
+      case 'PENDING':
         return 'Pendiente';
-      case cyclePaid:
+      case 'PAID':
         return 'Pagado';
-      case cyclePartial:
+      case 'PARTIAL':
         return 'Parcial';
-      case cycleOverdue:
+      case 'OVERDUE':
         return 'Vencido';
-      case cycleAnulled:
+      case 'ANULLED':
         return 'Anulado';
 
       // CUSTOMERS
-      case customerActive:
-        return 'Activo';
-      case customerInactive:
+      case 'INACTIVE':
         return 'Inactivo';
 
       // PAYMENTS
-      case paymentValid:
+      case 'VALID':
         return 'Completado';
-      case paymentVoided:
+      case 'VOIDED':
         return 'Anulado';
 
       default:

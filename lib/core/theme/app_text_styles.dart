@@ -4,14 +4,14 @@ import 'package:google_fonts/google_fonts.dart';
 /// Extension on BuildContext to provide theme-aware text styles
 /// Usage: context.textStyles.titleLarge, context.textStyles.bodyMedium, etc.
 extension AppTextStyles on BuildContext {
-  _ThemedTextStyles get textStyles => _ThemedTextStyles(this);
+  ThemedTextStyles get textStyles => ThemedTextStyles(this);
 }
 
 /// Theme-aware text styles that automatically use colorScheme colors
-class _ThemedTextStyles {
+class ThemedTextStyles {
   final BuildContext context;
 
-  _ThemedTextStyles(this.context);
+  ThemedTextStyles(this.context);
 
   ColorScheme get _colors => Theme.of(context).colorScheme;
   TextStyle get _baseTextStyle => GoogleFonts.inter();

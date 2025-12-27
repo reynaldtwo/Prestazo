@@ -2,6 +2,7 @@ import 'package:sqflite/sqflite.dart';
 import '../database/database_helper.dart';
 import '../models/payment.dart';
 import '../models/payment_allocation.dart';
+import '../../core/utils/string_utils.dart';
 
 /// Repository for Payment CRUD operations
 class PaymentRepository {
@@ -110,7 +111,6 @@ class PaymentRepository {
         (SELECT COALESCE(SUM(amount), 0) FROM payment_allocations WHERE payment_id = p.payment_id AND allocation_type = 'PRINCIPAL') as principal_paid
       FROM payments p
       INNER JOIN customers c ON p.customer_id = c.customer_id
-      INNER JOIN loans ON p.loan_id = loans.loan_id
       INNER JOIN loans l ON p.loan_id = l.loan_id
       WHERE p.status = 'VALID'
     ''';
@@ -191,7 +191,7 @@ class PaymentRepository {
       await txn.insert('payments', paymentWithNumber.toMap());
 
       // 4. Update settings (Increment)
-      final newNextNumber = _incrementStringCode(nextNumber);
+      final newNextNumber = incrementStringCode(nextNumber);
       await txn.rawUpdate(
         'UPDATE app_settings SET receipt_next_number = ?, updated_at = ? WHERE settings_id = ?',
         [newNextNumber, DateTime.now().toIso8601String(), 'global'],
@@ -305,7 +305,7 @@ class PaymentRepository {
       );
 
       // 4. Increment setting
-      final newNextNumber = _incrementStringCode(nextNumber);
+      final newNextNumber = incrementStringCode(nextNumber);
       await txn.rawUpdate(
         'UPDATE app_settings SET receipt_next_number = ?, updated_at = ? WHERE settings_id = ?',
         [newNextNumber, DateTime.now().toIso8601String(), 'global'],
@@ -478,7 +478,7 @@ class PaymentRepository {
       await txn.insert('payments', paymentWithNumber.toMap());
 
       // 3. Increment receipt number
-      final newNextNumber = _incrementStringCode(nextNumber);
+      final newNextNumber = incrementStringCode(nextNumber);
       await txn.rawUpdate(
         'UPDATE app_settings SET receipt_next_number = ?, updated_at = ? WHERE settings_id = ?',
         [newNextNumber, DateTime.now().toIso8601String(), 'global'],
@@ -543,31 +543,5 @@ class PaymentRepository {
     });
 
     return payment;
-  }
-
-  /// Helper to increment alphanumeric codes
-  String _incrementStringCode(String code) {
-    if (code.isEmpty) return '1';
-
-    final RegExp regex = RegExp(r'(\d+)$');
-    final match = regex.firstMatch(code);
-
-    if (match != null) {
-      final numberStr = match.group(1)!;
-      final prefix = code.substring(0, code.length - numberStr.length);
-      final number = int.parse(numberStr);
-      final newNumber = number + 1;
-
-      // Preserve padding if number length didn't increase
-      String newNumberStr = newNumber.toString();
-      if (newNumberStr.length < numberStr.length) {
-        newNumberStr = newNumberStr.padLeft(numberStr.length, '0');
-      }
-
-      return '$prefix$newNumberStr';
-    } else {
-      // No number found, append 1
-      return '${code}1';
-    }
   }
 }

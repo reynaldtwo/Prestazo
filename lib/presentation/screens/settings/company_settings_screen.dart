@@ -160,9 +160,9 @@ class _CompanySettingsScreenState extends ConsumerState<CompanySettingsScreen> {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: AppColors.info.withOpacity(0.1),
+        color: AppColors.info.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: AppColors.info.withOpacity(0.3)),
+        border: Border.all(color: AppColors.info.withValues(alpha: 0.3)),
       ),
       child: Row(
         children: [
@@ -226,7 +226,10 @@ class _CompanySettingsScreenState extends ConsumerState<CompanySettingsScreen> {
               Switch(
                 value: value,
                 onChanged: onChanged,
-                activeColor: AppColors.primary,
+                activeTrackColor: AppColors.primary.withValues(alpha: 0.5),
+                thumbColor: WidgetStatePropertyAll(
+                  value ? AppColors.primary : null,
+                ),
               ),
               Text(
                 value ? S.of(context).visible : S.of(context).hidden,
@@ -273,7 +276,10 @@ class _CompanySettingsScreenState extends ConsumerState<CompanySettingsScreen> {
               Switch(
                 value: _showLogo,
                 onChanged: (v) => setState(() => _showLogo = v),
-                activeColor: AppColors.primary,
+                activeTrackColor: AppColors.primary.withValues(alpha: 0.5),
+                thumbColor: WidgetStatePropertyAll(
+                  _showLogo ? AppColors.primary : null,
+                ),
               ),
               Text(
                 _showLogo ? S.of(context).visible : S.of(context).hidden,

@@ -2,6 +2,7 @@ import 'package:sqflite/sqflite.dart';
 import '../database/database_helper.dart';
 import '../models/loan.dart';
 import '../../core/constants/app_status.dart';
+import '../../core/utils/string_utils.dart';
 
 /// Repository for Loan CRUD operations
 class LoanRepository {
@@ -151,7 +152,7 @@ class LoanRepository {
       );
 
       // 4. Increment setting
-      final newNextNumber = _incrementStringCode(nextNumber);
+      final newNextNumber = incrementStringCode(nextNumber);
       await txn.rawUpdate(
         'UPDATE app_settings SET loan_next_number = ?, updated_at = ? WHERE settings_id = ?',
         [newNextNumber, DateTime.now().toIso8601String(), 'global'],
@@ -170,37 +171,6 @@ class LoanRepository {
       'SELECT MAX(loan_number) as max_number FROM loans',
     );
     return result.first['max_number']?.toString();
-  }
-
-  /// Helper to increment alphanumeric codes
-  /// Examples:
-  /// '10' -> '11'
-  /// 'A-001' -> 'A-002'
-  /// 'INV-99' -> 'INV-100'
-  /// 'ABC' -> 'ABC1'
-  String _incrementStringCode(String code) {
-    if (code.isEmpty) return '1';
-
-    final RegExp regex = RegExp(r'(\d+)$');
-    final match = regex.firstMatch(code);
-
-    if (match != null) {
-      final numberStr = match.group(1)!;
-      final prefix = code.substring(0, code.length - numberStr.length);
-      final number = int.parse(numberStr);
-      final newNumber = number + 1;
-
-      // Preserve padding if number length didn't increase
-      String newNumberStr = newNumber.toString();
-      if (newNumberStr.length < numberStr.length) {
-        newNumberStr = newNumberStr.padLeft(numberStr.length, '0');
-      }
-
-      return '$prefix$newNumberStr';
-    } else {
-      // No number found, append 1
-      return '${code}1';
-    }
   }
 
   /// Update existing loan

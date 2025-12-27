@@ -33,6 +33,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   bool _validateCapital = false;
   bool _dailyAccrualEnabled = false;
   bool _allowMultipleLoans = false;
+  bool _validateDni = false;
   bool _isLoaded = false;
 
   @override
@@ -54,6 +55,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     _validateCapital = settings.validateCapital;
     _dailyAccrualEnabled = settings.dailyAccrualEnabled;
     _allowMultipleLoans = settings.allowMultipleLoans;
+    _validateDni = settings.validateDni;
 
     // Only update text controllers if they are empty (first load)
     // or if we want to force sync (like loan number which changes externally)
@@ -316,6 +318,22 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             onChanged: (v) {
               setState(() => _allowMultipleLoans = v);
               _saveSetting('allow_multiple_loans', v ? 1 : 0);
+            },
+          ),
+          SwitchListTile(
+            title: const Text('Validar DNI Único'),
+            subtitle: Text(
+              _validateDni
+                  ? 'Se verificará que no existan clientes con el mismo DNI'
+                  : 'Se permite registrar clientes con DNI duplicado',
+              style: AppTypography.bodySmall.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ),
+            value: _validateDni,
+            onChanged: (v) {
+              setState(() => _validateDni = v);
+              _saveSetting('validate_dni', v ? 1 : 0);
             },
           ),
           const Divider(),

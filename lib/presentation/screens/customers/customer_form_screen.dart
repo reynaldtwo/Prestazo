@@ -313,6 +313,49 @@ class _CustomerFormScreenState extends ConsumerState<CustomerFormScreen> {
     setState(() => _isLoading = true);
 
     try {
+      // Check for duplicate DNI if validation is enabled
+      final settings = ref.read(appSettingsProvider).value;
+      final dni = _dniController.text.trim();
+
+      if (settings?.validateDni == true && dni.isNotEmpty) {
+        final repo = ref.read(customerRepositoryProvider);
+        final existingCustomer = await repo.getCustomerByDni(
+          dni,
+          excludeId: isEditing ? widget.customerId : null,
+        );
+
+        if (existingCustomer != null) {
+          if (mounted) {
+            setState(() => _isLoading = false);
+            await showDialog(
+              context: context,
+              builder: (ctx) => AlertDialog(
+                title: const Row(
+                  children: [
+                    Icon(Icons.warning_amber, color: AppColors.danger),
+                    SizedBox(width: 8),
+                    Expanded(child: Text('DNI Duplicado')),
+                  ],
+                ),
+                content: Text(
+                  'Ya existe un cliente registrado con el DNI "$dni":\n\n'
+                  '• Nombre: ${existingCustomer.displayName}\n'
+                  '• Teléfono: ${existingCustomer.phone ?? "No registrado"}\n\n'
+                  'No se puede registrar dos clientes con el mismo DNI.',
+                ),
+                actions: [
+                  ElevatedButton(
+                    onPressed: () => Navigator.pop(ctx),
+                    child: const Text('Entendido'),
+                  ),
+                ],
+              ),
+            );
+          }
+          return;
+        }
+      }
+
       final now = DateTime.now();
       final customer = isEditing
           ? _existingCustomer!.copyWith(

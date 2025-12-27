@@ -9,6 +9,7 @@
 library;
 
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
@@ -103,7 +104,7 @@ class BackupService {
         sizeBytes: stat.size,
       );
     } catch (e) {
-      print('Backup error: $e');
+      debugPrint('Backup error: $e');
       return null;
     }
   }
@@ -205,7 +206,7 @@ class BackupService {
 
       return true;
     } catch (e) {
-      print('Restore error: $e');
+      debugPrint('Restore error: $e');
       return false;
     }
   }
@@ -261,7 +262,7 @@ class BackupService {
 
       return true;
     } catch (e) {
-      print('External restore error: $e');
+      debugPrint('External restore error: $e');
       return false;
     }
   }

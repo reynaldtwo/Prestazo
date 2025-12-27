@@ -5,6 +5,7 @@ library;
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../services/services.dart';
+import '../repositories/cobrar_repository.dart';
 import 'database_providers.dart';
 
 /// Provider for BillingCycleService
@@ -37,4 +38,19 @@ final interestCalculationServiceProvider = Provider<InterestCalculationService>(
 /// Provider for PdfGeneratorService
 final pdfGeneratorServiceProvider = Provider<PdfGeneratorService>((ref) {
   return PdfGeneratorService();
+});
+
+/// Provider for PaymentService
+final paymentServiceProvider = Provider<PaymentService>((ref) {
+  return PaymentService(
+    paymentRepository: ref.read(paymentRepositoryProvider),
+    loanRepository: ref.read(loanRepositoryProvider),
+    billingCycleRepository: ref.read(billingCycleRepositoryProvider),
+    interestService: ref.read(interestCalculationServiceProvider),
+  );
+});
+
+/// Provider for CobrarRepository
+final cobrarRepositoryProvider = Provider<CobrarRepository>((ref) {
+  return CobrarRepository(databaseHelper: ref.read(databaseHelperProvider));
 });

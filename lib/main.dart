@@ -4,7 +4,6 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'core/theme/theme_provider.dart';
 import 'core/localization/locale_provider.dart';
 import 'presentation/router.dart';
-import 'data/database/database_helper.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'dart:io' as io;
 
@@ -16,15 +15,6 @@ void main() async {
     sqfliteFfiInit();
     databaseFactory = databaseFactoryFfi;
   }
-
-  // Fix any billing cycles with incorrect interest calculations
-  // try {
-  //   final dbHelper = DatabaseHelper();
-  //   await dbHelper.fixInterestCalculations();
-  // } catch (e) {
-  //   // Ignore initialization errors to prevent app crash
-  //   debugPrint('Database init error: $e');
-  // }
 
   // Catch Flutter errors
   FlutterError.onError = (FlutterErrorDetails details) {

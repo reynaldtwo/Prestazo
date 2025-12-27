@@ -113,7 +113,7 @@ class CustomerDetailScreen extends ConsumerWidget {
                         width: 60,
                         height: 60,
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.2),
+                          color: Colors.white.withValues(alpha: 0.2),
                           borderRadius: BorderRadius.circular(16),
                         ),
                         child: Center(
@@ -486,14 +486,12 @@ class CustomerDetailScreen extends ConsumerWidget {
 
 class _SummaryItem extends StatelessWidget {
   final String label;
-  final String? subtitle;
   final double value;
   final IconData icon;
   final Color iconColor;
 
   const _SummaryItem({
     required this.label,
-    this.subtitle,
     required this.value,
     required this.icon,
     required this.iconColor,
@@ -511,8 +509,6 @@ class _SummaryItem extends StatelessWidget {
             Text(label, style: context.textStyles.labelSmall),
           ],
         ),
-        if (subtitle != null)
-          Text(subtitle!, style: context.textStyles.labelSmall),
         const SizedBox(height: 4),
         MoneyDisplay(amount: value, size: MoneyDisplaySize.medium),
       ],

@@ -162,7 +162,7 @@ class PdfGeneratorService {
             s: s,
           ),
           pw.SizedBox(height: 20),
-          pw.Table.fromTextArray(
+          pw.TableHelper.fromTextArray(
             headers: [
               '#',
               s.clientLabel.replaceAll(':', ''),
@@ -330,7 +330,7 @@ class PdfGeneratorService {
             style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
           ),
           pw.SizedBox(height: 5),
-          pw.Table.fromTextArray(
+          pw.TableHelper.fromTextArray(
             headers: ['Concepto', 'Monto'],
             data: [
               ['${s.interest} Cobrado', _currencyFormat.format(totalInterest)],
@@ -506,7 +506,7 @@ class PdfGeneratorService {
     final sortedPayments = List<Payment>.from(payments);
     sortedPayments.sort((a, b) => b.paymentDate.compareTo(a.paymentDate));
 
-    return pw.Table.fromTextArray(
+    return pw.TableHelper.fromTextArray(
       headers: headers,
       data: sortedPayments.map((p) {
         final paymentAllocations = allocations

@@ -110,7 +110,19 @@ Si está en 0:
 
 ---
 
-## 10) Criterios de consistencia (sanity checks)
+## 10) Validación de DNI Único (opcional)
+Si `AppSettings.ValidateDni = 1`:
+- Al crear o editar un cliente, se verifica que no exista otro cliente con el mismo DNI.
+- La comparación es **case-insensitive** (Ej: "001-010100-0000A" = "001-010100-0000a").
+- Si encuentra duplicado, se **rechaza** el guardado y muestra información del cliente existente.
+- En modo edición, se excluye al cliente actual de la validación.
+
+Si está en 0:
+- Se permite registrar clientes con DNI duplicado.
+
+---
+
+## 11) Criterios de consistencia (sanity checks)
 - `BillingCycle.InterestPending = max(InterestExpected - InterestPaid, 0)`
 - `Loan.PrincipalBalance = PrincipalOriginal - sum(PaymentAllocation PRINCIPAL validas)` (+ sum(capitalizaciones) si aplica)
 - Si un préstamo llega a `PrincipalBalance=0` y no hay interés pendiente, Status → `CLOSED`.

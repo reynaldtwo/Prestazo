@@ -1,4 +1,4 @@
-/// Interest Calculation Service
+/// Interest Calculation Service.
 ///
 /// Centralized service for all interest calculations in the app.
 /// This service handles:
@@ -6,6 +6,7 @@
 /// - Partial interest (days mora) calculation
 /// - Total debt calculation based on payment type
 /// - Cycle interest calculations
+library;
 
 import '../data/models/billing_cycle.dart';
 import '../data/models/loan.dart';
@@ -153,10 +154,6 @@ class InterestCalculationService {
     required bool dailyAccrualEnabled,
     DateTime? paymentDate,
   }) {
-    print(
-      'DEBUG: Allocating payment for loan ${loan.loanId}, principal: ${loan.principalBalance}, status: ${loan.status}',
-    );
-
     // 1. Calculate debt state first
     final debtCalc = calculateTotalDebt(
       loan: loan,
@@ -251,10 +248,6 @@ class InterestCalculationService {
     final overdueCycles = <BillingCycle>[];
     BillingCycle? currentCycle;
 
-    print('DEBUG: calculateTotalDebt for loan ${loan.loanId}');
-    print('DEBUG: paymentDate=$paymentDateOnly, paymentType=$paymentType');
-    print('DEBUG: pendingCycles count=${pendingCycles.length}');
-
     for (final cycle in pendingCycles) {
       final dueDate = DateTime(
         cycle.dueDate.year,
@@ -269,14 +262,12 @@ class InterestCalculationService {
       if (dueDate.isBefore(paymentDateOnly)) {
         // Cycle is overdue (due date passed)
         overdueCycles.add(cycle);
-        print('DEBUG:   -> Added to overdueCycles');
       } else {
         // Cycle is current (due date not yet passed)
         // Take the earliest one as current
         if (currentCycle == null ||
             cycle.periodStartDate.isBefore(currentCycle.periodStartDate)) {
           currentCycle = cycle;
-          print('DEBUG:   -> Set as currentCycle');
         }
       }
     }
@@ -285,9 +276,6 @@ class InterestCalculationService {
     final overdueInterest = overdueCycles.fold<double>(
       0,
       (sum, c) => sum + c.interestPending,
-    );
-    print(
-      'DEBUG: Total overdueCycles=${overdueCycles.length}, overdueInterest=$overdueInterest',
     );
     double currentCycleInterest = 0;
     double partialInterest = 0;
