@@ -1,0 +1,47 @@
+================================================================================
+                    REGLAS DE NEGOCIO - PrestamosApp
+================================================================================
+Este documento contiene las reglas de negocio implementadas en la aplicación.
+Se actualiza cada vez que se agrega o modifica funcionalidad.
+--------------------------------------------------------------------------------
+
+HISTORIAL DE FUNCIONALIDADES
+================================================================================
+
+[2025-12-27] VALIDACIÓN DE DNI ÚNICO
+--------------------------------------------------------------------------------
+Ubicación: Ajustes → Políticas del Negocio → "Validar DNI Único"
+
+Descripción:
+Permite activar/desactivar la validación de DNI duplicado al registrar clientes.
+
+Comportamiento cuando está ACTIVADO:
+- Al crear un nuevo cliente, se verifica que no exista otro con el mismo DNI
+- Al editar un cliente, se excluye a sí mismo de la validación
+- La comparación es case-insensitive (001-010100-0000A = 001-010100-0000a)
+- Si encuentra duplicado, muestra alerta con datos del cliente existente
+- No permite guardar hasta corregir
+
+Comportamiento cuando está DESACTIVADO:
+- Se permite registrar clientes con DNI duplicado
+
+Configuración BD: AppSettings.validate_dni (0=desactivado, 1=activado)
+
+
+[2025-12-27] VALIDACIÓN DE FECHAS EN PRÉSTAMOS
+--------------------------------------------------------------------------------
+Ubicación: Formulario de Nuevo Préstamo
+
+Descripción:
+Validación para prevenir fechas ilógicas al crear un préstamo.
+
+Reglas implementadas:
+1. La fecha fin NO puede ser anterior a la fecha de desembolso
+2. Si el usuario cambia la fecha de desembolso y la fecha fin queda inválida,
+   se limpia automáticamente la fecha fin
+3. El selector de fecha fin solo permite fechas desde la fecha de desembolso
+
+Mensajes de error:
+- "La fecha fin no puede ser anterior a la fecha de desembolso."
+
+================================================================================

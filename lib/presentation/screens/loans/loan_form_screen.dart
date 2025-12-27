@@ -408,7 +408,15 @@ class _LoanFormScreenState extends ConsumerState<LoanFormScreen> {
               firstDate: DateTime.now().subtract(const Duration(days: 365)),
               lastDate: DateTime.now().add(const Duration(days: 7)),
             );
-            if (date != null) setState(() => _disbursementDate = date);
+            if (date != null) {
+              setState(() {
+                _disbursementDate = date;
+                // Clear end date if it becomes invalid
+                if (_endDate != null && _endDate!.isBefore(date)) {
+                  _endDate = null;
+                }
+              });
+            }
           },
           child: Container(
             padding: const EdgeInsets.all(16),
@@ -521,6 +529,21 @@ class _LoanFormScreenState extends ConsumerState<LoanFormScreen> {
             const SnackBar(
               content: Text(
                 'La fecha de desembolso no puede ser mayor a un año de antigüedad.',
+              ),
+              backgroundColor: AppColors.danger,
+            ),
+          );
+        }
+        return;
+      }
+
+      // Validate end date is not before disbursement date
+      if (_endDate != null && _endDate!.isBefore(_disbursementDate)) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                'La fecha fin no puede ser anterior a la fecha de desembolso.',
               ),
               backgroundColor: AppColors.danger,
             ),
