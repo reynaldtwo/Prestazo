@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart'; // For kIsWeb
+import 'dart:io';
+import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as path;
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -601,6 +605,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   Widget _buildMaintenanceCard() {
+    final settingsAsync = ref.watch(appSettingsProvider);
+    final backupPath = settingsAsync.value?.backupPath;
+
     return AppCard(
       child: Column(
         children: [
@@ -613,8 +620,25 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             ),
             title: Text(S.of(context).exportBackup),
             subtitle: Text(S.of(context).exportBackupDesc),
-            onTap: _exportBackup,
+            onTap: _showExportDialog,
           ),
+          if (!kIsWeb &&
+              (Platform.isAndroid ||
+                  Platform.isWindows ||
+                  Platform.isLinux)) ...[
+            const Divider(),
+            ListTile(
+              leading: const Icon(Icons.folder_open, color: AppColors.primary),
+              title: const Text('Carpeta de Respaldo'),
+              subtitle: Text(
+                backupPath ?? 'Carpeta por defecto (Interna)',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: _pickBackupFolder,
+            ),
+          ],
           const Divider(),
           ListTile(
             leading: const Icon(Icons.restore, color: AppColors.warning),
@@ -1012,51 +1036,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
   }
 
-  void _exportBackup() async {
-    try {
-      // Show loading
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Creando respaldo...')));
-
-      // Create backup
-      final backupService = BackupService.instance;
-      final backup = await backupService.createBackup();
-
-      if (backup != null && mounted) {
-        // Share the backup
-        final shared = await backupService.shareBackup(backup.filePath);
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              shared
-                  ? 'Respaldo creado y compartido: ${backup.fileName}'
-                  : 'Respaldo creado: ${backup.fileName}',
-            ),
-            backgroundColor: AppColors.success,
-          ),
-        );
-      } else if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Error al crear respaldo'),
-            backgroundColor: AppColors.danger,
-          ),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error: $e'),
-            backgroundColor: AppColors.danger,
-          ),
-        );
-      }
-    }
-  }
-
   void _viewBackups() async {
     final backupService = BackupService.instance;
     final backups = await backupService.getLocalBackups();
@@ -1143,7 +1122,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               child: ElevatedButton.icon(
                 onPressed: () {
                   Navigator.pop(ctx);
-                  _exportBackup();
+                  _showExportDialog();
                 },
                 icon: const Icon(Icons.add),
                 label: const Text('Crear Nuevo Respaldo'),
@@ -1206,24 +1185,31 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             : await backupService.restoreFromBackup(backupPath);
 
         if (success && mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Respaldo restaurado. Actualizando datos...'),
-              backgroundColor: AppColors.success,
-              duration: Duration(seconds: 2),
+          // Show dialog informing user that app will restart
+          await showDialog<void>(
+            context: context,
+            barrierDismissible: false,
+            builder: (ctx) => AlertDialog(
+              title: Row(
+                children: [
+                  const Icon(Icons.check_circle, color: AppColors.success),
+                  const SizedBox(width: 8),
+                  Text(S.of(context).success),
+                ],
+              ),
+              content: Text(S.of(context).restoreSuccessRestart),
+              actions: [
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.pop(ctx);
+                    // Close the app to force complete restart
+                    SystemNavigator.pop();
+                  },
+                  child: const Text('OK'),
+                ),
+              ],
             ),
           );
-
-          // Force UI to reload text controllers
-          setState(() {
-            _isLoaded = false;
-          });
-
-          // Invalidate ALL data providers to reflect restored state
-          ref.invalidate(appSettingsProvider);
-          ref.invalidate(loansProvider);
-          ref.invalidate(customerRepositoryProvider);
-          ref.invalidate(dashboardProvider);
         } else if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
@@ -1269,5 +1255,276 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(const SnackBar(content: Text('Recalculando cartera...')));
+  }
+
+  // NEW METHODS FOR BACKUP FOLDER & EXPORT
+
+  Future<void> _pickBackupFolder() async {
+    final String? path = await FilePicker.platform.getDirectoryPath(
+      dialogTitle: 'Seleccionar carpeta para respaldos',
+      lockParentWindow: true,
+    );
+    if (path != null) {
+      // Save setting directly to DB via repository or helper, but here we use provider?
+      // appSettingsProvider is read-only FutureProvider.
+      // We need to write via SettingsRepository or Helper.
+      // Easiest is to use Helper or Repository directly if available.
+      // We have settingsRepositoryProvider.
+
+      try {
+        final repo = ref.read(settingsRepositoryProvider);
+        await repo.updateSetting('backup_path', path);
+
+        // Refresh provider
+        ref.invalidate(appSettingsProvider);
+      } catch (e) {
+        if (mounted) _showError('Error al guardar configuración: $e');
+      }
+    }
+  }
+
+  void _showExportDialog() {
+    final backupService = BackupService.instance;
+    final defaultName = backupService.getDefaultExportName().replaceAll(
+      '.db',
+      '',
+    );
+    final nameController = TextEditingController(text: defaultName);
+    final settingsAsync = ref.read(appSettingsProvider);
+    final hasCustomFolder = settingsAsync.value?.backupPath != null;
+    final backupPath = settingsAsync.value?.backupPath;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(S.of(context).createBackup),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              S.of(context).backupFileName,
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            TextField(
+              controller: nameController,
+              decoration: const InputDecoration(
+                suffixText: '.db',
+                border: OutlineInputBorder(),
+                isDense: true,
+              ),
+            ),
+            const SizedBox(height: 16),
+            if (hasCustomFolder) ...[
+              Text(
+                S.of(context).backupDestFolder,
+                style: TextStyle(
+                  color: Theme.of(context).hintColor,
+                  fontSize: 12,
+                ),
+              ),
+              Text(
+                backupPath!,
+                style: const TextStyle(fontWeight: FontWeight.w500),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+              const SizedBox(height: 8),
+            ],
+            Text(
+              S.of(context).backupWhatToDo,
+              style: const TextStyle(fontSize: 12, fontStyle: FontStyle.italic),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancelar'),
+          ),
+          if (hasCustomFolder)
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pop(ctx);
+                _executeExport(
+                  nameController.text.trim(),
+                  useCustomFolder: true,
+                );
+              },
+              child: Text(S.of(context).save),
+            ),
+          OutlinedButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              _executeExport(
+                nameController.text.trim(),
+                useCustomFolder: false,
+              );
+            },
+            child: Text(
+              Platform.isWindows || Platform.isLinux || Platform.isMacOS
+                  ? S.of(context).backupSaveAs
+                  : S.of(context).share,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _executeExport(String baseName, {required bool useCustomFolder}) async {
+    if (baseName.isEmpty) return;
+
+    final fileName = '$baseName.db';
+    debugPrint('=== EXPORT START ===');
+    debugPrint(
+      'baseName: $baseName, fileName: $fileName, useCustomFolder: $useCustomFolder',
+    );
+
+    try {
+      // Show loading
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(S.of(context).backupProcessing)));
+      }
+
+      if (!useCustomFolder) {
+        // Desktop "Save As" or Mobile "Share"
+        if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+          var outputPath = await FilePicker.platform.saveFile(
+            dialogTitle: S.of(context).backupSaveDialogTitle,
+            fileName: fileName,
+            type: FileType.custom,
+            allowedExtensions: ['db'],
+            lockParentWindow: true,
+          );
+
+          if (outputPath == null) {
+            debugPrint('User cancelled save dialog');
+            return;
+          }
+
+          // Ensure .db extension
+          if (!outputPath.toLowerCase().endsWith('.db')) {
+            outputPath = '$outputPath.db';
+          }
+          debugPrint('Save As path: $outputPath');
+
+          await _performBackup(customPath: outputPath);
+          return;
+        } else {
+          // Mobile Share
+          final tempDir = await getTemporaryDirectory();
+          final tempPath = path.join(tempDir.path, fileName);
+          debugPrint('Mobile share temp path: $tempPath');
+          await _performBackup(customPath: tempPath, isShare: true);
+          return;
+        }
+      }
+
+      // Save to Custom Folder
+      final settingsAsync = ref.read(appSettingsProvider);
+      final backupPath = settingsAsync.value?.backupPath;
+      debugPrint('Custom backup folder from settings: $backupPath');
+
+      if (backupPath != null) {
+        final targetPath = path.join(backupPath, fileName);
+        debugPrint('Target path: $targetPath');
+
+        // Check if folder exists
+        final folder = Directory(backupPath);
+        if (!await folder.exists()) {
+          debugPrint('ERROR: Custom folder does not exist!');
+          if (mounted) _showError(S.of(context).backupFolderNotExist);
+          return;
+        }
+
+        // Check if file already exists - require name change
+        final targetFile = File(targetPath);
+        if (await targetFile.exists()) {
+          debugPrint('File already exists, showing rename dialog...');
+          if (mounted) {
+            await _showFileExistsDialog();
+            // Reopen export dialog so user can change name
+            _showExportDialog();
+          }
+          return;
+        }
+
+        await _performBackup(customPath: targetPath);
+      } else {
+        debugPrint('ERROR: No custom backup path configured');
+        if (mounted) _showError(S.of(context).backupNoFolderConfigured);
+      }
+    } catch (e, stackTrace) {
+      debugPrint('=== EXPORT ERROR ===');
+      debugPrint('Error: $e');
+      debugPrint('Stack: $stackTrace');
+      if (mounted) {
+        _showError('Error: $e');
+      }
+    }
+  }
+
+  Future<void> _performBackup({
+    String? customPath,
+    bool isShare = false,
+    bool allowOverwrite = false,
+  }) async {
+    debugPrint('=== PERFORM BACKUP ===');
+    debugPrint(
+      'customPath: $customPath, isShare: $isShare, allowOverwrite: $allowOverwrite',
+    );
+
+    final backupService = BackupService.instance;
+    final backup = await backupService.createBackup(
+      customPath: customPath,
+      allowOverwrite: allowOverwrite,
+    );
+
+    debugPrint('Backup result: ${backup != null ? "SUCCESS" : "FAILED"}');
+
+    if (backup != null && mounted) {
+      if (isShare) {
+        await backupService.shareBackup(backup.filePath);
+      } else {
+        // If saved locally (Save As or Custom Folder), show success
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('${S.of(context).backupSaved} ${backup.fileName}'),
+            backgroundColor: AppColors.success,
+          ),
+        );
+      }
+    } else if (mounted) {
+      _showError(S.of(context).backupError);
+    }
+  }
+
+  /// Show dialog when file already exists, requires user to change filename
+  Future<void> _showFileExistsDialog() async {
+    final s = S.of(context);
+    await showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        title: Row(
+          children: [
+            const Icon(Icons.warning_amber, color: AppColors.warning),
+            const SizedBox(width: 8),
+            Text(s.fileExistsTitle),
+          ],
+        ),
+        content: Text(s.backupFileExistsRename),
+        actions: [
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
   }
 }

@@ -29,6 +29,7 @@ class AppSettings extends Equatable {
   final bool showCompanyAddress;
   final String? companyLogoPath;
   final bool showCompanyLogo;
+  final String? backupPath;
 
   final DateTime createdAt;
   final DateTime updatedAt;
@@ -61,6 +62,7 @@ class AppSettings extends Equatable {
     this.showCompanyAddress = false,
     this.companyLogoPath,
     this.showCompanyLogo = false,
+    this.backupPath,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -103,6 +105,7 @@ class AppSettings extends Equatable {
       showCompanyAddress: (map['show_company_address'] as int? ?? 0) == 1,
       companyLogoPath: map['company_logo_path'] as String?,
       showCompanyLogo: (map['show_company_logo'] as int? ?? 0) == 1,
+      backupPath: map['backup_path'] as String?,
       createdAt: DateTime.parse(map['created_at'] as String),
       updatedAt: DateTime.parse(map['updated_at'] as String),
     );
@@ -138,6 +141,7 @@ class AppSettings extends Equatable {
       'show_company_address': showCompanyAddress ? 1 : 0,
       'company_logo_path': companyLogoPath,
       'show_company_logo': showCompanyLogo ? 1 : 0,
+      'backup_path': backupPath,
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
     };
@@ -171,6 +175,7 @@ class AppSettings extends Equatable {
     bool? showCompanyAddress,
     String? companyLogoPath,
     bool? showCompanyLogo,
+    String? backupPath,
     DateTime? updatedAt,
   }) {
     return AppSettings(
@@ -202,6 +207,7 @@ class AppSettings extends Equatable {
       showCompanyAddress: showCompanyAddress ?? this.showCompanyAddress,
       companyLogoPath: companyLogoPath ?? this.companyLogoPath,
       showCompanyLogo: showCompanyLogo ?? this.showCompanyLogo,
+      backupPath: backupPath ?? this.backupPath,
       createdAt: createdAt,
       updatedAt: updatedAt ?? DateTime.now(),
     );
@@ -242,6 +248,7 @@ class AppSettings extends Equatable {
     showCompanyAddress,
     companyLogoPath,
     showCompanyLogo,
+    backupPath,
     createdAt,
     updatedAt,
   ];

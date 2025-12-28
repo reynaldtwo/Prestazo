@@ -14,12 +14,22 @@ class DatabaseHelper {
   static final DatabaseHelper _instance = DatabaseHelper._internal();
   static Database? _database;
 
+  static bool _isMaintenanceMode = false;
+
   factory DatabaseHelper() => _instance;
 
   DatabaseHelper._internal();
 
+  /// Set maintenance mode (true to block DB access, false to resume)
+  void setMaintenanceMode(bool enabled) {
+    _isMaintenanceMode = enabled;
+  }
+
   /// Get database instance
   Future<Database> get database async {
+    if (_isMaintenanceMode) {
+      throw Exception('Database is in maintenance mode');
+    }
     if (_database != null && _database!.isOpen) return _database!;
     _database = await _initDatabase();
     return _database!;
@@ -42,10 +52,11 @@ class DatabaseHelper {
       databaseFactory = databaseFactoryFfi;
     }
 
-    final documentsDirectory = await getApplicationSupportDirectory();
-    // Create directory if it doesn't exist (AppSupport might not exist yet)
-    await io.Directory(documentsDirectory.path).create(recursive: true);
-    final path = join(documentsDirectory.path, AppConstants.databaseName);
+    final path = await getDatabasePath();
+    final file = io.File(path);
+    if (!await file.parent.exists()) {
+      await file.parent.create(recursive: true);
+    }
 
     return await openDatabase(
       path,
@@ -63,13 +74,11 @@ class DatabaseHelper {
     } catch (e) {
       debugPrint('Error setting foreign_keys: $e');
     }
-
     try {
       await db.rawQuery('PRAGMA journal_mode = WAL');
     } catch (e) {
       debugPrint('Error setting journal_mode: $e');
     }
-
     try {
       await db.execute('PRAGMA busy_timeout = 5000');
     } catch (e) {
@@ -109,6 +118,7 @@ class DatabaseHelper {
         show_company_address INTEGER NOT NULL DEFAULT 0,
         company_logo_path TEXT,
         show_company_logo INTEGER NOT NULL DEFAULT 0,
+        backup_path TEXT,
         created_at TEXT NOT NULL,
         updated_at TEXT NOT NULL
       )
@@ -473,6 +483,14 @@ class DatabaseHelper {
         );
       } catch (_) {}
     }
+    // Migration from v12 to v13 (Backup path)
+    if (oldVersion < 13) {
+      try {
+        await db.execute(
+          'ALTER TABLE app_settings ADD COLUMN backup_path TEXT',
+        );
+      } catch (_) {}
+    }
     // Run data fix on upgrade
     await fixInterestCalculations();
   }
@@ -555,8 +573,19 @@ class DatabaseHelper {
   }
 
   /// Get database path (for backup)
+  /// CRITICAL: Must match exactly where the database is actually stored
   Future<String> getDatabasePath() async {
-    final documentsDirectory = await getApplicationDocumentsDirectory();
+    // On Android/iOS, sqflite by default stores databases in getDatabasesPath()
+    // NOT in getApplicationSupportDirectory()
+    // We must use the same path that openDatabase uses by default
+    if (io.Platform.isAndroid || io.Platform.isIOS) {
+      // Use sqflite's getDatabasesPath() which is the default location
+      final databasesPath = await getDatabasesPath();
+      return join(databasesPath, AppConstants.databaseName);
+    }
+
+    // Desktop platforms (Windows, Linux, macOS) - use ApplicationSupportDirectory
+    final documentsDirectory = await getApplicationSupportDirectory();
     return join(documentsDirectory.path, AppConstants.databaseName);
   }
 

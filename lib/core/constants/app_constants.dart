@@ -8,7 +8,7 @@ class AppConstants {
 
   // Database
   static const String databaseName = 'prestamos_app.db';
-  static const int databaseVersion = 12; // Added DNI validation setting
+  static const int databaseVersion = 13; // Added backup path
 
   // Currency
   static const String defaultCurrency = 'NIO';

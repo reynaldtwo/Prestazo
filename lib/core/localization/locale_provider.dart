@@ -271,6 +271,44 @@ class S {
   String get noBackups =>
       isSpanish ? 'No hay respaldos disponibles' : 'No backups available';
 
+  // Backup Export Dialog
+  String get backupFileName => isSpanish ? 'Nombre del archivo:' : 'Filename:';
+  String get backupDestFolder =>
+      isSpanish ? 'Carpeta destino:' : 'Destination folder:';
+  String get backupWhatToDo =>
+      isSpanish ? '¿Qué desea hacer?' : 'What would you like to do?';
+  String get backupSaveAs => isSpanish ? 'Guardar Como...' : 'Save As...';
+  String get backupProcessing =>
+      isSpanish ? 'Procesando respaldo...' : 'Processing backup...';
+  String get backupSaveDialogTitle =>
+      isSpanish ? 'Guardar respaldo como...' : 'Save backup as...';
+  String get backupSaved => isSpanish ? 'Respaldo guardado:' : 'Backup saved:';
+  String get backupError =>
+      isSpanish ? 'Error al crear respaldo' : 'Error creating backup';
+  String get backupFolderNotExist => isSpanish
+      ? 'La carpeta seleccionada no existe'
+      : 'Selected folder does not exist';
+  String get backupNoFolderConfigured =>
+      isSpanish ? 'No hay carpeta configurada' : 'No folder configured';
+
+  // File Replace Dialog
+  String get fileExistsTitle => isSpanish ? 'Archivo Existente' : 'File Exists';
+  String fileExistsMsg(String fileName) => isSpanish
+      ? 'Ya existe un archivo llamado "$fileName" en esta ubicación.\n\n¿Desea reemplazarlo con el nuevo respaldo?'
+      : 'A file named "$fileName" already exists in this location.\n\nDo you want to replace it with the new backup?';
+  String get replace => isSpanish ? 'Reemplazar' : 'Replace';
+  String get backupFolder =>
+      isSpanish ? 'Carpeta de Respaldo' : 'Backup Folder';
+  String get viewBackups => isSpanish ? 'Ver Respaldos' : 'View Backups';
+  String get createNewBackup =>
+      isSpanish ? 'Crear Nuevo Respaldo' : 'Create New Backup';
+  String get backupFileExistsRename => isSpanish
+      ? 'Ya existe un archivo con este nombre. Por favor, cambie el nombre.'
+      : 'A file with this name already exists. Please change the name.';
+  String get restoreSuccessRestart => isSpanish
+      ? 'Respaldo restaurado exitosamente.\n\nLa aplicación se cerrará para aplicar los cambios. Por favor, vuelva a abrirla.'
+      : 'Backup restored successfully.\n\nThe app will close to apply changes. Please reopen it.';
+
   // ===== STATUS =====
   String get statusActive => isSpanish ? 'Activo' : 'Active';
   String get statusClosed => isSpanish ? 'Cerrado' : 'Closed';

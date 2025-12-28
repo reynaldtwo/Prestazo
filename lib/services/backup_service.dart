@@ -13,6 +13,8 @@ import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
+
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import '../data/database/database_helper.dart';
 
 /// Backup file info
@@ -44,13 +46,20 @@ class BackupInfo {
 /// Service for backup management
 class BackupService {
   static const String _backupFolderName = 'backups';
-  static const String _databaseName = 'prestamos_app.db';
   static const int _maxLocalBackups = 5;
 
   BackupService._();
   static final BackupService instance = BackupService._();
 
-  /// Get the backup directory path
+  // Ensure FFI is initialized for Desktop
+  void _ensureFfiInitialized() {
+    if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+      sqfliteFfiInit();
+      databaseFactory = databaseFactoryFfi;
+    }
+  }
+
+  /// Get the backup directory path (Internal)
   Future<Directory> get _backupDir async {
     final appDir = await getApplicationDocumentsDirectory();
     final backupDir = Directory(path.join(appDir.path, _backupFolderName));
@@ -61,52 +70,114 @@ class BackupService {
   }
 
   /// Get the database file path
+  /// CRITICAL: Must match exactly what DatabaseHelper uses.
   Future<File> get _databaseFile async {
-    final appDir = await getApplicationDocumentsDirectory();
-    return File(path.join(appDir.path, _databaseName));
+    final dbPath = await DatabaseHelper().getDatabasePath();
+    return File(dbPath);
   }
 
-  /// Create a new backup
-  /// Returns the backup info if successful, null otherwise
-  Future<BackupInfo?> createBackup() async {
+  /// Create a new backup - SIMPLIFIED VERSION
+  /// If [customPath] is provided, saves to that location.
+  /// Otherwise saves to default internal backup directory.
+  /// If [allowOverwrite] is true, will overwrite existing file using writeAsBytes.
+  Future<BackupInfo?> createBackup({
+    String? customPath,
+    bool allowOverwrite = false,
+  }) async {
+    debugPrint('=== BACKUP START ===');
     try {
       final dbHelper = DatabaseHelper();
-      final dbFile = await _databaseFile;
 
-      // 1. Force Checkpoint (merge WAL to DB)
-      await dbHelper.checkpoint();
+      // Step 1: Get database path
+      debugPrint('Step 1: Getting database path...');
+      final dbPath = await dbHelper.getDatabasePath();
+      debugPrint('Database path: $dbPath');
 
-      // 2. Close Database to release locks
-      await dbHelper.close();
-
-      if (!await dbFile.exists()) {
+      final sourceFile = File(dbPath);
+      if (!await sourceFile.exists()) {
+        debugPrint('ERROR: Database file does not exist!');
         return null;
       }
 
-      final backupDir = await _backupDir;
-      final timestamp = DateTime.now();
-      final fileName = 'backup_${_formatTimestamp(timestamp)}.db';
-      final backupPath = path.join(backupDir.path, fileName);
+      final sourceSize = await sourceFile.length();
+      debugPrint('Source file size: $sourceSize bytes');
 
-      // 3. Copy database to backup location
-      await dbFile.copy(backupPath);
+      // Step 2: Determine target path
+      debugPrint('Step 2: Determining target path...');
+      final DateTime timestamp = DateTime.now();
+      String targetPath;
 
-      final backupFile = File(backupPath);
+      if (customPath != null) {
+        targetPath = customPath;
+        debugPrint('Using custom path: $targetPath');
+      } else {
+        final backupDir = await _backupDir;
+        final fileName = 'backup_${_formatTimestamp(timestamp)}.db';
+        targetPath = path.join(backupDir.path, fileName);
+        debugPrint('Using internal path: $targetPath');
+      }
+
+      // Step 3: Check existing file (for logging only - writeAsBytes will overwrite)
+      final targetFile = File(targetPath);
+      if (await targetFile.exists()) {
+        debugPrint('Step 3: File exists, will be overwritten by writeAsBytes');
+        // No delete needed - writeAsBytes overwrites directly
+      }
+
+      // Step 4: Close database connections for safe copy
+      debugPrint('Step 4: Closing database...');
+      await dbHelper.close();
+
+      // Small delay
+      await Future.delayed(const Duration(milliseconds: 300));
+
+      // Step 5: Copy the file using readAsBytes/writeAsBytes (works with overwrite)
+      debugPrint('Step 5: Copying database file...');
+      final bytes = await sourceFile.readAsBytes();
+      await File(targetPath).writeAsBytes(bytes, flush: true);
+      debugPrint('File copied successfully');
+
+      // Step 6: Verify backup
+      final backupFile = File(targetPath);
+      if (!await backupFile.exists()) {
+        debugPrint('ERROR: Backup file was not created!');
+        return null;
+      }
+
       final stat = await backupFile.stat();
+      debugPrint('Backup size: ${stat.size} bytes');
 
-      // Clean up old backups (keep only latest N)
-      await _cleanupOldBackups();
+      if (stat.size == 0) {
+        debugPrint('ERROR: Backup file is empty!');
+        return null;
+      }
 
+      // Step 7: Cleanup old backups (only for internal)
+      if (customPath == null) {
+        await _cleanupOldBackups();
+      }
+
+      debugPrint('=== BACKUP SUCCESS ===');
       return BackupInfo(
-        fileName: fileName,
-        filePath: backupPath,
+        fileName: path.basename(targetPath),
+        filePath: targetPath,
         createdAt: timestamp,
         sizeBytes: stat.size,
       );
-    } catch (e) {
-      debugPrint('Backup error: $e');
+    } catch (e, stackTrace) {
+      debugPrint('=== BACKUP ERROR ===');
+      debugPrint('Error: $e');
+      debugPrint('Stack trace: $stackTrace');
       return null;
     }
+  }
+
+  /// Generate default filename for export: Prestazo_ddMMyy.db
+  String getDefaultExportName() {
+    final now = DateTime.now();
+    final dateStr =
+        '${_pad(now.day)}${_pad(now.month)}${now.year.toString().substring(2)}';
+    return 'Prestazo_$dateStr.db';
   }
 
   /// Get list of all local backups
@@ -180,89 +251,109 @@ class BackupService {
 
   /// Restore from a backup file
   Future<bool> restoreFromBackup(String backupPath) async {
+    debugPrint('=== RESTORE START ===');
     try {
       final backupFile = File(backupPath);
       if (!await backupFile.exists()) {
+        debugPrint('ERROR: Backup file does not exist: $backupPath');
         return false;
       }
 
+      final backupSize = await backupFile.length();
+      debugPrint('Backup file size: $backupSize bytes');
+
       final dbHelper = DatabaseHelper();
       final dbFile = await _databaseFile;
-      final walFile = File('${dbFile.path}-wal');
-      final shmFile = File('${dbFile.path}-shm');
+      final dbPath = dbFile.path;
+      debugPrint('Target database path: $dbPath');
 
-      // 1. Create a safety backup of current state
-      await createBackup();
+      try {
+        _ensureFfiInitialized();
 
-      // 2. Close Database
-      await dbHelper.close();
+        // 1. Enable maintenance mode
+        debugPrint('Step 1: Setting maintenance mode...');
+        dbHelper.setMaintenanceMode(true);
 
-      // 3. Delete WAL and SHM files to prevent mismatch (critical!)
-      if (await walFile.exists()) await walFile.delete();
-      if (await shmFile.exists()) await shmFile.delete();
+        // 2. Close Database
+        debugPrint('Step 2: Closing database...');
+        await dbHelper.close();
 
-      // 4. Copy backup over current database
-      await backupFile.copy(dbFile.path);
+        // Add delay
+        await Future.delayed(const Duration(milliseconds: 500));
 
-      return true;
-    } catch (e) {
-      debugPrint('Restore error: $e');
+        // 3. Delete database
+        debugPrint('Step 3: Deleting current database...');
+        await databaseFactory.deleteDatabase(dbPath);
+
+        // 4. Copy backup over
+        debugPrint('Step 4: Copying backup file...');
+        if (!await dbFile.parent.exists()) {
+          await dbFile.parent.create(recursive: true);
+        }
+        await backupFile.copy(dbPath);
+
+        // 5. Verify
+        final newDbFile = File(dbPath);
+        if (await newDbFile.exists()) {
+          final newSize = await newDbFile.length();
+          debugPrint('New database size: $newSize bytes');
+        }
+
+        debugPrint('=== RESTORE SUCCESS ===');
+        return true;
+      } finally {
+        dbHelper.setMaintenanceMode(false);
+      }
+    } catch (e, stackTrace) {
+      debugPrint('=== RESTORE ERROR ===');
+      debugPrint('Error: $e');
+      debugPrint('Stack trace: $stackTrace');
       return false;
     }
   }
 
   /// Restore from external file (e.g., from file picker)
   Future<bool> restoreFromExternalFile(String externalPath) async {
+    debugPrint('=== EXTERNAL RESTORE START ===');
     try {
       final externalFile = File(externalPath);
       if (!await externalFile.exists()) {
+        debugPrint('ERROR: External file does not exist');
         return false;
       }
 
-      // 0. Copy to a temp file to ensure access permissions and valid path
-      // This solves issues with some file pickers returning cached paths that
-      // might not be readable directly by SQLite or during the copy process.
+      // Copy to temp first
       final tempDir = await getTemporaryDirectory();
       final tempPath = path.join(tempDir.path, 'temp_restore.db');
       final tempFile = File(tempPath);
 
-      // Copy bytes manually to ensure we bypass potential URI issues
+      // Copy bytes manually
       final bytes = await externalFile.readAsBytes();
+      debugPrint('External file size: ${bytes.length} bytes');
 
       // Basic validation
       if (bytes.length < 16 ||
           String.fromCharCodes(bytes.take(6)) != 'SQLite') {
+        debugPrint('ERROR: Not a valid SQLite file');
         return false;
       }
 
       await tempFile.writeAsBytes(bytes);
+      debugPrint('Copied to temp file');
 
-      final dbHelper = DatabaseHelper();
-      final dbFile = await _databaseFile;
-      final walFile = File('${dbFile.path}-wal');
-      final shmFile = File('${dbFile.path}-shm');
+      // Now restore from temp
+      final result = await restoreFromBackup(tempPath);
 
-      // 1. Create a safety backup
-      await createBackup();
-
-      // 2. Close Database
-      await dbHelper.close();
-
-      // 3. Delete WAL/SHM
-      if (await walFile.exists()) await walFile.delete();
-      if (await shmFile.exists()) await shmFile.delete();
-
-      // 4. Copy temp file over current database
-      await tempFile.copy(dbFile.path);
-
-      // 5. Cleanup temp file
+      // Cleanup temp
       if (await tempFile.exists()) {
         await tempFile.delete();
       }
 
-      return true;
-    } catch (e) {
-      debugPrint('External restore error: $e');
+      return result;
+    } catch (e, stackTrace) {
+      debugPrint('=== EXTERNAL RESTORE ERROR ===');
+      debugPrint('Error: $e');
+      debugPrint('Stack trace: $stackTrace');
       return false;
     }
   }
@@ -275,14 +366,18 @@ class BackupService {
         return false;
       }
 
+      // Use the actual filename for the share subject
+      final fileName = path.basename(filePath);
+
       final result = await Share.shareXFiles(
-        [XFile(filePath)],
-        subject: 'PrestamosApp Backup',
-        text: 'Respaldo de PrestamosApp',
+        [XFile(filePath, name: fileName)],
+        subject: fileName,
+        text: 'Respaldo de Prestazo: $fileName',
       );
 
       return result.status == ShareResultStatus.success;
     } catch (e) {
+      debugPrint('Share error: $e');
       return false;
     }
   }
@@ -291,7 +386,6 @@ class BackupService {
   Future<bool> shareLatestBackup() async {
     final backups = await getLocalBackups();
     if (backups.isEmpty) {
-      // Create a new backup if none exists
       final newBackup = await createBackup();
       if (newBackup == null) return false;
       return shareBackup(newBackup.filePath);
@@ -304,7 +398,6 @@ class BackupService {
     final backups = await getLocalBackups();
     if (backups.length <= _maxLocalBackups) return;
 
-    // Delete oldest backups
     for (var i = _maxLocalBackups; i < backups.length; i++) {
       final file = File(backups[i].filePath);
       if (await file.exists()) {
@@ -320,7 +413,6 @@ class BackupService {
 
   /// Parse timestamp from filename
   DateTime _parseTimestamp(String str) {
-    // Format: YYYYMMDD_HHMMSS
     return DateTime(
       int.parse(str.substring(0, 4)),
       int.parse(str.substring(4, 6)),
