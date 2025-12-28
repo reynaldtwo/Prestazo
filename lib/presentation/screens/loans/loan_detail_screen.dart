@@ -13,6 +13,7 @@ import 'package:go_router/go_router.dart';
 import '../../../services/billing_cycle_service.dart';
 import '../../../core/constants/app_status.dart';
 import '../../../core/localization/locale_provider.dart';
+import '../../../services/whatsapp_service.dart';
 
 /// Handle edit loan action with validation
 Future<void> _handleEditLoan(
@@ -190,9 +191,12 @@ Future<void> _shareStatement(
   String loanId,
 ) async {
   try {
+    final s = S.of(context);
+    final locale = s.locale;
+
     ScaffoldMessenger.of(
       context,
-    ).showSnackBar(SnackBar(content: Text(S.of(context).generatingStatement)));
+    ).showSnackBar(SnackBar(content: Text(s.generatingStatement)));
 
     // Force refresh the loan to ensure we have the latest balance
     final loan = await ref.refresh(loanByIdProvider(loanId).future);
@@ -212,14 +216,13 @@ Future<void> _shareStatement(
     final settings = ref.read(appSettingsProvider).value;
     if (settings == null) throw Exception('Configuración no cargada');
 
-    final pdfService = ref.read(pdfGeneratorServiceProvider);
-    await pdfService.generateLoanStatement(
+    await WhatsAppService.shareLoanStatement(
       loan: loan,
       customer: customer,
       payments: payments,
-      allocations: allocations, // Added argument
+      allocations: allocations,
       settings: settings,
-      locale: S.of(context).locale,
+      locale: locale,
     );
   } catch (e) {
     if (context.mounted) {
@@ -239,9 +242,12 @@ Future<void> _shareDisbursementReceipt(
   String loanId,
 ) async {
   try {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(S.of(context).generatingDisbursement)),
-    );
+    final s = S.of(context);
+    final locale = s.locale;
+
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(s.generatingDisbursement)));
 
     final loan = await ref.read(loanByIdProvider(loanId).future);
     if (loan == null) throw Exception('Préstamo no encontrado');
@@ -259,7 +265,7 @@ Future<void> _shareDisbursementReceipt(
       loan: loan,
       customer: customer,
       settings: settings,
-      locale: S.of(context).locale,
+      locale: locale,
     );
   } catch (e) {
     if (context.mounted) {
@@ -279,9 +285,12 @@ Future<void> _shareReceipt(
   Payment payment,
 ) async {
   try {
+    final s = S.of(context);
+    final locale = s.locale;
+
     ScaffoldMessenger.of(
       context,
-    ).showSnackBar(SnackBar(content: Text(S.of(context).generatingReceipt)));
+    ).showSnackBar(SnackBar(content: Text(s.generatingReceipt)));
 
     // Force refresh loan to get updated balance
     final loan = await ref.refresh(loanByIdProvider(payment.loanId).future);
@@ -307,7 +316,7 @@ Future<void> _shareReceipt(
           customer: customer,
           allocations: allocations,
           settings: settings,
-          locale: S.of(context).locale,
+          locale: locale,
         );
   } catch (e) {
     if (context.mounted) {

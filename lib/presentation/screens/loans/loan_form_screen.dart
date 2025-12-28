@@ -9,6 +9,7 @@ import '../../../data/models/customer.dart';
 import '../../../data/models/loan.dart';
 import '../../../data/providers/providers.dart';
 import '../../../core/localization/locale_provider.dart';
+import '../../../services/whatsapp_service.dart';
 
 /// Loan form screen for creating new loans with Riverpod
 class LoanFormScreen extends ConsumerStatefulWidget {
@@ -617,12 +618,12 @@ class _LoanFormScreenState extends ConsumerState<LoanFormScreen> {
         updatedAt: now,
       );
 
-      final success = await ref
+      final createdLoan = await ref
           .read(loansProvider.notifier)
           .addSimpleLoan(loan);
 
       if (mounted) {
-        if (success) {
+        if (createdLoan != null) {
           // Refresh dashboard stats
           ref.read(dashboardProvider.notifier).refresh();
 
@@ -638,6 +639,31 @@ class _LoanFormScreenState extends ConsumerState<LoanFormScreen> {
               backgroundColor: AppColors.success,
             ),
           );
+
+          // Send WhatsApp notification with PDF if enabled (use createdLoan with loanNumber)
+          final settings = ref.read(appSettingsProvider).value;
+          if (settings != null &&
+              settings.shareReceiptsWhatsApp &&
+              _customer != null) {
+            final phone = _customer!.phone ?? '';
+            if (WhatsAppService.isValidNumber(phone)) {
+              // Generate PDF receipt and share via WhatsApp
+              await WhatsAppService.shareDisbursementReceipt(
+                loan: createdLoan,
+                customer: _customer!,
+                settings: settings,
+                locale: Localizations.localeOf(context),
+              );
+            } else if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(S.of(context).noValidWhatsAppNumber),
+                  backgroundColor: AppColors.warning,
+                ),
+              );
+            }
+          }
+
           context.pop();
         } else {
           final error = ref.read(loansProvider).error;

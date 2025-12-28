@@ -309,6 +309,46 @@ class S {
       ? 'Respaldo restaurado exitosamente.\n\nLa aplicación se cerrará para aplicar los cambios. Por favor, vuelva a abrirla.'
       : 'Backup restored successfully.\n\nThe app will close to apply changes. Please reopen it.';
 
+  // ===== WHATSAPP SHARING =====
+  String get shareReceiptsWhatsApp => isSpanish
+      ? 'Enviar comprobantes por WhatsApp'
+      : 'Send receipts via WhatsApp';
+  String get shareReceiptsWhatsAppDesc => isSpanish
+      ? 'Enviar comprobante de desembolso y recibos de pago al cliente después de cada transacción'
+      : 'Send disbursement receipts and payment receipts to customer after each transaction';
+  String get noValidWhatsAppNumber => isSpanish
+      ? 'El cliente no tiene número de WhatsApp válido'
+      : 'Customer has no valid WhatsApp number';
+  String get sendingToWhatsApp =>
+      isSpanish ? 'Abriendo WhatsApp...' : 'Opening WhatsApp...';
+
+  // WhatsApp message templates
+
+  String whatsAppDisbursementMsg(
+    String name,
+    String loanNumber,
+    String amount,
+  ) => isSpanish
+      ? '¡Hola $name! 👋\n\nAquí tienes el comprobante de tu préstamo #$loanNumber por $amount.\n\n¡Gracias por tu preferencia! 🙏'
+      : 'Hello $name! 👋\n\nHere is the receipt for your loan #$loanNumber for $amount.\n\nThank you for your business! 🙏';
+
+  String whatsAppPaymentMsg(String name, String receiptNumber, String amount) =>
+      isSpanish
+      ? '¡Hola $name! 👋\n\nAdjunto el recibo de tu pago #$receiptNumber de $amount.\n\n¡Gracias por tu pago! 🙏'
+      : 'Hello $name! 👋\n\nAttached is your payment receipt #$receiptNumber for $amount.\n\nThank you for your payment! 🙏';
+
+  String whatsAppStatementMsg(String name, String loanNumber) => isSpanish
+      ? '¡Hola $name! 👋\n\nAdjunto su estado de cuenta del préstamo #$loanNumber.\n\nPara cualquier consulta, estamos a la orden. 🤝'
+      : 'Hello $name! 👋\n\nAttached is your account statement for loan #$loanNumber.\n\nLet us know if you have any questions. 🤝';
+
+  String whatsAppBalancePending(String amount) => isSpanish
+      ? 'Tu saldo pendiente es: $amount'
+      : 'Your pending balance is: $amount';
+
+  String get whatsAppLoanCompleted => isSpanish
+      ? '¡Felicidades! Has completado tu préstamo. 🎉'
+      : 'Congratulations! You have completed your loan. 🎉';
+
   // ===== STATUS =====
   String get statusActive => isSpanish ? 'Activo' : 'Active';
   String get statusClosed => isSpanish ? 'Cerrado' : 'Closed';
@@ -415,6 +455,14 @@ class S {
   String get allowMultipleLoansDescDisabled => isSpanish
       ? 'Solo un préstamo activo por cliente'
       : 'Only one active loan per customer';
+  String get validateUniqueDni =>
+      isSpanish ? 'Validar DNI Único' : 'Validate Unique ID';
+  String get validateUniqueDniDesc => isSpanish
+      ? 'Se verificará que no existan clientes con el mismo DNI'
+      : 'Verify no customers exist with the same ID';
+  String get validateUniqueDniDescDisabled => isSpanish
+      ? 'Se permite registrar clientes con DNI duplicado'
+      : 'Allow duplicate ID registration';
   String get toleranceDays =>
       isSpanish ? 'Días de tolerancia' : 'Grace period days';
   String get toleranceDaysDesc => isSpanish
@@ -569,6 +617,29 @@ class S {
       isSpanish ? 'Saldo Restante' : 'Remaining Balance';
   String get dateLabel => isSpanish ? 'Fecha:' : 'Date:'; // explicit with colon
   String get amountGranted => isSpanish ? 'Monto Otorgado:' : 'Amount Granted:';
+
+  // Report Settings
+  String get reportSettings =>
+      isSpanish ? 'Ajustes de Reportes' : 'Report Settings';
+  String get showDisbursementSignatures =>
+      isSpanish ? 'Firmas en entrega' : 'Signatures on disbursement';
+  String get showPaymentSignatures =>
+      isSpanish ? 'Firmas en recibo' : 'Signatures on receipt';
+  String get disbursementLegend =>
+      isSpanish ? 'Leyenda en entrega' : 'Legend on disbursement';
+  String get paymentLegend =>
+      isSpanish ? 'Leyenda en recibo' : 'Legend on receipt';
+  String get legendHint =>
+      isSpanish ? 'Ingrese un texto opcional...' : 'Enter optional text...';
+  String get showLegend => isSpanish ? 'Mostrar leyenda' : 'Show legend';
+
+  // Prefixes
+  String get labelRuc => 'RUC:'; // Same for both commonly
+  String get labelDir => isSpanish ? 'Dir:' : 'Addr:';
+  String get labelTel => isSpanish ? 'Tel:' : 'Ph:';
+  String get labelCel => isSpanish ? 'Cel:' : 'Mob:';
+  String get labelWa => 'WA:'; // Same
+
   String get interestRateLabel =>
       isSpanish ? 'Tasa Interés:' : 'Interest Rate:';
   String get frequencyLabel => isSpanish ? 'Frecuencia:' : 'Frequency:';
@@ -814,6 +885,45 @@ class S {
 
   String get ignoreAndContinue =>
       isSpanish ? 'Ignorar y Continuar' : 'Ignore and Continue';
+
+  // Capital Payment Restriction
+  String get enableCapitalRestriction => isSpanish
+      ? 'Restringir abono al capital por fecha'
+      : 'Restrict capital payment by date';
+  String get enableCapitalRestrictionDesc => isSpanish
+      ? 'Impide abonar al capital cuando el ciclo está por concluir'
+      : 'Prevent capital payment when cycle is concluding';
+  String get capitalRestrictionDays =>
+      isSpanish ? 'Días mínimos antes del corte' : 'Min days before cycle end';
+  String capitalRestrictionDaysDesc(int days) => isSpanish
+      ? 'Restringir abonos si faltan menos de $days días para completar el ciclo'
+      : 'Restrict payments if less than $days days remain in cycle';
+
+  String errorCycleConcluding(int remaining, int required) => isSpanish
+      ? 'No se puede abonar al capital porque el ciclo está por concluir.\n\nFaltan $remaining días para el corte. Solo se permite abonar al capital cuando faltan más de $required días.'
+      : 'Cannot pay principal because the cycle is concluding.\n\n$remaining days left until cutoff. Principal payment is only allowed when more than $required days remain.';
+  String get cycleConcluding =>
+      isSpanish ? 'Ciclo Por Concluir' : 'Cycle Concluding';
+  // ===== ABOUT SCREEN =====
+  String get aboutTitle => isSpanish ? 'Acerca de Prestazo' : 'About Prestazo';
+  String get aboutVersion => isSpanish ? 'Versión' : 'Version';
+  String get aboutTagline =>
+      isSpanish ? 'Tu aliado financiero' : 'Your financial ally';
+  String get aboutDescription => isSpanish
+      ? 'Prestazo es una aplicación diseñada para simplificar la gestión de tus préstamos personales. Con Prestazo, puedes mantener un control total sobre tus clientes, créditos y cobros, todo desde la palma de tu mano.'
+      : 'Prestazo is an app designed to simplify your personal loan management. With Prestazo, you can keep total control over your customers, credits, and collections, all from the palm of your hand.';
+  String get featureCustomers => isSpanish
+      ? 'Gestiona tu cartera de clientes fácilmente.'
+      : 'Manage your customer portfolio easily.';
+  String get featureCalculations => isSpanish
+      ? 'Calcula intereses y amortizaciones automáticamente.'
+      : 'Calculate interest and amortization automatically.';
+  String get featureCollections => isSpanish
+      ? 'Visualiza cobros pendientes por día, semana o mes.'
+      : 'Visualize pending collections by day, week, or month.';
+  String get featureReports => isSpanish
+      ? 'Genera reportes de ganancias y proyección de ingresos.'
+      : 'Generate earnings reports and income projection.';
 }
 
 /// Localizations delegate

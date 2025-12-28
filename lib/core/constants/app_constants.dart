@@ -8,7 +8,8 @@ class AppConstants {
 
   // Database
   static const String databaseName = 'prestamos_app.db';
-  static const int databaseVersion = 13; // Added backup path
+  static const int databaseVersion =
+      16; // Added Capital Payment Restriction settings
 
   // Currency
   static const String defaultCurrency = 'NIO';

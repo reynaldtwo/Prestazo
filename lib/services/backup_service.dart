@@ -252,6 +252,8 @@ class BackupService {
   /// Restore from a backup file
   Future<bool> restoreFromBackup(String backupPath) async {
     debugPrint('=== RESTORE START ===');
+    final dbHelper = DatabaseHelper();
+
     try {
       final backupFile = File(backupPath);
       if (!await backupFile.exists()) {
@@ -262,52 +264,54 @@ class BackupService {
       final backupSize = await backupFile.length();
       debugPrint('Backup file size: $backupSize bytes');
 
-      final dbHelper = DatabaseHelper();
       final dbFile = await _databaseFile;
       final dbPath = dbFile.path;
       debugPrint('Target database path: $dbPath');
 
-      try {
-        _ensureFfiInitialized();
+      _ensureFfiInitialized();
 
-        // 1. Enable maintenance mode
-        debugPrint('Step 1: Setting maintenance mode...');
-        dbHelper.setMaintenanceMode(true);
+      // 1. Enable maintenance mode
+      debugPrint('Step 1: Setting maintenance mode...');
+      dbHelper.setMaintenanceMode(true);
 
-        // 2. Close Database
-        debugPrint('Step 2: Closing database...');
-        await dbHelper.close();
+      // 2. Close Database
+      debugPrint('Step 2: Closing database...');
+      await dbHelper.close();
 
-        // Add delay
-        await Future.delayed(const Duration(milliseconds: 500));
+      // Add delay
+      await Future.delayed(const Duration(milliseconds: 500));
 
-        // 3. Delete database
-        debugPrint('Step 3: Deleting current database...');
-        await databaseFactory.deleteDatabase(dbPath);
+      // 3. Delete database
+      debugPrint('Step 3: Deleting current database...');
+      await databaseFactory.deleteDatabase(dbPath);
 
-        // 4. Copy backup over
-        debugPrint('Step 4: Copying backup file...');
-        if (!await dbFile.parent.exists()) {
-          await dbFile.parent.create(recursive: true);
-        }
-        await backupFile.copy(dbPath);
-
-        // 5. Verify
-        final newDbFile = File(dbPath);
-        if (await newDbFile.exists()) {
-          final newSize = await newDbFile.length();
-          debugPrint('New database size: $newSize bytes');
-        }
-
-        debugPrint('=== RESTORE SUCCESS ===');
-        return true;
-      } finally {
-        dbHelper.setMaintenanceMode(false);
+      // 4. Copy backup over
+      debugPrint('Step 4: Copying backup file...');
+      if (!await dbFile.parent.exists()) {
+        await dbFile.parent.create(recursive: true);
       }
+      await backupFile.copy(dbPath);
+
+      // 5. Verify
+      final newDbFile = File(dbPath);
+      if (await newDbFile.exists()) {
+        final newSize = await newDbFile.length();
+        debugPrint('New database size: $newSize bytes');
+      }
+
+      // 6. Force reset database connection
+      // This ensures onOpen will run and add missing columns
+      debugPrint('Step 6: Force resetting database connection...');
+      await dbHelper.forceReset();
+
+      debugPrint('=== RESTORE SUCCESS ===');
+      return true;
     } catch (e, stackTrace) {
       debugPrint('=== RESTORE ERROR ===');
       debugPrint('Error: $e');
       debugPrint('Stack trace: $stackTrace');
+      // Force reset to clean up any partial state
+      await dbHelper.forceReset();
       return false;
     }
   }

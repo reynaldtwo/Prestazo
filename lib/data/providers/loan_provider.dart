@@ -83,14 +83,15 @@ class LoansNotifier extends StateNotifier<LoansState> {
   }
 
   /// Add loan without predefined cycles - automatically creates first billing cycle
-  Future<bool> addSimpleLoan(Loan loan) async {
+  /// Returns the created loan with loanNumber assigned, or null on failure
+  Future<Loan?> addSimpleLoan(Loan loan) async {
     try {
       final loanRepo = _ref.read(loanRepositoryProvider);
       final cycleRepo = _ref.read(billingCycleRepositoryProvider);
       final customerRepo = _ref.read(customerRepositoryProvider);
 
-      // Insert the loan
-      await loanRepo.insertLoan(loan);
+      // Insert the loan (returns loan with loanNumber assigned)
+      final createdLoan = await loanRepo.insertLoan(loan);
 
       // Get customer for metadata (not frequency - use loan.billingFrequency instead)
       final customer = await customerRepo.getCustomerById(loan.customerId);
@@ -132,10 +133,10 @@ class LoansNotifier extends StateNotifier<LoansState> {
 
       await loadLoans();
       _ref.read(refreshTriggerProvider.notifier).state++;
-      return true;
+      return createdLoan;
     } catch (e) {
       state = state.copyWith(error: e.toString());
-      return false;
+      return null;
     }
   }
 

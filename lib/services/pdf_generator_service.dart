@@ -50,22 +50,15 @@ class PdfGeneratorService {
       pw.MultiPage(
         pageFormat: PdfPageFormat.a4,
         margin: const pw.EdgeInsets.all(32),
-        build: (context) => [
-          _buildHeader(
-            title: s.loanStatement,
-            settings: settings,
-            logo: profileImage,
-            s: s,
-          ),
-          pw.SizedBox(height: 20),
-          _buildCustomerInfo(customer, s),
-          pw.Divider(),
-          _buildLoanInfo(loan, s),
-          pw.SizedBox(height: 20),
-          _buildPaymentsTable(payments, allocations, s),
-          pw.SizedBox(height: 20),
-          _buildSummary(loan, payments, s),
-        ],
+        build: (context) => _buildLoanStatementWidgets(
+          loan: loan,
+          customer: customer,
+          payments: payments,
+          allocations: allocations,
+          settings: settings,
+          s: s,
+          profileImage: profileImage,
+        ),
       ),
     );
 
@@ -74,6 +67,52 @@ class PdfGeneratorService {
       name:
           '${s.loanStatement.replaceAll(" ", "_")}_${customer.displayName}_${loan.loanNumber ?? loan.loanId.substring(0, 6)}',
     );
+  }
+
+  /// Get loan statement as PDF bytes (for sharing via WhatsApp/email)
+  Future<List<int>> getLoanStatementBytes({
+    required Loan loan,
+    required Customer customer,
+    required List<Payment> payments,
+    required List<PaymentAllocation> allocations,
+    required AppSettings settings,
+    required Locale locale,
+  }) async {
+    final s = S(locale);
+    final pdf = pw.Document();
+
+    // Load image if path provided and enabled
+    pw.ImageProvider? profileImage;
+    if (settings.showCompanyLogo &&
+        settings.companyLogoPath != null &&
+        settings.companyLogoPath!.isNotEmpty) {
+      try {
+        final image = await flutterImageProvider(
+          FileImage(File(settings.companyLogoPath!)),
+        );
+        profileImage = image;
+      } catch (e) {
+        // Ignore image error
+      }
+    }
+
+    pdf.addPage(
+      pw.MultiPage(
+        pageFormat: PdfPageFormat.a4,
+        margin: const pw.EdgeInsets.all(32),
+        build: (context) => _buildLoanStatementWidgets(
+          loan: loan,
+          customer: customer,
+          payments: payments,
+          allocations: allocations,
+          settings: settings,
+          s: s,
+          profileImage: profileImage,
+        ),
+      ),
+    );
+
+    return pdf.save();
   }
 
   Future<void> generatePaymentReceipt({
@@ -131,6 +170,60 @@ class PdfGeneratorService {
       name:
           '${s.disbursementReceipt.replaceAll(" ", "_")}_${loan.loanNumber ?? loan.loanId}',
     );
+  }
+
+  /// Get disbursement receipt as PDF bytes (for sharing via WhatsApp/email)
+  /// Uses the same format as generateDisbursementReceipt
+  Future<List<int>> getDisbursementReceiptBytes({
+    required Loan loan,
+    required Customer customer,
+    required AppSettings settings,
+    required Locale locale,
+  }) async {
+    final s = S(locale);
+    final pdf = pw.Document();
+
+    pdf.addPage(
+      pw.Page(
+        pageFormat: PdfPageFormat.roll80,
+        margin: const pw.EdgeInsets.all(10),
+        build: (context) =>
+            _buildDisbursementReceiptContent(loan, customer, settings, s),
+      ),
+    );
+
+    return pdf.save();
+  }
+
+  /// Get payment receipt as PDF bytes (for sharing via WhatsApp/email)
+  /// Uses the same format as generatePaymentReceipt
+  Future<List<int>> getPaymentReceiptBytes({
+    required Payment payment,
+    required Loan loan,
+    required Customer customer,
+    required List<PaymentAllocation> allocations,
+    required AppSettings settings,
+    required Locale locale,
+  }) async {
+    final s = S(locale);
+    final pdf = pw.Document();
+
+    pdf.addPage(
+      pw.Page(
+        pageFormat: PdfPageFormat.roll80,
+        margin: const pw.EdgeInsets.all(10),
+        build: (context) => _buildReceiptContent(
+          payment,
+          loan,
+          customer,
+          allocations,
+          settings,
+          s,
+        ),
+      ),
+    );
+
+    return pdf.save();
   }
 
   Future<void> generateConsolidatedActiveLoansReport({
@@ -356,6 +449,35 @@ class PdfGeneratorService {
     );
   }
 
+  // --- Helper Build Methods ---
+
+  List<pw.Widget> _buildLoanStatementWidgets({
+    required Loan loan,
+    required Customer customer,
+    required List<Payment> payments,
+    required List<PaymentAllocation> allocations,
+    required AppSettings settings,
+    required S s,
+    pw.ImageProvider? profileImage,
+  }) {
+    return [
+      _buildHeader(
+        title: s.loanStatement,
+        settings: settings,
+        logo: profileImage,
+        s: s,
+      ),
+      pw.SizedBox(height: 20),
+      _buildCustomerInfo(customer, s),
+      pw.Divider(),
+      _buildLoanInfo(loan, s),
+      pw.SizedBox(height: 20),
+      _buildPaymentsTable(payments, allocations, s),
+      pw.SizedBox(height: 20),
+      _buildSummary(loan, payments, s),
+    ];
+  }
+
   pw.Widget _buildHeader({
     required String title,
     required AppSettings settings,
@@ -387,13 +509,13 @@ class PdfGeneratorService {
                 ),
               if (settings.showCompanyRuc && settings.companyRuc != null)
                 pw.Text(
-                  'RUC: ${settings.companyRuc}',
+                  '${s.labelRuc} ${settings.companyRuc}',
                   style: const pw.TextStyle(fontSize: 10),
                 ),
               if (settings.showCompanyAddress &&
                   settings.companyAddress != null)
                 pw.Text(
-                  'Dir: ${settings.companyAddress}',
+                  '${s.labelDir} ${settings.companyAddress}',
                   style: const pw.TextStyle(fontSize: 10),
                 ),
               pw.Row(
@@ -401,18 +523,18 @@ class PdfGeneratorService {
                   if (settings.showCompanyPhone &&
                       settings.companyPhone != null)
                     pw.Text(
-                      'Tel: ${settings.companyPhone}  ',
+                      '${s.labelTel} ${settings.companyPhone}  ',
                       style: const pw.TextStyle(fontSize: 10),
                     ),
                   if (settings.showCompanyCell && settings.companyCell != null)
                     pw.Text(
-                      'Cel: ${settings.companyCell}  ',
+                      '${s.labelCel} ${settings.companyCell}  ',
                       style: const pw.TextStyle(fontSize: 10),
                     ),
                   if (settings.showCompanyWhatsapp &&
                       settings.companyWhatsapp != null)
                     pw.Text(
-                      'WA: ${settings.companyWhatsapp}',
+                      '${s.labelWa} ${settings.companyWhatsapp}',
                       style: const pw.TextStyle(fontSize: 10),
                     ),
                 ],
@@ -448,7 +570,9 @@ class PdfGeneratorService {
           style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
         ),
         pw.Text(customer.displayName),
-        pw.Text('${s.dniLabel} ${customer.customerId}'),
+        // FIX: Display DNI if available instead of customerId (uuid)
+        if (customer.dni != null) pw.Text('${s.dniLabel} ${customer.dni}'),
+
         if (customer.phone != null)
           pw.Text('${s.customerPhone}: ${customer.phone!}'),
         if (customer.address != null)
@@ -570,17 +694,17 @@ class PdfGeneratorService {
           ),
         if (settings.showCompanyRuc && settings.companyRuc != null)
           pw.Text(
-            'RUC: ${settings.companyRuc}',
+            '${s.labelRuc} ${settings.companyRuc}',
             style: const pw.TextStyle(fontSize: 8),
           ),
         if (settings.showCompanyPhone && settings.companyPhone != null)
           pw.Text(
-            'Tel: ${settings.companyPhone}',
+            '${s.labelTel} ${settings.companyPhone}',
             style: const pw.TextStyle(fontSize: 8),
           ),
         if (settings.showCompanyAddress && settings.companyAddress != null)
           pw.Text(
-            'Dir: ${settings.companyAddress}',
+            '${s.labelDir} ${settings.companyAddress}',
             style: const pw.TextStyle(fontSize: 8),
             textAlign: pw.TextAlign.center,
           ),
@@ -650,28 +774,41 @@ class PdfGeneratorService {
             ],
           ),
 
-        pw.SizedBox(height: 30),
+        if (settings.showDisbursementSignatures) ...[
+          pw.SizedBox(height: 30),
+          pw.Row(
+            mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+            children: [
+              pw.Column(
+                children: [
+                  pw.Container(width: 80, height: 1, color: PdfColors.black),
+                  pw.SizedBox(height: 2),
+                  pw.Text(
+                    s.deliveredBy,
+                    style: const pw.TextStyle(fontSize: 8),
+                  ),
+                ],
+              ),
+              pw.Column(
+                children: [
+                  pw.Container(width: 80, height: 1, color: PdfColors.black),
+                  pw.SizedBox(height: 2),
+                  pw.Text(s.receivedBy, style: const pw.TextStyle(fontSize: 8)),
+                ],
+              ),
+            ],
+          ),
+        ],
 
-        // Signatures
-        pw.Row(
-          mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-          children: [
-            pw.Column(
-              children: [
-                pw.Container(width: 80, height: 1, color: PdfColors.black),
-                pw.SizedBox(height: 2),
-                pw.Text(s.deliveredBy, style: const pw.TextStyle(fontSize: 8)),
-              ],
-            ),
-            pw.Column(
-              children: [
-                pw.Container(width: 80, height: 1, color: PdfColors.black),
-                pw.SizedBox(height: 2),
-                pw.Text(s.receivedBy, style: const pw.TextStyle(fontSize: 8)),
-              ],
-            ),
-          ],
-        ),
+        if (settings.showDisbursementLegend &&
+            (settings.disbursementLegend?.isNotEmpty ?? false)) ...[
+          pw.SizedBox(height: 20),
+          pw.Text(
+            settings.disbursementLegend!,
+            style: pw.TextStyle(fontSize: 8.0, fontStyle: pw.FontStyle.italic),
+            textAlign: pw.TextAlign.center,
+          ),
+        ],
 
         pw.SizedBox(height: 20),
         pw.Center(child: pw.Text(s.thankYouPreference)),
@@ -724,12 +861,12 @@ class PdfGeneratorService {
           ),
         if (settings.showCompanyRuc && settings.companyRuc != null)
           pw.Text(
-            'RUC: ${settings.companyRuc}',
+            '${s.labelRuc} ${settings.companyRuc}',
             style: const pw.TextStyle(fontSize: 8),
           ),
         if (settings.showCompanyPhone && settings.companyPhone != null)
           pw.Text(
-            'Tel: ${settings.companyPhone}',
+            '${s.labelTel} ${settings.companyPhone}',
             style: const pw.TextStyle(fontSize: 8),
           ),
 
@@ -777,6 +914,42 @@ class PdfGeneratorService {
         pw.Text(
           '${s.remainingBalance}: ${_currencyFormat.format(loan.principalBalance)}',
         ),
+        if (settings.showPaymentSignatures) ...[
+          pw.SizedBox(height: 30),
+          pw.Row(
+            mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+            children: [
+              pw.Column(
+                children: [
+                  pw.Container(width: 80, height: 1, color: PdfColors.black),
+                  pw.SizedBox(height: 2),
+                  pw.Text(
+                    s.deliveredBy,
+                    style: const pw.TextStyle(fontSize: 8),
+                  ),
+                ],
+              ),
+              pw.Column(
+                children: [
+                  pw.Container(width: 80, height: 1, color: PdfColors.black),
+                  pw.SizedBox(height: 2),
+                  pw.Text(s.receivedBy, style: const pw.TextStyle(fontSize: 8)),
+                ],
+              ),
+            ],
+          ),
+        ],
+
+        if (settings.showPaymentLegend &&
+            (settings.paymentLegend?.isNotEmpty ?? false)) ...[
+          pw.SizedBox(height: 20),
+          pw.Text(
+            settings.paymentLegend!,
+            style: pw.TextStyle(fontSize: 8.0, fontStyle: pw.FontStyle.italic),
+            textAlign: pw.TextAlign.center,
+          ),
+        ],
+
         pw.SizedBox(height: 20),
         pw.Center(child: pw.Text(s.thankYouPayment)),
       ],

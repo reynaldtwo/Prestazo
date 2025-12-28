@@ -64,7 +64,95 @@ class DatabaseHelper {
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
       onConfigure: _onConfigure,
+      onOpen: _onOpen,
     );
+  }
+
+  /// Called every time the database is opened - ensures all columns exist
+  Future<void> _onOpen(Database db) async {
+    debugPrint('Database opened, checking for missing columns...');
+
+    // Check and add share_receipts_whatsapp column if missing
+    try {
+      final result = await db.rawQuery(
+        "SELECT COUNT(*) as cnt FROM pragma_table_info('app_settings') WHERE name='share_receipts_whatsapp'",
+      );
+      final hasColumn = (result.first['cnt'] as int) > 0;
+      if (!hasColumn) {
+        debugPrint('Adding missing column: share_receipts_whatsapp');
+        await db.execute(
+          'ALTER TABLE app_settings ADD COLUMN share_receipts_whatsapp INTEGER DEFAULT 0',
+        );
+      }
+    } catch (e) {
+      debugPrint('Error checking/adding share_receipts_whatsapp: $e');
+    }
+
+    // Check and add backup_path column if missing
+    try {
+      final result = await db.rawQuery(
+        "SELECT COUNT(*) as cnt FROM pragma_table_info('app_settings') WHERE name='backup_path'",
+      );
+      final hasColumn = (result.first['cnt'] as int) > 0;
+      if (!hasColumn) {
+        debugPrint('Adding missing column: backup_path');
+        await db.execute(
+          'ALTER TABLE app_settings ADD COLUMN backup_path TEXT',
+        );
+      }
+    } catch (e) {
+      debugPrint('Error checking/adding backup_path: $e');
+    }
+
+    // Check and add new report settings columns (v15)
+    final v15Columns = [
+      {'name': 'show_disbursement_signatures', 'def': 'INTEGER DEFAULT 1'},
+      {'name': 'show_payment_signatures', 'def': 'INTEGER DEFAULT 1'},
+      {'name': 'disbursement_legend', 'def': 'TEXT'},
+      {'name': 'show_disbursement_legend', 'def': 'INTEGER DEFAULT 0'},
+      {'name': 'payment_legend', 'def': 'TEXT'},
+      {'name': 'show_payment_legend', 'def': 'INTEGER DEFAULT 0'},
+    ];
+
+    for (final col in v15Columns) {
+      try {
+        final result = await db.rawQuery(
+          "SELECT COUNT(*) as cnt FROM pragma_table_info('app_settings') WHERE name='${col['name']}'",
+        );
+        final hasColumn = (result.first['cnt'] as int) > 0;
+        if (!hasColumn) {
+          debugPrint('Adding missing column: ${col['name']}');
+          await db.execute(
+            'ALTER TABLE app_settings ADD COLUMN ${col['name']} ${col['def']}',
+          );
+        }
+      } catch (e) {
+        debugPrint('Error checking/adding ${col['name']}: $e');
+      }
+    }
+
+    // Check and add capital restriction settings columns (v16)
+    final v16Columns = [
+      {'name': 'enable_capital_restriction', 'def': 'INTEGER DEFAULT 1'},
+      {'name': 'capital_restriction_days', 'def': 'INTEGER DEFAULT 10'},
+    ];
+
+    for (final col in v16Columns) {
+      try {
+        final result = await db.rawQuery(
+          "SELECT COUNT(*) as cnt FROM pragma_table_info('app_settings') WHERE name='${col['name']}'",
+        );
+        final hasColumn = (result.first['cnt'] as int) > 0;
+        if (!hasColumn) {
+          debugPrint('Adding missing column: ${col['name']}');
+          await db.execute(
+            'ALTER TABLE app_settings ADD COLUMN ${col['name']} ${col['def']}',
+          );
+        }
+      } catch (e) {
+        debugPrint('Error checking/adding ${col['name']}: $e');
+      }
+    }
   }
 
   /// Configure database (enable foreign keys, WAL mode, busy timeout)
@@ -119,6 +207,15 @@ class DatabaseHelper {
         company_logo_path TEXT,
         show_company_logo INTEGER NOT NULL DEFAULT 0,
         backup_path TEXT,
+        share_receipts_whatsapp INTEGER NOT NULL DEFAULT 0,
+        show_disbursement_signatures INTEGER NOT NULL DEFAULT 1,
+        show_payment_signatures INTEGER NOT NULL DEFAULT 1,
+        disbursement_legend TEXT,
+        show_disbursement_legend INTEGER NOT NULL DEFAULT 0,
+        payment_legend TEXT,
+        show_payment_legend INTEGER NOT NULL DEFAULT 0,
+        enable_capital_restriction INTEGER NOT NULL DEFAULT 1,
+        capital_restriction_days INTEGER NOT NULL DEFAULT 10,
         created_at TEXT NOT NULL,
         updated_at TEXT NOT NULL
       )
@@ -491,6 +588,60 @@ class DatabaseHelper {
         );
       } catch (_) {}
     }
+    // Migration from v13 to v14 (WhatsApp receipts sharing)
+    if (oldVersion < 14) {
+      try {
+        await db.execute(
+          'ALTER TABLE app_settings ADD COLUMN share_receipts_whatsapp INTEGER DEFAULT 0',
+        );
+      } catch (_) {}
+    }
+    // Migration from v14 to v15 (Report settings)
+    if (oldVersion < 15) {
+      try {
+        await db.execute(
+          'ALTER TABLE app_settings ADD COLUMN show_disbursement_signatures INTEGER DEFAULT 1',
+        );
+      } catch (_) {}
+      try {
+        await db.execute(
+          'ALTER TABLE app_settings ADD COLUMN show_payment_signatures INTEGER DEFAULT 1',
+        );
+      } catch (_) {}
+      try {
+        await db.execute(
+          'ALTER TABLE app_settings ADD COLUMN disbursement_legend TEXT',
+        );
+      } catch (_) {}
+      try {
+        await db.execute(
+          'ALTER TABLE app_settings ADD COLUMN show_disbursement_legend INTEGER DEFAULT 0',
+        );
+      } catch (_) {}
+      try {
+        await db.execute(
+          'ALTER TABLE app_settings ADD COLUMN payment_legend TEXT',
+        );
+      } catch (_) {}
+      try {
+        await db.execute(
+          'ALTER TABLE app_settings ADD COLUMN show_payment_legend INTEGER DEFAULT 0',
+        );
+      } catch (_) {}
+    }
+    // Migration from v15 to v16 (Capital Payment Restriction)
+    if (oldVersion < 16) {
+      try {
+        await db.execute(
+          'ALTER TABLE app_settings ADD COLUMN enable_capital_restriction INTEGER DEFAULT 1',
+        );
+      } catch (_) {}
+      try {
+        await db.execute(
+          'ALTER TABLE app_settings ADD COLUMN capital_restriction_days INTEGER DEFAULT 10',
+        );
+      } catch (_) {}
+    }
     // Run data fix on upgrade
     await fixInterestCalculations();
   }
@@ -551,6 +702,103 @@ class DatabaseHelper {
     return fixedCount;
   }
 
+  /// Upgrade a restored database to ensure it has all latest columns
+  /// This is called after restoring from a backup to add any missing columns
+  /// Opens the database directly without using the cached connection
+  Future<void> upgradeRestoredDatabase() async {
+    debugPrint('=== UPGRADING RESTORED DATABASE ===');
+
+    // Get database path
+    final dbPath = await getDatabasePath();
+    debugPrint('Database path: $dbPath');
+
+    // Ensure FFI is initialized for desktop
+    if (!kIsWeb &&
+        (io.Platform.isWindows || io.Platform.isLinux || io.Platform.isMacOS)) {
+      sqfliteFfiInit();
+      databaseFactory = databaseFactoryFfi;
+    }
+
+    // Open database directly (not through cached getter)
+    Database? db;
+    try {
+      db = await databaseFactory.openDatabase(dbPath);
+      debugPrint('Database opened for upgrade');
+
+      // Check and add share_receipts_whatsapp column if missing
+      try {
+        final result = await db.rawQuery(
+          "SELECT COUNT(*) as cnt FROM pragma_table_info('app_settings') WHERE name='share_receipts_whatsapp'",
+        );
+        final hasColumn = (result.first['cnt'] as int) > 0;
+        if (!hasColumn) {
+          debugPrint('Adding missing column: share_receipts_whatsapp');
+          await db.execute(
+            'ALTER TABLE app_settings ADD COLUMN share_receipts_whatsapp INTEGER DEFAULT 0',
+          );
+          debugPrint('Column share_receipts_whatsapp added successfully');
+        } else {
+          debugPrint('Column share_receipts_whatsapp already exists');
+        }
+      } catch (e) {
+        debugPrint('Error checking/adding share_receipts_whatsapp: $e');
+      }
+
+      // Check and add backup_path column if missing (v13)
+      try {
+        final result = await db.rawQuery(
+          "SELECT COUNT(*) as cnt FROM pragma_table_info('app_settings') WHERE name='backup_path'",
+        );
+        final hasColumn = (result.first['cnt'] as int) > 0;
+        if (!hasColumn) {
+          debugPrint('Adding missing column: backup_path');
+          await db.execute(
+            'ALTER TABLE app_settings ADD COLUMN backup_path TEXT',
+          );
+          debugPrint('Column backup_path added successfully');
+        } else {
+          debugPrint('Column backup_path already exists');
+        }
+      } catch (e) {
+        debugPrint('Error checking/adding backup_path: $e');
+      }
+
+      // Check and add capital restriction columns (v16)
+      final v16Columns = [
+        {'name': 'enable_capital_restriction', 'def': 'INTEGER DEFAULT 1'},
+        {'name': 'capital_restriction_days', 'def': 'INTEGER DEFAULT 10'},
+      ];
+
+      for (final col in v16Columns) {
+        try {
+          final result = await db.rawQuery(
+            "SELECT COUNT(*) as cnt FROM pragma_table_info('app_settings') WHERE name='${col['name']}'",
+          );
+          final hasColumn = (result.first['cnt'] as int) > 0;
+          if (!hasColumn) {
+            debugPrint('Adding missing column: ${col['name']}');
+            await db.execute(
+              'ALTER TABLE app_settings ADD COLUMN ${col['name']} ${col['def']}',
+            );
+            debugPrint('Column ${col['name']} added successfully');
+          } else {
+            debugPrint('Column ${col['name']} already exists');
+          }
+        } catch (e) {
+          debugPrint('Error checking/adding ${col['name']}: $e');
+        }
+      }
+
+      debugPrint('=== UPGRADE COMPLETE ===');
+    } finally {
+      // Close the direct connection
+      if (db != null && db.isOpen) {
+        await db.close();
+        debugPrint('Database closed after upgrade');
+      }
+    }
+  }
+
   /// Close database
   /// Close database
   Future<void> close() async {
@@ -560,6 +808,24 @@ class DatabaseHelper {
       }
       _database = null;
     }
+  }
+
+  /// Force reset database connection after restore
+  /// This ensures the next database access will reinitialize and run onOpen
+  Future<void> forceReset() async {
+    debugPrint('=== FORCE RESET DATABASE CONNECTION ===');
+    try {
+      if (_database != null) {
+        if (_database!.isOpen) {
+          await _database!.close();
+        }
+      }
+    } catch (e) {
+      debugPrint('Error closing database during reset: $e');
+    }
+    _database = null;
+    _isMaintenanceMode = false;
+    debugPrint('Database connection reset, will reinitialize on next access');
   }
 
   /// Force WAL checkpoint to merge data into the main file

@@ -30,6 +30,19 @@ class AppSettings extends Equatable {
   final String? companyLogoPath;
   final bool showCompanyLogo;
   final String? backupPath;
+  final bool shareReceiptsWhatsApp;
+
+  // Report settings
+  final bool showDisbursementSignatures;
+  final bool showPaymentSignatures;
+  final String? disbursementLegend;
+  final bool showDisbursementLegend;
+  final String? paymentLegend;
+  final bool showPaymentLegend;
+
+  // Capital Payment Restriction
+  final bool enableCapitalRestriction;
+  final int capitalRestrictionDays;
 
   final DateTime createdAt;
   final DateTime updatedAt;
@@ -63,6 +76,15 @@ class AppSettings extends Equatable {
     this.companyLogoPath,
     this.showCompanyLogo = false,
     this.backupPath,
+    this.shareReceiptsWhatsApp = false,
+    this.showDisbursementSignatures = true,
+    this.showPaymentSignatures = true,
+    this.disbursementLegend,
+    this.showDisbursementLegend = false,
+    this.paymentLegend,
+    this.showPaymentLegend = false,
+    this.enableCapitalRestriction = true,
+    this.capitalRestrictionDays = 10,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -106,6 +128,18 @@ class AppSettings extends Equatable {
       companyLogoPath: map['company_logo_path'] as String?,
       showCompanyLogo: (map['show_company_logo'] as int? ?? 0) == 1,
       backupPath: map['backup_path'] as String?,
+      shareReceiptsWhatsApp: (map['share_receipts_whatsapp'] as int? ?? 0) == 1,
+      showDisbursementSignatures:
+          (map['show_disbursement_signatures'] as int? ?? 1) == 1,
+      showPaymentSignatures: (map['show_payment_signatures'] as int? ?? 1) == 1,
+      disbursementLegend: map['disbursement_legend'] as String?,
+      showDisbursementLegend:
+          (map['show_disbursement_legend'] as int? ?? 0) == 1,
+      paymentLegend: map['payment_legend'] as String?,
+      showPaymentLegend: (map['show_payment_legend'] as int? ?? 0) == 1,
+      enableCapitalRestriction:
+          (map['enable_capital_restriction'] as int? ?? 1) == 1,
+      capitalRestrictionDays: map['capital_restriction_days'] as int? ?? 10,
       createdAt: DateTime.parse(map['created_at'] as String),
       updatedAt: DateTime.parse(map['updated_at'] as String),
     );
@@ -142,6 +176,15 @@ class AppSettings extends Equatable {
       'company_logo_path': companyLogoPath,
       'show_company_logo': showCompanyLogo ? 1 : 0,
       'backup_path': backupPath,
+      'share_receipts_whatsapp': shareReceiptsWhatsApp ? 1 : 0,
+      'show_disbursement_signatures': showDisbursementSignatures ? 1 : 0,
+      'show_payment_signatures': showPaymentSignatures ? 1 : 0,
+      'disbursement_legend': disbursementLegend,
+      'show_disbursement_legend': showDisbursementLegend ? 1 : 0,
+      'payment_legend': paymentLegend,
+      'show_payment_legend': showPaymentLegend ? 1 : 0,
+      'enable_capital_restriction': enableCapitalRestriction ? 1 : 0,
+      'capital_restriction_days': capitalRestrictionDays,
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
     };
@@ -176,6 +219,15 @@ class AppSettings extends Equatable {
     String? companyLogoPath,
     bool? showCompanyLogo,
     String? backupPath,
+    bool? shareReceiptsWhatsApp,
+    bool? showDisbursementSignatures,
+    bool? showPaymentSignatures,
+    String? disbursementLegend,
+    bool? showDisbursementLegend,
+    String? paymentLegend,
+    bool? showPaymentLegend,
+    bool? enableCapitalRestriction,
+    int? capitalRestrictionDays,
     DateTime? updatedAt,
   }) {
     return AppSettings(
@@ -208,6 +260,21 @@ class AppSettings extends Equatable {
       companyLogoPath: companyLogoPath ?? this.companyLogoPath,
       showCompanyLogo: showCompanyLogo ?? this.showCompanyLogo,
       backupPath: backupPath ?? this.backupPath,
+      shareReceiptsWhatsApp:
+          shareReceiptsWhatsApp ?? this.shareReceiptsWhatsApp,
+      showDisbursementSignatures:
+          showDisbursementSignatures ?? this.showDisbursementSignatures,
+      showPaymentSignatures:
+          showPaymentSignatures ?? this.showPaymentSignatures,
+      disbursementLegend: disbursementLegend ?? this.disbursementLegend,
+      showDisbursementLegend:
+          showDisbursementLegend ?? this.showDisbursementLegend,
+      paymentLegend: paymentLegend ?? this.paymentLegend,
+      showPaymentLegend: showPaymentLegend ?? this.showPaymentLegend,
+      enableCapitalRestriction:
+          enableCapitalRestriction ?? this.enableCapitalRestriction,
+      capitalRestrictionDays:
+          capitalRestrictionDays ?? this.capitalRestrictionDays,
       createdAt: createdAt,
       updatedAt: updatedAt ?? DateTime.now(),
     );
@@ -249,6 +316,15 @@ class AppSettings extends Equatable {
     companyLogoPath,
     showCompanyLogo,
     backupPath,
+    shareReceiptsWhatsApp,
+    showDisbursementSignatures,
+    showPaymentSignatures,
+    disbursementLegend,
+    showDisbursementLegend,
+    paymentLegend,
+    showPaymentLegend,
+    enableCapitalRestriction,
+    capitalRestrictionDays,
     createdAt,
     updatedAt,
   ];

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/widgets.dart';
+import '../../../../core/localization/locale_provider.dart';
 
 class AboutScreen extends ConsumerWidget {
   const AboutScreen({super.key});
@@ -10,7 +11,7 @@ class AboutScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Acerca de Prestazo')),
+      appBar: AppBar(title: Text(S.of(context).aboutTitle)),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Column(
@@ -45,7 +46,7 @@ class AboutScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              'Versión 1.0.0',
+              '${S.of(context).aboutVersion} 1.0.0',
               style: AppTypography.bodyMedium.copyWith(
                 color: AppColors.textSecondary,
               ),
@@ -59,37 +60,32 @@ class AboutScreen extends ConsumerWidget {
                 child: Column(
                   children: [
                     Text(
-                      'Tu aliado financiero',
+                      S.of(context).aboutTagline,
                       style: AppTypography.titleMedium,
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      'Prestazo es una aplicación diseñada para simplificar la gestión de tus préstamos personales. '
-                      'Con Prestazo, puedes mantener un control total sobre tus clientes, créditos y cobros, '
-                      'todo desde la palma de tu mano.',
+                      S.of(context).aboutDescription,
                       style: AppTypography.bodyMedium,
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 24),
                     _buildFeatureItem(
                       icon: Icons.people,
-                      text: 'Gestiona tu cartera de clientes fácilmente.',
+                      text: S.of(context).featureCustomers,
                     ),
                     _buildFeatureItem(
                       icon: Icons.monetization_on,
-                      text:
-                          'Calcula intereses y amortizaciones automáticamente.',
+                      text: S.of(context).featureCalculations,
                     ),
                     _buildFeatureItem(
                       icon: Icons.calendar_today,
-                      text:
-                          'Visualiza cobros pendientes por día, semana o mes.',
+                      text: S.of(context).featureCollections,
                     ),
                     _buildFeatureItem(
                       icon: Icons.bar_chart,
-                      text:
-                          'Genera reportes de ganancias y proyección de ingresos.',
+                      text: S.of(context).featureReports,
                     ),
                   ],
                 ),

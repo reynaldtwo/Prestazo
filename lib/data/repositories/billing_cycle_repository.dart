@@ -311,4 +311,18 @@ class BillingCycleRepository {
     if (maps.isEmpty) return null;
     return BillingCycle.fromMap(maps.first);
   }
+
+  /// Get active billing cycle for a loan by date (regardless of status)
+  Future<BillingCycle?> getActiveCycle(String loanId, DateTime date) async {
+    final db = await _databaseHelper.database;
+    final dateStr = date.toIso8601String().split('T')[0];
+    final maps = await db.query(
+      'billing_cycles',
+      where: 'loan_id = ? AND period_start_date <= ? AND period_end_date >= ?',
+      whereArgs: [loanId, dateStr, dateStr],
+      limit: 1,
+    );
+    if (maps.isEmpty) return null;
+    return BillingCycle.fromMap(maps.first);
+  }
 }

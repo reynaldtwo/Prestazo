@@ -166,14 +166,13 @@ class PaymentRepository {
   }
 
   /// Insert payment with allocations (transaction)
-  /// Insert payment with allocations (transaction)
   Future<Payment> insertPaymentWithAllocations(
     Payment payment,
     List<PaymentAllocation> allocations,
   ) async {
     final db = await _databaseHelper.database;
 
-    await db.transaction((txn) async {
+    return await db.transaction((txn) async {
       // 1. Get next receipt number from settings
       final settingsResult = await txn.query(
         'app_settings',
@@ -275,9 +274,9 @@ class PaymentRepository {
           ['PAID', allocation.billingCycleId],
         );
       }
-    });
 
-    return payment;
+      return paymentWithNumber;
+    });
   }
 
   /// Insert simple payment (no allocations)
@@ -462,7 +461,7 @@ class PaymentRepository {
   }) async {
     final db = await _databaseHelper.database;
 
-    await db.transaction((txn) async {
+    return await db.transaction((txn) async {
       // 1. Get next receipt number
       final settingsResult = await txn.query(
         'app_settings',
@@ -540,8 +539,8 @@ class PaymentRepository {
           ],
         );
       }
-    });
 
-    return payment;
+      return paymentWithNumber;
+    });
   }
 }

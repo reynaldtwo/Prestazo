@@ -11,12 +11,12 @@ import '../../../core/theme/app_typography.dart';
 import '../../../core/widgets/widgets.dart';
 import '../../../data/providers/database_providers.dart';
 import '../../../data/models/app_settings.dart';
-import '../../../data/providers/dashboard_provider.dart';
-import '../../../data/providers/loan_provider.dart';
 import '../../../services/services.dart';
 import '../../../core/theme/theme_provider.dart';
 import 'package:file_picker/file_picker.dart';
 import '../../../core/localization/locale_provider.dart';
+import '../../../core/constants/app_info_texts.dart';
+import '../../../core/widgets/app_info_dialog.dart';
 
 /// Settings screen for app configuration
 class SettingsScreen extends ConsumerStatefulWidget {
@@ -38,13 +38,27 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   bool _dailyAccrualEnabled = false;
   bool _allowMultipleLoans = false;
   bool _validateDni = false;
+  bool _shareReceiptsWhatsApp = false;
+  bool _enableCapitalRestriction = true;
+  int _capitalRestrictionDays = 10;
   bool _isLoaded = false;
+
+  // Report settings state
+  bool _showDisbursementSignatures = true;
+  bool _showPaymentSignatures = true;
+  bool _showDisbursementLegend = false;
+  bool _showPaymentLegend = false;
+  final _disbursementLegendController = TextEditingController();
+  final _paymentLegendController = TextEditingController();
 
   @override
   void dispose() {
     _capitalController.dispose();
     _loanNumberController.dispose();
+    _loanNumberController.dispose();
     _receiptNumberController.dispose();
+    _disbursementLegendController.dispose();
+    _paymentLegendController.dispose();
     super.dispose();
   }
 
@@ -60,6 +74,15 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     _dailyAccrualEnabled = settings.dailyAccrualEnabled;
     _allowMultipleLoans = settings.allowMultipleLoans;
     _validateDni = settings.validateDni;
+    _validateDni = settings.validateDni;
+    _shareReceiptsWhatsApp = settings.shareReceiptsWhatsApp;
+    _enableCapitalRestriction = settings.enableCapitalRestriction;
+    _capitalRestrictionDays = settings.capitalRestrictionDays;
+
+    _showDisbursementSignatures = settings.showDisbursementSignatures;
+    _showPaymentSignatures = settings.showPaymentSignatures;
+    _showDisbursementLegend = settings.showDisbursementLegend;
+    _showPaymentLegend = settings.showPaymentLegend;
 
     // Only update text controllers if they are empty (first load)
     // or if we want to force sync (like loan number which changes externally)
@@ -67,6 +90,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       _capitalController.text = _availableCapital > 0
           ? _availableCapital.toStringAsFixed(0)
           : '';
+      _disbursementLegendController.text = settings.disbursementLegend ?? '';
+      _paymentLegendController.text = settings.paymentLegend ?? '';
       _isLoaded = true;
     }
 
@@ -179,6 +204,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 _buildSequencesCard(),
                 const SizedBox(height: 24),
                 Text(
+                  S.of(context).reportSettings,
+                  style: AppTypography.titleLarge,
+                ),
+                const SizedBox(height: 16),
+                _buildReportSettingsCard(),
+                const SizedBox(height: 24),
+                Text(
                   S.of(context).maintenance,
                   style: AppTypography.titleLarge,
                 ),
@@ -222,9 +254,35 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  S.of(context).availableCapital,
-                  style: AppTypography.bodyMedium,
+                Row(
+                  children: [
+                    Text(
+                      S.of(context).availableCapital,
+                      style: AppTypography.bodyMedium,
+                    ),
+                    const SizedBox(width: 8),
+                    InkWell(
+                      onTap: () {
+                        final isSpanish = S.of(context).isSpanish;
+                        showAppInfoDialog(
+                          context,
+                          title: AppInfoTexts.availableCapitalTitle(isSpanish),
+                          info: AppInfoTexts.availableCapitalDescription(
+                            isSpanish,
+                          ),
+                        );
+                      },
+                      borderRadius: BorderRadius.circular(12),
+                      child: Padding(
+                        padding: const EdgeInsets.all(4.0),
+                        child: Icon(
+                          Icons.info_outline_rounded,
+                          size: 18,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 4),
                 Text(
@@ -298,6 +356,24 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               setState(() => _capitalizeInterest = v);
               _saveSetting('capitalize_unpaid_interest', v ? 1 : 0);
             },
+            secondary: InkWell(
+              onTap: () {
+                final isSpanish = S.of(context).isSpanish;
+                showAppInfoDialog(
+                  context,
+                  title: AppInfoTexts.capitalizeInterestTitle(isSpanish),
+                  info: AppInfoTexts.capitalizeInterestDescription(isSpanish),
+                );
+              },
+              borderRadius: BorderRadius.circular(12),
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Icon(
+                  Icons.info_outline_rounded,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+              ),
+            ),
           ),
           SwitchListTile(
             title: Text(S.of(context).dailyAccrual),
@@ -307,6 +383,24 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               setState(() => _dailyAccrualEnabled = v);
               _saveSetting('daily_accrual_enabled', v ? 1 : 0);
             },
+            secondary: InkWell(
+              onTap: () {
+                final isSpanish = S.of(context).isSpanish;
+                showAppInfoDialog(
+                  context,
+                  title: AppInfoTexts.dailyAccrualTitle(isSpanish),
+                  info: AppInfoTexts.dailyAccrualDescription(isSpanish),
+                );
+              },
+              borderRadius: BorderRadius.circular(12),
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Icon(
+                  Icons.info_outline_rounded,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+              ),
+            ),
           ),
           SwitchListTile(
             title: Text(S.of(context).allowMultipleLoans),
@@ -323,13 +417,31 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               setState(() => _allowMultipleLoans = v);
               _saveSetting('allow_multiple_loans', v ? 1 : 0);
             },
+            secondary: InkWell(
+              onTap: () {
+                final isSpanish = S.of(context).isSpanish;
+                showAppInfoDialog(
+                  context,
+                  title: AppInfoTexts.allowMultipleLoansTitle(isSpanish),
+                  info: AppInfoTexts.allowMultipleLoansDescription(isSpanish),
+                );
+              },
+              borderRadius: BorderRadius.circular(12),
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Icon(
+                  Icons.info_outline_rounded,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+              ),
+            ),
           ),
           SwitchListTile(
-            title: const Text('Validar DNI Único'),
+            title: Text(S.of(context).validateUniqueDni),
             subtitle: Text(
               _validateDni
-                  ? 'Se verificará que no existan clientes con el mismo DNI'
-                  : 'Se permite registrar clientes con DNI duplicado',
+                  ? S.of(context).validateUniqueDniDesc
+                  : S.of(context).validateUniqueDniDescDisabled,
               style: AppTypography.bodySmall.copyWith(
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
@@ -339,146 +451,402 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               setState(() => _validateDni = v);
               _saveSetting('validate_dni', v ? 1 : 0);
             },
+            secondary: InkWell(
+              onTap: () {
+                final isSpanish = S.of(context).isSpanish;
+                showAppInfoDialog(
+                  context,
+                  title: AppInfoTexts.validateDniTitle(isSpanish),
+                  info: AppInfoTexts.validateDniDescription(isSpanish),
+                );
+              },
+              borderRadius: BorderRadius.circular(12),
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Icon(
+                  Icons.info_outline_rounded,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+              ),
+            ),
           ),
+          SwitchListTile(
+            title: Text(S.of(context).shareReceiptsWhatsApp),
+            subtitle: Text(
+              S.of(context).shareReceiptsWhatsAppDesc,
+              style: AppTypography.bodySmall.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ),
+            value: _shareReceiptsWhatsApp,
+            onChanged: (v) {
+              setState(() => _shareReceiptsWhatsApp = v);
+              _saveSetting('share_receipts_whatsapp', v ? 1 : 0);
+            },
+            secondary: InkWell(
+              onTap: () {
+                final isSpanish = S.of(context).isSpanish;
+                showAppInfoDialog(
+                  context,
+                  title: AppInfoTexts.whatsappReceiptsTitle(isSpanish),
+                  info: AppInfoTexts.whatsappReceiptsDescription(isSpanish),
+                );
+              },
+              borderRadius: BorderRadius.circular(12),
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Icon(
+                  Icons.info_outline_rounded,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+              ),
+            ),
+          ),
+          SwitchListTile(
+            title: Text(S.of(context).enableCapitalRestriction),
+            subtitle: Text(S.of(context).enableCapitalRestrictionDesc),
+            value: _enableCapitalRestriction,
+            onChanged: (v) {
+              setState(() => _enableCapitalRestriction = v);
+              _saveSetting('enable_capital_restriction', v ? 1 : 0);
+            },
+            secondary: InkWell(
+              onTap: () {
+                final isSpanish = S.of(context).isSpanish;
+                showAppInfoDialog(
+                  context,
+                  title: AppInfoTexts.capitalRestrictionTitle(isSpanish),
+                  info: AppInfoTexts.capitalRestrictionDescription(isSpanish),
+                );
+              },
+              borderRadius: BorderRadius.circular(12),
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Icon(
+                  Icons.info_outline_rounded,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+              ),
+            ),
+          ),
+          if (_enableCapitalRestriction)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          S.of(context).capitalRestrictionDays,
+                          style: AppTypography.bodyMedium,
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          S
+                              .of(context)
+                              .capitalRestrictionDaysDesc(
+                                _capitalRestrictionDays,
+                              ),
+                          style: AppTypography.bodySmall.copyWith(
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Container(
+                    decoration: BoxDecoration(
+                      border: Border.all(
+                        color: Theme.of(context).colorScheme.outlineVariant,
+                      ),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        InkWell(
+                          onTap: _capitalRestrictionDays > 1
+                              ? () {
+                                  setState(() => _capitalRestrictionDays--);
+                                  _saveSetting(
+                                    'capital_restriction_days',
+                                    _capitalRestrictionDays,
+                                  );
+                                }
+                              : null,
+                          child: Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: _capitalRestrictionDays > 1
+                                  ? (Theme.of(context).brightness ==
+                                                Brightness.dark
+                                            ? AppColors.info
+                                            : AppColors.primary)
+                                        .withValues(alpha: 0.1)
+                                  : Theme.of(
+                                      context,
+                                    ).colorScheme.surfaceContainerHighest,
+                              borderRadius: const BorderRadius.only(
+                                topLeft: Radius.circular(7),
+                                bottomLeft: Radius.circular(7),
+                              ),
+                            ),
+                            child: Icon(
+                              Icons.remove,
+                              color: _capitalRestrictionDays > 1
+                                  ? (Theme.of(context).brightness ==
+                                            Brightness.dark
+                                        ? AppColors.info
+                                        : AppColors.primary)
+                                  : Theme.of(context).colorScheme.outline,
+                              size: 20,
+                            ),
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 8,
+                          ),
+                          color: Theme.of(context).colorScheme.surface,
+                          child: Text(
+                            '$_capitalRestrictionDays',
+                            style: AppTypography.titleMedium.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                        InkWell(
+                          onTap: _capitalRestrictionDays < 30
+                              ? () {
+                                  setState(() => _capitalRestrictionDays++);
+                                  _saveSetting(
+                                    'capital_restriction_days',
+                                    _capitalRestrictionDays,
+                                  );
+                                }
+                              : null,
+                          child: Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: _capitalRestrictionDays < 30
+                                  ? (Theme.of(context).brightness ==
+                                                Brightness.dark
+                                            ? AppColors.info
+                                            : AppColors.primary)
+                                        .withValues(alpha: 0.1)
+                                  : Theme.of(
+                                      context,
+                                    ).colorScheme.surfaceContainerHighest,
+                              borderRadius: const BorderRadius.only(
+                                topRight: Radius.circular(7),
+                                bottomRight: Radius.circular(7),
+                              ),
+                            ),
+                            child: Icon(
+                              Icons.add,
+                              color: _capitalRestrictionDays < 30
+                                  ? (Theme.of(context).brightness ==
+                                            Brightness.dark
+                                        ? AppColors.info
+                                        : AppColors.primary)
+                                  : Theme.of(context).colorScheme.outline,
+                              size: 20,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
           const Divider(),
           // Días de tolerancia con +/- buttons
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            child: Row(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
                         S.of(context).toleranceDays,
                         style: AppTypography.bodyMedium,
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        S.of(context).toleranceDaysDesc,
-                        style: AppTypography.bodySmall.copyWith(
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                    InkWell(
+                      onTap: () {
+                        final isSpanish = S.of(context).isSpanish;
+                        showAppInfoDialog(
+                          context,
+                          title: AppInfoTexts.toleranceDaysTitle(isSpanish),
+                          info: AppInfoTexts.toleranceDaysDescription(
+                            isSpanish,
+                          ),
+                        );
+                      },
+                      borderRadius: BorderRadius.circular(12),
+                      child: Padding(
+                        padding: const EdgeInsets.all(4.0),
+                        child: Icon(
+                          Icons.info_outline_rounded,
+                          size: 20,
+                          color: Theme.of(context).colorScheme.primary,
                         ),
                       ),
-                    ],
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  S.of(context).toleranceDaysDesc,
+                  style: AppTypography.bodySmall.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
                 ),
-                // Counter with +/- buttons
-                Container(
-                  decoration: BoxDecoration(
-                    border: Border.all(
-                      color: Theme.of(context).colorScheme.outlineVariant,
+              ],
+            ),
+          ),
+          // Counter with +/- buttons
+          Container(
+            decoration: BoxDecoration(
+              border: Border.all(
+                color: Theme.of(context).colorScheme.outlineVariant,
+              ),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Minus button
+                InkWell(
+                  onTap: _moratoriumDays > 0
+                      ? () {
+                          setState(() => _moratoriumDays--);
+                          _saveSetting('moratorium_days', _moratoriumDays);
+                        }
+                      : null,
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: _moratoriumDays > 0
+                          ? (Theme.of(context).brightness == Brightness.dark
+                                    ? AppColors.info
+                                    : AppColors.primary)
+                                .withValues(alpha: 0.1)
+                          : Theme.of(
+                              context,
+                            ).colorScheme.surfaceContainerHighest,
+                      borderRadius: const BorderRadius.only(
+                        topLeft: Radius.circular(7),
+                        bottomLeft: Radius.circular(7),
+                      ),
                     ),
-                    borderRadius: BorderRadius.circular(8),
+                    child: Icon(
+                      Icons.remove,
+                      color: _moratoriumDays > 0
+                          ? (Theme.of(context).brightness == Brightness.dark
+                                ? AppColors.info
+                                : AppColors.primary)
+                          : Theme.of(context).colorScheme.outline,
+                      size: 20,
+                    ),
                   ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      // Minus button
-                      InkWell(
-                        onTap: _moratoriumDays > 0
-                            ? () {
-                                setState(() => _moratoriumDays--);
-                                _saveSetting(
-                                  'moratorium_days',
-                                  _moratoriumDays,
-                                );
-                              }
-                            : null,
-                        child: Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: _moratoriumDays > 0
-                                ? (Theme.of(context).brightness ==
-                                              Brightness.dark
-                                          ? AppColors.info
-                                          : AppColors.primary)
-                                      .withValues(alpha: 0.1)
-                                : Theme.of(
-                                    context,
-                                  ).colorScheme.surfaceContainerHighest,
-                            borderRadius: const BorderRadius.only(
-                              topLeft: Radius.circular(7),
-                              bottomLeft: Radius.circular(7),
-                            ),
-                          ),
-                          child: Icon(
-                            Icons.remove,
-                            color: _moratoriumDays > 0
-                                ? (Theme.of(context).brightness ==
-                                          Brightness.dark
-                                      ? AppColors.info
-                                      : AppColors.primary)
-                                : Theme.of(context).colorScheme.outline,
-                            size: 20,
-                          ),
-                        ),
+                ),
+                // Value display
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                  color: Theme.of(context).colorScheme.surface,
+                  child: Text(
+                    '$_moratoriumDays',
+                    style: AppTypography.titleMedium.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                // Plus button
+                InkWell(
+                  onTap: _moratoriumDays < 30
+                      ? () {
+                          setState(() => _moratoriumDays++);
+                          _saveSetting('moratorium_days', _moratoriumDays);
+                        }
+                      : null,
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: _moratoriumDays < 30
+                          ? (Theme.of(context).brightness == Brightness.dark
+                                    ? AppColors.info
+                                    : AppColors.primary)
+                                .withValues(alpha: 0.1)
+                          : Theme.of(
+                              context,
+                            ).colorScheme.surfaceContainerHighest,
+                      borderRadius: const BorderRadius.only(
+                        topRight: Radius.circular(7),
+                        bottomRight: Radius.circular(7),
                       ),
-                      // Value display
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 8,
-                        ),
-                        color: Theme.of(context).colorScheme.surface,
-                        child: Text(
-                          '$_moratoriumDays',
-                          style: AppTypography.titleMedium.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                      // Plus button
-                      InkWell(
-                        onTap: _moratoriumDays < 30
-                            ? () {
-                                setState(() => _moratoriumDays++);
-                                _saveSetting(
-                                  'moratorium_days',
-                                  _moratoriumDays,
-                                );
-                              }
-                            : null,
-                        child: Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: _moratoriumDays < 30
-                                ? (Theme.of(context).brightness ==
-                                              Brightness.dark
-                                          ? AppColors.info
-                                          : AppColors.primary)
-                                      .withValues(alpha: 0.1)
-                                : Theme.of(
-                                    context,
-                                  ).colorScheme.surfaceContainerHighest,
-                            borderRadius: const BorderRadius.only(
-                              topRight: Radius.circular(7),
-                              bottomRight: Radius.circular(7),
-                            ),
-                          ),
-                          child: Icon(
-                            Icons.add,
-                            color: _moratoriumDays < 30
-                                ? (Theme.of(context).brightness ==
-                                          Brightness.dark
-                                      ? AppColors.info
-                                      : AppColors.primary)
-                                : Theme.of(context).colorScheme.outline,
-                            size: 20,
-                          ),
-                        ),
-                      ),
-                    ],
+                    ),
+                    child: Icon(
+                      Icons.add,
+                      color: _moratoriumDays < 30
+                          ? (Theme.of(context).brightness == Brightness.dark
+                                ? AppColors.info
+                                : AppColors.primary)
+                          : Theme.of(context).colorScheme.outline,
+                      size: 20,
+                    ),
                   ),
                 ),
               ],
             ),
           ),
           const Divider(),
+          // Payment Order Header with Info
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    S.of(context).paymentOrder,
+                    style: AppTypography.bodyMedium,
+                  ),
+                ),
+                InkWell(
+                  onTap: () {
+                    final isSpanish = S.of(context).isSpanish;
+                    showAppInfoDialog(
+                      context,
+                      title: AppInfoTexts.paymentOrderTitle(isSpanish),
+                      info: AppInfoTexts.paymentOrderDescription(isSpanish),
+                    );
+                  },
+                  borderRadius: BorderRadius.circular(12),
+                  child: Padding(
+                    padding: const EdgeInsets.all(4.0),
+                    child: Icon(
+                      Icons.info_outline_rounded,
+                      size: 20,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
           ListTile(
-            title: Text(S.of(context).paymentOrder),
-            subtitle: Text(
+            title: Text(
               _paymentOrder == 'INTEREST_FIRST'
                   ? S.of(context).paymentOrderInterestFirst
                   : S.of(context).paymentOrderCapitalFirst,
@@ -498,6 +866,40 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Header for Sequences Info
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    AppInfoTexts.sequencesTitle(S.of(context).isSpanish),
+                    style: AppTypography.titleMedium.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                InkWell(
+                  onTap: () {
+                    final isSpanish = S.of(context).isSpanish;
+                    showAppInfoDialog(
+                      context,
+                      title: AppInfoTexts.sequencesTitle(isSpanish),
+                      info: AppInfoTexts.sequencesDescription(isSpanish),
+                    );
+                  },
+                  borderRadius: BorderRadius.circular(12),
+                  child: Padding(
+                    padding: const EdgeInsets.all(4.0),
+                    child: Icon(
+                      Icons.info_outline_rounded,
+                      size: 20,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const Divider(height: 24),
+
             // Loan Sequence
             Text(
               S.of(context).lastLoanGenerated,
@@ -604,6 +1006,137 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
   }
 
+  Widget _buildReportSettingsCard() {
+    return AppCard(
+      child: Column(
+        children: [
+          // Header for Report Settings Info
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    S.of(context).reportSettings,
+                    style: AppTypography.titleMedium.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                InkWell(
+                  onTap: () {
+                    final isSpanish = S.of(context).isSpanish;
+                    showAppInfoDialog(
+                      context,
+                      title: AppInfoTexts.reportSettingsTitle(isSpanish),
+                      info: AppInfoTexts.reportSettingsDescription(isSpanish),
+                    );
+                  },
+                  borderRadius: BorderRadius.circular(12),
+                  child: Padding(
+                    padding: const EdgeInsets.all(4.0),
+                    child: Icon(
+                      Icons.info_outline_rounded,
+                      size: 20,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const Divider(height: 1),
+          // Disbursement Signatures
+          SwitchListTile(
+            title: Text(S.of(context).showDisbursementSignatures),
+            value: _showDisbursementSignatures,
+            onChanged: (v) {
+              setState(() => _showDisbursementSignatures = v);
+              _saveSetting('show_disbursement_signatures', v ? 1 : 0);
+            },
+          ),
+          // Payment Signatures
+          SwitchListTile(
+            title: Text(S.of(context).showPaymentSignatures),
+            value: _showPaymentSignatures,
+            onChanged: (v) {
+              setState(() => _showPaymentSignatures = v);
+              _saveSetting('show_payment_signatures', v ? 1 : 0);
+            },
+          ),
+          const Divider(),
+
+          // Disbursement Legend Toggle
+          SwitchListTile(
+            title: Text(S.of(context).showLegend),
+            subtitle: Text(S.of(context).disbursementLegend),
+            value: _showDisbursementLegend,
+            onChanged: (v) {
+              setState(() => _showDisbursementLegend = v);
+              _saveSetting('show_disbursement_legend', v ? 1 : 0);
+            },
+          ),
+
+          // Disbursement Legend Text Field (visible if toggle on)
+          if (_showDisbursementLegend)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+              child: TextField(
+                controller: _disbursementLegendController,
+                decoration: InputDecoration(
+                  hintText: S.of(context).legendHint,
+                  border: const OutlineInputBorder(),
+                  suffixIcon: IconButton(
+                    icon: const Icon(Icons.check, color: AppColors.success),
+                    onPressed: () => _saveSetting(
+                      'disbursement_legend',
+                      _disbursementLegendController.text.trim(),
+                    ),
+                  ),
+                ),
+                onSubmitted: (v) =>
+                    _saveSetting('disbursement_legend', v.trim()),
+              ),
+            ),
+
+          const Divider(),
+
+          // Payment Legend Toggle
+          SwitchListTile(
+            title: Text(S.of(context).showLegend),
+            subtitle: Text(S.of(context).paymentLegend),
+            value: _showPaymentLegend,
+            onChanged: (v) {
+              setState(() => _showPaymentLegend = v);
+              _saveSetting('show_payment_legend', v ? 1 : 0);
+            },
+          ),
+
+          // Payment Legend Text Field (visible if toggle on)
+          if (_showPaymentLegend)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+              child: TextField(
+                controller: _paymentLegendController,
+                decoration: InputDecoration(
+                  hintText: S.of(context).legendHint,
+                  border: const OutlineInputBorder(),
+                  suffixIcon: IconButton(
+                    icon: const Icon(Icons.check, color: AppColors.success),
+                    onPressed: () => _saveSetting(
+                      'payment_legend',
+                      _paymentLegendController.text.trim(),
+                    ),
+                  ),
+                ),
+                onSubmitted: (v) => _saveSetting('payment_legend', v.trim()),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildMaintenanceCard() {
     final settingsAsync = ref.watch(appSettingsProvider);
     final backupPath = settingsAsync.value?.backupPath;
@@ -611,6 +1144,42 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     return AppCard(
       child: Column(
         children: [
+          // Header for Maintenance
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    AppInfoTexts.maintenanceTitle(S.of(context).isSpanish),
+                    style: AppTypography.titleMedium.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                InkWell(
+                  onTap: () {
+                    final isSpanish = S.of(context).isSpanish;
+                    showAppInfoDialog(
+                      context,
+                      title: AppInfoTexts.maintenanceTitle(isSpanish),
+                      info: AppInfoTexts.maintenanceDescription(isSpanish),
+                    );
+                  },
+                  borderRadius: BorderRadius.circular(12),
+                  child: Padding(
+                    padding: const EdgeInsets.all(4.0),
+                    child: Icon(
+                      Icons.info_outline_rounded,
+                      size: 20,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const Divider(height: 1),
           ListTile(
             leading: Icon(
               Icons.backup,
@@ -911,6 +1480,39 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Appearance Header
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    AppInfoTexts.appearanceTitle(S.of(context).isSpanish),
+                    style: AppTypography.titleMedium.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                InkWell(
+                  onTap: () {
+                    final isSpanish = S.of(context).isSpanish;
+                    showAppInfoDialog(
+                      context,
+                      title: AppInfoTexts.appearanceTitle(isSpanish),
+                      info: AppInfoTexts.appearanceDescription(isSpanish),
+                    );
+                  },
+                  borderRadius: BorderRadius.circular(12),
+                  child: Padding(
+                    padding: const EdgeInsets.all(4.0),
+                    child: Icon(
+                      Icons.info_outline_rounded,
+                      size: 20,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
             Text(S.of(context).themeMode, style: AppTypography.bodyMedium),
             const SizedBox(height: 4),
             Text(
@@ -942,7 +1544,35 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             ),
             const Divider(height: 32),
             // Language selector
-            Text(S.of(context).language, style: AppTypography.bodyMedium),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    S.of(context).language,
+                    style: AppTypography.bodyMedium,
+                  ),
+                ),
+                InkWell(
+                  onTap: () {
+                    final isSpanish = S.of(context).isSpanish;
+                    showAppInfoDialog(
+                      context,
+                      title: AppInfoTexts.languageTitle(isSpanish),
+                      info: AppInfoTexts.languageDescription(isSpanish),
+                    );
+                  },
+                  borderRadius: BorderRadius.circular(12),
+                  child: Padding(
+                    padding: const EdgeInsets.all(4.0),
+                    child: Icon(
+                      Icons.info_outline_rounded,
+                      size: 20,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                  ),
+                ),
+              ],
+            ),
             const SizedBox(height: 4),
             Text(
               S.of(context).languageDesc,
@@ -986,6 +1616,41 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     return AppCard(
       child: Column(
         children: [
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    AppInfoTexts.aboutTitle(S.of(context).isSpanish),
+                    style: AppTypography.titleMedium.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                InkWell(
+                  onTap: () {
+                    final isSpanish = S.of(context).isSpanish;
+                    showAppInfoDialog(
+                      context,
+                      title: AppInfoTexts.aboutTitle(isSpanish),
+                      info: AppInfoTexts.aboutDescription(isSpanish),
+                    );
+                  },
+                  borderRadius: BorderRadius.circular(12),
+                  child: Padding(
+                    padding: const EdgeInsets.all(4.0),
+                    child: Icon(
+                      Icons.info_outline_rounded,
+                      size: 20,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const Divider(height: 1),
           ListTile(
             title: Text(S.of(context).appName),
             subtitle: const Text('Descubre lo que puedes hacer'),

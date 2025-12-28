@@ -44,6 +44,8 @@ class _PaymentFormScreenState extends ConsumerState<PaymentFormScreen> {
   bool _isLoading = false;
   bool _isLoadingLoans = false;
   bool _dailyAccrualEnabled = false;
+  bool _enableCapitalRestriction = true;
+  int _capitalRestrictionDays = 10;
 
   // Allocation preview
   double _toOverdueInterest = 0;
@@ -66,7 +68,11 @@ class _PaymentFormScreenState extends ConsumerState<PaymentFormScreen> {
   Future<void> _loadSettings() async {
     final settings = await ref.read(settingsRepositoryProvider).getSettings();
     if (mounted)
-      setState(() => _dailyAccrualEnabled = settings.dailyAccrualEnabled);
+      setState(() {
+        _dailyAccrualEnabled = settings.dailyAccrualEnabled;
+        _enableCapitalRestriction = settings.enableCapitalRestriction;
+        _capitalRestrictionDays = settings.capitalRestrictionDays;
+      });
   }
 
   Future<void> _initializeFromParams() async {
@@ -130,8 +136,27 @@ class _PaymentFormScreenState extends ConsumerState<PaymentFormScreen> {
     // Now load all pending cycles (including newly generated ones)
     final repo = ref.read(billingCycleRepositoryProvider);
     final cycles = await repo.getPendingCyclesByLoan(loanId);
+
+    // FETCH ACTIVE CYCLE REGARDLESS OF STATUS (for capital restriction check)
+    // Even if the current cycle is PAID (interest paid), we need it to validate
+    // the capital payment date restriction.
+    final activeCycle = await repo.getActiveCycle(loanId, DateTime.now());
+
+    List<BillingCycle> finalCycles = List.from(cycles);
+    if (activeCycle != null) {
+      // Check if active cycle is already in the list
+      final exists = finalCycles.any(
+        (c) => c.billingCycleId == activeCycle.billingCycleId,
+      );
+      if (!exists) {
+        finalCycles.add(activeCycle);
+        // Sort by due date again to keep order
+        finalCycles.sort((a, b) => a.dueDate.compareTo(b.dueDate));
+      }
+    }
+
     if (mounted) {
-      setState(() => _pendingCycles = cycles);
+      setState(() => _pendingCycles = finalCycles);
       _recalculateDebt();
       _calculateAllocation();
     }
@@ -992,7 +1017,10 @@ class _PaymentFormScreenState extends ConsumerState<PaymentFormScreen> {
             );
 
         // Success & Refresh
-        _handleSuccessAndRefresh(createdPayment);
+        await _handleSuccessAndRefresh(
+          createdPayment,
+          allocations: allocations,
+        );
       } catch (e) {
         _handleError(e);
       } finally {
@@ -1010,7 +1038,11 @@ class _PaymentFormScreenState extends ConsumerState<PaymentFormScreen> {
       amount: amount,
       paymentType: _declaredType,
       paymentDate: _paymentDate,
+
       dailyAccrualEnabled: _dailyAccrualEnabled,
+      enableCapitalRestriction: _enableCapitalRestriction,
+      daysBeforeCycleForCapital: _capitalRestrictionDays,
+      s: S.of(context),
     );
 
     if (!validation.isValid) {
@@ -1203,7 +1235,7 @@ class _PaymentFormScreenState extends ConsumerState<PaymentFormScreen> {
           .read(paymentsProvider.notifier)
           .registerPayment(payment, allocations);
 
-      _handleSuccessAndRefresh(createdPayment);
+      await _handleSuccessAndRefresh(createdPayment, allocations: allocations);
     } catch (e) {
       _handleError(e);
     } finally {
@@ -1211,7 +1243,10 @@ class _PaymentFormScreenState extends ConsumerState<PaymentFormScreen> {
     }
   }
 
-  void _handleSuccessAndRefresh(Payment? createdPayment) {
+  Future<void> _handleSuccessAndRefresh(
+    Payment? createdPayment, {
+    required List<PaymentAllocation> allocations,
+  }) async {
     if (mounted) {
       // Refresh ALL related providers to update UI everywhere
       ref.invalidate(appSettingsProvider); // Force settings refresh
@@ -1238,17 +1273,51 @@ class _PaymentFormScreenState extends ConsumerState<PaymentFormScreen> {
         ref.invalidate(pendingBillingCyclesProvider(_selectedLoan!.loanId));
       }
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            createdPayment != null
-                ? 'Pago registrado - Recibo #${createdPayment.receiptNumber}'
-                : 'Recuperación registrada con éxito',
+      // Check for WhatsApp Auto-Share
+      if (createdPayment != null) {
+        final settings = await ref
+            .read(settingsRepositoryProvider)
+            .getSettings();
+        if (settings.shareReceiptsWhatsApp) {
+          final customer = _selectedCustomer!;
+          if (WhatsAppService.isValidNumber(customer.phone) && mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(S.of(context).sendingToWhatsApp)),
+            );
+
+            final locale = S.of(context).locale;
+            await WhatsAppService.sharePaymentReceipt(
+              payment: createdPayment,
+              loan: _selectedLoan!,
+              customer: customer,
+              allocations: allocations,
+              settings: settings,
+              locale: locale,
+            );
+          } else if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(S.of(context).noValidWhatsAppNumber),
+                backgroundColor: AppColors.warning,
+              ),
+            );
+          }
+        }
+      }
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              createdPayment != null
+                  ? 'Pago registrado - Recibo #${createdPayment.receiptNumber}'
+                  : 'Recuperación registrada con éxito',
+            ),
+            backgroundColor: AppColors.success,
           ),
-          backgroundColor: AppColors.success,
-        ),
-      );
-      context.pop();
+        );
+        context.pop();
+      }
     }
   }
 
