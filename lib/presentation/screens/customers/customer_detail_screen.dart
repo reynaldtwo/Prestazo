@@ -9,6 +9,7 @@ import '../../../data/models/loan.dart';
 import '../../../data/providers/providers.dart';
 import '../../../core/constants/app_status.dart';
 import '../../../core/localization/locale_provider.dart';
+import '../../../core/utils/currency_utils.dart';
 
 /// Customer detail screen - Consolidated account view with real data
 class CustomerDetailScreen extends ConsumerWidget {
@@ -234,6 +235,12 @@ class CustomerDetailScreen extends ConsumerWidget {
             .where((l) => l.status == AppStatus.loanClosed)
             .length;
 
+        // Determine currency symbol (Use first active loan's currency or fallback)
+        final currencyCode = activeLoans.isNotEmpty
+            ? activeLoans.first.currencyCode
+            : (loans.isNotEmpty ? loans.first.currencyCode : 'NIO');
+        final currencySymbol = CurrencyUtils.getCurrencySymbol(currencyCode);
+
         return AppCard(
           title: S.of(context).accountSummary,
           child: Column(
@@ -244,6 +251,7 @@ class CustomerDetailScreen extends ConsumerWidget {
                     child: _SummaryItem(
                       label: S.of(context).totalCapital,
                       value: totalCapital,
+                      currencySymbol: currencySymbol,
                       icon: Icons.account_balance_wallet,
                       iconColor: Theme.of(context).brightness == Brightness.dark
                           ? AppColors.info
@@ -254,6 +262,7 @@ class CustomerDetailScreen extends ConsumerWidget {
                     child: _SummaryItem(
                       label: S.of(context).monthlyInterest,
                       value: totalInterestExpected,
+                      currencySymbol: currencySymbol,
                       icon: Icons.schedule,
                       iconColor: AppColors.warning,
                     ),
@@ -489,12 +498,14 @@ class _SummaryItem extends StatelessWidget {
   final double value;
   final IconData icon;
   final Color iconColor;
+  final String? currencySymbol;
 
   const _SummaryItem({
     required this.label,
     required this.value,
     required this.icon,
     required this.iconColor,
+    this.currencySymbol,
   });
 
   @override
@@ -510,7 +521,11 @@ class _SummaryItem extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 4),
-        MoneyDisplay(amount: value, size: MoneyDisplaySize.medium),
+        MoneyDisplay(
+          amount: value,
+          size: MoneyDisplaySize.medium,
+          currencySymbol: currencySymbol,
+        ),
       ],
     );
   }
@@ -525,6 +540,7 @@ class _LoanCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isClosed = loan.status == AppStatus.loanClosed;
+    final currencySymbol = CurrencyUtils.getCurrencySymbol(loan.currencyCode);
 
     return AppCard(
       onTap: onTap,
@@ -537,7 +553,9 @@ class _LoanCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
+                    Wrap(
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      spacing: 8,
                       children: [
                         Text(
                           '${S.of(context).loan} ${loan.loanNumber != null ? "#${loan.loanNumber}" : ""} ',
@@ -546,6 +564,7 @@ class _LoanCard extends StatelessWidget {
                         MoneyDisplay(
                           amount: loan.principalOriginal,
                           size: MoneyDisplaySize.small,
+                          currencySymbol: currencySymbol,
                         ),
                       ],
                     ),
@@ -567,12 +586,14 @@ class _LoanCard extends StatelessWidget {
                   child: MoneyLabel(
                     label: S.of(context).capitalBalance,
                     amount: loan.principalBalance,
+                    currencySymbol: currencySymbol,
                   ),
                 ),
                 Expanded(
                   child: MoneyLabel(
                     label: S.of(context).monthlyInterest,
                     amount: loan.calculateMonthlyInterest(),
+                    currencySymbol: currencySymbol,
                   ),
                 ),
               ],

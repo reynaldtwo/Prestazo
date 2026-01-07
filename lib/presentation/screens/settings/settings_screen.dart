@@ -1,3 +1,4 @@
+// ignore_for_file: deprecated_member_use
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart'; // For kIsWeb
 import 'dart:io';
@@ -15,7 +16,7 @@ import '../../../services/services.dart';
 import '../../../core/theme/theme_provider.dart';
 import 'package:file_picker/file_picker.dart';
 import '../../../core/localization/locale_provider.dart';
-import '../../../core/constants/app_info_texts.dart';
+
 import '../../../core/widgets/app_info_dialog.dart';
 
 /// Settings screen for app configuration
@@ -27,34 +28,31 @@ class SettingsScreen extends ConsumerStatefulWidget {
 }
 
 class _SettingsScreenState extends ConsumerState<SettingsScreen> {
-  final _capitalController = TextEditingController();
   final _loanNumberController = TextEditingController();
   final _receiptNumberController = TextEditingController();
+  final _disbursementLegendController = TextEditingController();
+  final _paymentLegendController = TextEditingController();
+
+  // State variables
   bool _capitalizeInterest = false;
-  int _moratoriumDays = 1;
+  int _moratoriumDays = 0;
   String _paymentOrder = 'INTEREST_FIRST';
-  double _availableCapital = 0;
-  bool _validateCapital = false;
-  bool _dailyAccrualEnabled = false;
-  bool _allowMultipleLoans = false;
   bool _validateDni = false;
   bool _shareReceiptsWhatsApp = false;
   bool _enableCapitalRestriction = true;
   int _capitalRestrictionDays = 10;
   bool _isLoaded = false;
+  bool _dailyAccrualEnabled = false;
+  bool _allowMultipleLoans = false;
 
   // Report settings state
   bool _showDisbursementSignatures = true;
   bool _showPaymentSignatures = true;
   bool _showDisbursementLegend = false;
   bool _showPaymentLegend = false;
-  final _disbursementLegendController = TextEditingController();
-  final _paymentLegendController = TextEditingController();
 
   @override
   void dispose() {
-    _capitalController.dispose();
-    _loanNumberController.dispose();
     _loanNumberController.dispose();
     _receiptNumberController.dispose();
     _disbursementLegendController.dispose();
@@ -69,11 +67,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     }
     _moratoriumDays = settings.moratoriumDays;
     _paymentOrder = settings.paymentApplyOrder;
-    _availableCapital = settings.availableCapital;
-    _validateCapital = settings.validateCapital;
     _dailyAccrualEnabled = settings.dailyAccrualEnabled;
     _allowMultipleLoans = settings.allowMultipleLoans;
-    _validateDni = settings.validateDni;
     _validateDni = settings.validateDni;
     _shareReceiptsWhatsApp = settings.shareReceiptsWhatsApp;
     _enableCapitalRestriction = settings.enableCapitalRestriction;
@@ -87,9 +82,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     // Only update text controllers if they are empty (first load)
     // or if we want to force sync (like loan number which changes externally)
     if (!_isLoaded) {
-      _capitalController.text = _availableCapital > 0
-          ? _availableCapital.toStringAsFixed(0)
-          : '';
       _disbursementLegendController.text = settings.disbursementLegend ?? '';
       _paymentLegendController.text = settings.paymentLegend ?? '';
       _isLoaded = true;
@@ -163,6 +155,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final repo = ref.read(settingsRepositoryProvider);
     await repo.updateSetting(key, value);
     ref.invalidate(appSettingsProvider);
+    // Force global refresh to update Dashboard and other screens dependent on settings
+    ref.read(refreshTriggerProvider.notifier).state++;
   }
 
   @override
@@ -173,7 +167,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       appBar: AppBar(title: Text(S.of(context).settings)),
       body: settingsAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text('Error: $e')),
+        error: (e, _) => Center(child: Text(S.of(context).genericError(e))),
         data: (settings) {
           _loadSettings(settings);
           return RefreshIndicator(
@@ -185,12 +179,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 const SizedBox(height: 16),
                 _buildCompanyCard(),
                 const SizedBox(height: 24),
-                Text(
-                  S.of(context).businessCapital,
-                  style: AppTypography.titleLarge,
-                ),
+                Text('Gestión Monetaria', style: AppTypography.titleLarge),
                 const SizedBox(height: 16),
-                _buildCapitalCard(),
+                _buildMonetaryCard(),
                 const SizedBox(height: 24),
                 Text(
                   S.of(context).businessPolicies,
@@ -209,6 +200,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 ),
                 const SizedBox(height: 16),
                 _buildReportSettingsCard(),
+                const SizedBox(height: 24),
+                Text(
+                  S.of(context).validations,
+                  style: AppTypography.titleLarge,
+                ),
+                const SizedBox(height: 16),
+                _buildValidationsCard(),
                 const SizedBox(height: 24),
                 Text(
                   S.of(context).maintenance,
@@ -244,100 +242,62 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
   }
 
-  Widget _buildCapitalCard() {
+  Widget _buildMonetaryCard() {
+    return AppCard(
+      child: ListTile(
+        leading: const Icon(Icons.monetization_on, color: AppColors.primary),
+        title: Text(S.of(context).monetaryManagement),
+        subtitle: Text(S.of(context).monetarySubtitle),
+        trailing: const Icon(Icons.chevron_right),
+        onTap: () => context.pushNamed('monetary-settings'),
+      ),
+    );
+  }
+
+  Widget _buildValidationsCard() {
     return AppCard(
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Text(
-                      S.of(context).availableCapital,
-                      style: AppTypography.bodyMedium,
-                    ),
-                    const SizedBox(width: 8),
-                    InkWell(
-                      onTap: () {
-                        final isSpanish = S.of(context).isSpanish;
-                        showAppInfoDialog(
-                          context,
-                          title: AppInfoTexts.availableCapitalTitle(isSpanish),
-                          info: AppInfoTexts.availableCapitalDescription(
-                            isSpanish,
-                          ),
-                        );
-                      },
-                      borderRadius: BorderRadius.circular(12),
-                      child: Padding(
-                        padding: const EdgeInsets.all(4.0),
-                        child: Icon(
-                          Icons.info_outline_rounded,
-                          size: 18,
-                          color: Theme.of(context).colorScheme.primary,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  S.of(context).availableCapitalDesc,
-                  style: AppTypography.bodySmall.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                TextField(
-                  controller: _capitalController,
-                  keyboardType: TextInputType.number,
-                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                  decoration: InputDecoration(
-                    prefixText: 'C\$ ',
-                    hintText: '0',
-                    border: const OutlineInputBorder(),
-                    suffixIcon: IconButton(
-                      icon: const Icon(Icons.check, color: AppColors.success),
-                      onPressed: () {
-                        final value =
-                            double.tryParse(_capitalController.text) ?? 0;
-                        setState(() => _availableCapital = value);
-                        _saveSetting('available_capital', value);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text(S.of(context).capitalSaved)),
-                        );
-                      },
-                    ),
-                  ),
-                  onSubmitted: (value) {
-                    final val = double.tryParse(value) ?? 0;
-                    setState(() => _availableCapital = val);
-                    _saveSetting('available_capital', val);
-                  },
-                ),
-              ],
-            ),
+          ListTile(
+            leading: const Icon(Icons.verified_user, color: AppColors.primary),
+            title: Text(S.of(context).dniFormatTitle),
+            subtitle: Text(S.of(context).dniFormatSubtitle),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => context.push('/settings/dni-format'),
           ),
           const Divider(height: 1),
           SwitchListTile(
-            title: Text(S.of(context).validateCapital),
+            title: Text(S.of(context).validateUniqueDni),
             subtitle: Text(
-              _validateCapital
-                  ? S.of(context).validateCapitalDesc
-                  : S.of(context).validateCapitalDescDisabled,
+              _validateDni
+                  ? S.of(context).validateUniqueDniDesc
+                  : S.of(context).validateUniqueDniDescDisabled,
               style: AppTypography.bodySmall.copyWith(
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
             ),
-            value: _validateCapital,
+            value: _validateDni,
             onChanged: (v) {
-              setState(() => _validateCapital = v);
-              _saveSetting('validate_capital', v ? 1 : 0);
+              setState(() => _validateDni = v);
+              _saveSetting('validate_dni', v ? 1 : 0);
             },
+            secondary: InkWell(
+              onTap: () {
+                showAppInfoDialog(
+                  context,
+                  title: S.of(context).validateDniTitle,
+                  info: S.of(context).validateDniDescription,
+                );
+              },
+              borderRadius: BorderRadius.circular(12),
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Icon(
+                  Icons.info_outline_rounded,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+              ),
+            ),
           ),
         ],
       ),
@@ -358,11 +318,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             },
             secondary: InkWell(
               onTap: () {
-                final isSpanish = S.of(context).isSpanish;
                 showAppInfoDialog(
                   context,
-                  title: AppInfoTexts.capitalizeInterestTitle(isSpanish),
-                  info: AppInfoTexts.capitalizeInterestDescription(isSpanish),
+                  title: S.of(context).capitalizeInterestTitle,
+                  info: S.of(context).capitalizeInterestDescription,
                 );
               },
               borderRadius: BorderRadius.circular(12),
@@ -385,11 +344,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             },
             secondary: InkWell(
               onTap: () {
-                final isSpanish = S.of(context).isSpanish;
                 showAppInfoDialog(
                   context,
-                  title: AppInfoTexts.dailyAccrualTitle(isSpanish),
-                  info: AppInfoTexts.dailyAccrualDescription(isSpanish),
+                  title: S.of(context).dailyAccrualTitle,
+                  info: S.of(context).dailyAccrualDescription,
                 );
               },
               borderRadius: BorderRadius.circular(12),
@@ -419,45 +377,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             },
             secondary: InkWell(
               onTap: () {
-                final isSpanish = S.of(context).isSpanish;
                 showAppInfoDialog(
                   context,
-                  title: AppInfoTexts.allowMultipleLoansTitle(isSpanish),
-                  info: AppInfoTexts.allowMultipleLoansDescription(isSpanish),
-                );
-              },
-              borderRadius: BorderRadius.circular(12),
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Icon(
-                  Icons.info_outline_rounded,
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-              ),
-            ),
-          ),
-          SwitchListTile(
-            title: Text(S.of(context).validateUniqueDni),
-            subtitle: Text(
-              _validateDni
-                  ? S.of(context).validateUniqueDniDesc
-                  : S.of(context).validateUniqueDniDescDisabled,
-              style: AppTypography.bodySmall.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-            ),
-            value: _validateDni,
-            onChanged: (v) {
-              setState(() => _validateDni = v);
-              _saveSetting('validate_dni', v ? 1 : 0);
-            },
-            secondary: InkWell(
-              onTap: () {
-                final isSpanish = S.of(context).isSpanish;
-                showAppInfoDialog(
-                  context,
-                  title: AppInfoTexts.validateDniTitle(isSpanish),
-                  info: AppInfoTexts.validateDniDescription(isSpanish),
+                  title: S.of(context).allowMultipleLoansTitle,
+                  info: S.of(context).allowMultipleLoansDescription,
                 );
               },
               borderRadius: BorderRadius.circular(12),
@@ -485,11 +408,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             },
             secondary: InkWell(
               onTap: () {
-                final isSpanish = S.of(context).isSpanish;
                 showAppInfoDialog(
                   context,
-                  title: AppInfoTexts.whatsappReceiptsTitle(isSpanish),
-                  info: AppInfoTexts.whatsappReceiptsDescription(isSpanish),
+                  title: S.of(context).whatsappReceiptsTitle,
+                  info: S.of(context).whatsappReceiptsDescription,
                 );
               },
               borderRadius: BorderRadius.circular(12),
@@ -512,11 +434,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             },
             secondary: InkWell(
               onTap: () {
-                final isSpanish = S.of(context).isSpanish;
                 showAppInfoDialog(
                   context,
-                  title: AppInfoTexts.capitalRestrictionTitle(isSpanish),
-                  info: AppInfoTexts.capitalRestrictionDescription(isSpanish),
+                  title: S.of(context).capitalRestrictionTitle,
+                  info: S.of(context).capitalRestrictionDescription,
                 );
               },
               borderRadius: BorderRadius.circular(12),
@@ -682,13 +603,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     ),
                     InkWell(
                       onTap: () {
-                        final isSpanish = S.of(context).isSpanish;
                         showAppInfoDialog(
                           context,
-                          title: AppInfoTexts.toleranceDaysTitle(isSpanish),
-                          info: AppInfoTexts.toleranceDaysDescription(
-                            isSpanish,
-                          ),
+                          title: S.of(context).toleranceDaysTitle,
+                          info: S.of(context).toleranceDaysDescription,
                         );
                       },
                       borderRadius: BorderRadius.circular(12),
@@ -825,11 +743,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 ),
                 InkWell(
                   onTap: () {
-                    final isSpanish = S.of(context).isSpanish;
                     showAppInfoDialog(
                       context,
-                      title: AppInfoTexts.paymentOrderTitle(isSpanish),
-                      info: AppInfoTexts.paymentOrderDescription(isSpanish),
+                      title: S.of(context).paymentOrderTitle,
+                      info: S.of(context).paymentOrderDescription,
                     );
                   },
                   borderRadius: BorderRadius.circular(12),
@@ -871,7 +788,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               children: [
                 Expanded(
                   child: Text(
-                    AppInfoTexts.sequencesTitle(S.of(context).isSpanish),
+                    S.of(context).sequencesTitle,
                     style: AppTypography.titleMedium.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
@@ -879,11 +796,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 ),
                 InkWell(
                   onTap: () {
-                    final isSpanish = S.of(context).isSpanish;
                     showAppInfoDialog(
                       context,
-                      title: AppInfoTexts.sequencesTitle(isSpanish),
-                      info: AppInfoTexts.sequencesDescription(isSpanish),
+                      title: S.of(context).sequencesTitle,
+                      info: S.of(context).sequencesDescription,
                     );
                   },
                   borderRadius: BorderRadius.circular(12),
@@ -1025,11 +941,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 ),
                 InkWell(
                   onTap: () {
-                    final isSpanish = S.of(context).isSpanish;
                     showAppInfoDialog(
                       context,
-                      title: AppInfoTexts.reportSettingsTitle(isSpanish),
-                      info: AppInfoTexts.reportSettingsDescription(isSpanish),
+                      title: S.of(context).reportSettingsTitle,
+                      info: S.of(context).reportSettingsDescription,
                     );
                   },
                   borderRadius: BorderRadius.circular(12),
@@ -1045,6 +960,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               ],
             ),
           ),
+
+          // Report Currency with Info
           const Divider(height: 1),
           // Disbursement Signatures
           SwitchListTile(
@@ -1151,7 +1068,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               children: [
                 Expanded(
                   child: Text(
-                    AppInfoTexts.maintenanceTitle(S.of(context).isSpanish),
+                    S.of(context).maintenanceTitle,
                     style: AppTypography.titleMedium.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
@@ -1159,11 +1076,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 ),
                 InkWell(
                   onTap: () {
-                    final isSpanish = S.of(context).isSpanish;
                     showAppInfoDialog(
                       context,
-                      title: AppInfoTexts.maintenanceTitle(isSpanish),
-                      info: AppInfoTexts.maintenanceDescription(isSpanish),
+                      title: S.of(context).maintenanceTitle,
+                      info: S.of(context).maintenanceDescription,
                     );
                   },
                   borderRadius: BorderRadius.circular(12),
@@ -1207,6 +1123,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               trailing: const Icon(Icons.chevron_right),
               onTap: _pickBackupFolder,
             ),
+            const Divider(),
+            ListTile(
+              leading: const Icon(Icons.schedule, color: AppColors.primary),
+              title: Text(S.of(context).scheduledBackupTitle),
+              subtitle: Text(S.of(context).scheduledBackupDesc),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => context.goNamed('scheduled-backup'),
+            ),
           ],
           const Divider(),
           ListTile(
@@ -1222,6 +1146,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             subtitle: Text(S.of(context).recalculatePortfolioDesc),
             onTap: _recalculatePortfolio,
           ),
+
           const Divider(),
           ListTile(
             leading: const Icon(Icons.delete_forever, color: AppColors.danger),
@@ -1398,9 +1323,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     if (confirmed == true && mounted) {
       try {
         // 1. Create Backup
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Creando respaldo de seguridad...')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(S.of(context).creatingBackup)));
 
         final backupService = BackupService.instance;
         final backup = await backupService.createBackup();
@@ -1485,7 +1410,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               children: [
                 Expanded(
                   child: Text(
-                    AppInfoTexts.appearanceTitle(S.of(context).isSpanish),
+                    S.of(context).appearanceTitle,
                     style: AppTypography.titleMedium.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
@@ -1493,11 +1418,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 ),
                 InkWell(
                   onTap: () {
-                    final isSpanish = S.of(context).isSpanish;
                     showAppInfoDialog(
                       context,
-                      title: AppInfoTexts.appearanceTitle(isSpanish),
-                      info: AppInfoTexts.appearanceDescription(isSpanish),
+                      title: S.of(context).appearanceTitle,
+                      info: S.of(context).appearanceDescription,
                     );
                   },
                   borderRadius: BorderRadius.circular(12),
@@ -1522,25 +1446,28 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               ),
             ),
             const SizedBox(height: 16),
-            SegmentedButton<ThemeMode>(
-              segments: [
-                ButtonSegment(
-                  value: ThemeMode.light,
-                  label: Text(S.of(context).light),
-                  icon: const Icon(Icons.light_mode),
-                ),
-                ButtonSegment(
-                  value: ThemeMode.dark,
-                  label: Text(S.of(context).dark),
-                  icon: const Icon(Icons.dark_mode),
-                ),
-              ],
-              selected: {
-                themeMode == ThemeMode.system ? ThemeMode.light : themeMode,
-              },
-              onSelectionChanged: (Set<ThemeMode> selected) {
-                themeNotifier.setThemeMode(selected.first);
-              },
+            SizedBox(
+              width: double.infinity,
+              child: SegmentedButton<ThemeMode>(
+                segments: [
+                  ButtonSegment(
+                    value: ThemeMode.light,
+                    label: Text(S.of(context).light),
+                    icon: const Icon(Icons.light_mode),
+                  ),
+                  ButtonSegment(
+                    value: ThemeMode.dark,
+                    label: Text(S.of(context).dark),
+                    icon: const Icon(Icons.dark_mode),
+                  ),
+                ],
+                selected: {
+                  themeMode == ThemeMode.system ? ThemeMode.light : themeMode,
+                },
+                onSelectionChanged: (Set<ThemeMode> selected) {
+                  themeNotifier.setThemeMode(selected.first);
+                },
+              ),
             ),
             const Divider(height: 32),
             // Language selector
@@ -1554,11 +1481,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 ),
                 InkWell(
                   onTap: () {
-                    final isSpanish = S.of(context).isSpanish;
                     showAppInfoDialog(
                       context,
-                      title: AppInfoTexts.languageTitle(isSpanish),
-                      info: AppInfoTexts.languageDescription(isSpanish),
+                      title: S.of(context).languageTitle,
+                      info: S.of(context).languageDescription,
                     );
                   },
                   borderRadius: BorderRadius.circular(12),
@@ -1592,23 +1518,31 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final currentLocale = ref.watch(localeProvider);
     final localeNotifier = ref.read(localeProvider.notifier);
 
-    return SegmentedButton<Locale>(
-      segments: [
-        ButtonSegment(
-          value: AppLocales.spanish,
-          label: const Text('Español'),
-          icon: const Text('🇪🇸'),
-        ),
-        ButtonSegment(
-          value: AppLocales.english,
-          label: const Text('English'),
-          icon: const Text('🇺🇸'),
-        ),
-      ],
-      selected: {currentLocale},
-      onSelectionChanged: (Set<Locale> selected) {
-        localeNotifier.setLocale(selected.first);
-      },
+    return SizedBox(
+      width: double.infinity,
+      child: SegmentedButton<Locale?>(
+        segments: [
+          ButtonSegment<Locale?>(
+            value: null,
+            label: Text(S.of(context).languageSystem),
+            icon: const Icon(Icons.settings_system_daydream),
+          ),
+          ButtonSegment<Locale?>(
+            value: AppLocales.es,
+            label: const Text('Español'),
+            icon: const Text('🇪🇸'),
+          ),
+          ButtonSegment<Locale?>(
+            value: AppLocales.en,
+            label: const Text('English'),
+            icon: const Text('🇺🇸'),
+          ),
+        ],
+        selected: {currentLocale},
+        onSelectionChanged: (Set<Locale?> selected) {
+          localeNotifier.setLocale(selected.first);
+        },
+      ),
     );
   }
 
@@ -1622,7 +1556,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               children: [
                 Expanded(
                   child: Text(
-                    AppInfoTexts.aboutTitle(S.of(context).isSpanish),
+                    S.of(context).aboutTitle,
                     style: AppTypography.titleMedium.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
@@ -1630,11 +1564,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 ),
                 InkWell(
                   onTap: () {
-                    final isSpanish = S.of(context).isSpanish;
                     showAppInfoDialog(
                       context,
-                      title: AppInfoTexts.aboutTitle(isSpanish),
-                      info: AppInfoTexts.aboutDescription(isSpanish),
+                      title: S.of(context).aboutTitle,
+                      info: S.of(context).aboutDescription,
                     );
                   },
                   borderRadius: BorderRadius.circular(12),
@@ -1657,11 +1590,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             leading: const Icon(Icons.info_outline),
             onTap: () => context.push('/settings/about'),
           ),
-          const Divider(),
-          const ListTile(
-            title: Text('Moneda'),
-            trailing: Text('NIO (Córdobas)'),
-          ),
         ],
       ),
     );
@@ -1671,12 +1599,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Orden de aplicación'),
+        title: Text(S.of(context).paymentOrder),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             RadioListTile<String>(
-              title: const Text('Interés primero'),
+              title: Text(S.of(context).interestFirst),
               value: 'INTEREST_FIRST',
               groupValue: _paymentOrder,
               onChanged: (v) {
@@ -1686,7 +1614,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               },
             ),
             RadioListTile<String>(
-              title: const Text('Capital primero'),
+              title: Text(S.of(context).principalFirst),
               value: 'PRINCIPAL_FIRST',
               groupValue: _paymentOrder,
               onChanged: (v) {
@@ -1722,7 +1650,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('Respaldos Locales', style: AppTypography.titleLarge),
+                Text(
+                  S.of(context).localBackups,
+                  style: AppTypography.titleLarge,
+                ),
                 IconButton(
                   icon: const Icon(Icons.close),
                   onPressed: () => Navigator.pop(ctx),
@@ -1731,9 +1662,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             ),
             const Divider(),
             if (backups.isEmpty)
-              const Padding(
+              Padding(
                 padding: EdgeInsets.all(32),
-                child: Center(child: Text('No hay respaldos disponibles')),
+                child: Center(child: Text(S.of(context).noBackupsAvailable)),
               )
             else
               Expanded(
@@ -1765,7 +1696,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                               onPressed: () async {
                                 final deleted = await backupService
                                     .deleteBackup(backup.filePath);
-                                if (deleted) {
+                                if (deleted && ctx.mounted) {
                                   Navigator.pop(ctx);
                                   _viewBackups(); // Refresh
                                 }
@@ -1774,6 +1705,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         ],
                       ),
                       onTap: () async {
+                        // ignore: use_build_context_synchronously
                         Navigator.pop(ctx);
                         _confirmRestore(backup.filePath);
                       },
@@ -1877,8 +1809,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           );
         } else if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Error al restaurar respaldo'),
+            SnackBar(
+              content: Text(S.of(context).errorRestoringBackup),
               backgroundColor: AppColors.danger,
             ),
           );
@@ -1887,7 +1819,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Error: $e'),
+              content: Text(S.of(context).genericError(e)),
               backgroundColor: AppColors.danger,
             ),
           );
@@ -1903,12 +1835,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       if (result != null && result.files.isNotEmpty) {
         final path = result.files.single.path;
         if (path != null) {
+          // ignore: use_build_context_synchronously
           Navigator.pop(context); // Close the bottom sheet
           _confirmRestore(path, isExternal: true);
         }
       }
     } catch (e) {
-      if (mounted) _showError('Error al seleccionar archivo: $e');
+      // ignore: use_build_context_synchronously
+      _showError('Error al seleccionar archivo: $e');
     }
   }
 
@@ -1917,9 +1851,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   void _recalculatePortfolio() {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text('Recalculando cartera...')));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(S.of(context).recalculatingPortfolio)),
+    );
   }
 
   // NEW METHODS FOR BACKUP FOLDER & EXPORT

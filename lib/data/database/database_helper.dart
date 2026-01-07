@@ -153,6 +153,201 @@ class DatabaseHelper {
         debugPrint('Error checking/adding ${col['name']}: $e');
       }
     }
+
+    // Check and add currency_code column to loans table if missing
+    try {
+      final result = await db.rawQuery(
+        "SELECT COUNT(*) as cnt FROM pragma_table_info('loans') WHERE name='currency_code'",
+      );
+      final hasColumn = (result.first['cnt'] as int) > 0;
+      if (!hasColumn) {
+        debugPrint('Adding missing column to loans: currency_code');
+        await db.execute(
+          "ALTER TABLE loans ADD COLUMN currency_code TEXT DEFAULT 'NIO'",
+        );
+      }
+    } catch (e) {
+      debugPrint('Error checking/adding currency_code to loans: $e');
+    }
+
+    // Check and add report currency settings columns if missing
+    final reportCurrencyColumns = [
+      {'name': 'report_currency', 'def': "TEXT DEFAULT 'NIO'"},
+      {'name': 'exchange_rate', 'def': 'REAL DEFAULT 1.0'},
+    ];
+
+    for (final col in reportCurrencyColumns) {
+      try {
+        final result = await db.rawQuery(
+          "SELECT COUNT(*) as cnt FROM pragma_table_info('app_settings') WHERE name='${col['name']}'",
+        );
+        final hasColumn = (result.first['cnt'] as int) > 0;
+        if (!hasColumn) {
+          debugPrint('Adding missing column: ${col['name']}');
+          await db.execute(
+            'ALTER TABLE app_settings ADD COLUMN ${col['name']} ${col['def']}',
+          );
+        }
+      } catch (e) {
+        debugPrint('Error checking/adding ${col['name']}: $e');
+      }
+    }
+
+    // Check and add scheduled backup columns (v18)
+    final backupColumns = [
+      {'name': 'backup_frequency', 'def': "TEXT DEFAULT 'NONE'"},
+      {'name': 'backup_retention_days', 'def': 'INTEGER DEFAULT 30'},
+      {'name': 'backup_on_loan_creation', 'def': 'INTEGER DEFAULT 0'},
+      {'name': 'backup_on_payment', 'def': 'INTEGER DEFAULT 0'},
+      {'name': 'backup_schedule_time', 'def': 'TEXT'},
+      {'name': 'backup_custom_name', 'def': 'TEXT'},
+      {'name': 'backup_retries', 'def': 'INTEGER DEFAULT 3'},
+    ];
+
+    for (final col in backupColumns) {
+      try {
+        final result = await db.rawQuery(
+          "SELECT COUNT(*) as cnt FROM pragma_table_info('app_settings') WHERE name='${col['name']}'",
+        );
+        final hasColumn = (result.first['cnt'] as int) > 0;
+        if (!hasColumn) {
+          debugPrint('Adding missing column: ${col['name']}');
+          await db.execute(
+            'ALTER TABLE app_settings ADD COLUMN ${col['name']} ${col['def']}',
+          );
+        }
+      } catch (e) {
+        debugPrint('Error checking/adding ${col['name']}: $e');
+      }
+    }
+
+    // Check and add company_country_code column (v20)
+    try {
+      final result = await db.rawQuery(
+        "SELECT COUNT(*) as cnt FROM pragma_table_info('app_settings') WHERE name='company_country_code'",
+      );
+      final hasColumn = (result.first['cnt'] as int) > 0;
+      if (!hasColumn) {
+        debugPrint('Adding missing column: company_country_code');
+        await db.execute(
+          'ALTER TABLE app_settings ADD COLUMN company_country_code TEXT',
+        );
+      }
+    } catch (e) {
+      debugPrint('Error checking/adding company_country_code: $e');
+    }
+
+    // Check and add rate type columns (v22)
+    final rateTypeColumns = [
+      {'name': 'disbursement_rate_type', 'def': "TEXT DEFAULT 'SELL'"},
+      {'name': 'payment_rate_type', 'def': "TEXT DEFAULT 'BUY'"},
+    ];
+
+    for (final col in rateTypeColumns) {
+      try {
+        final result = await db.rawQuery(
+          "SELECT COUNT(*) as cnt FROM pragma_table_info('app_settings') WHERE name='${col['name']}'",
+        );
+        final hasColumn = (result.first['cnt'] as int) > 0;
+        if (!hasColumn) {
+          debugPrint('Adding missing column: ${col['name']}');
+          await db.execute(
+            'ALTER TABLE app_settings ADD COLUMN ${col['name']} ${col['def']}',
+          );
+        }
+      } catch (e) {
+        debugPrint('Error checking/adding ${col['name']}: $e');
+      }
+    }
+
+    // Check and add allow_manual_exchange_rate column (v23)
+    try {
+      final result = await db.rawQuery(
+        "SELECT COUNT(*) as cnt FROM pragma_table_info('app_settings') WHERE name='allow_manual_exchange_rate'",
+      );
+      final hasColumn = (result.first['cnt'] as int) > 0;
+      if (!hasColumn) {
+        debugPrint('Adding missing column: allow_manual_exchange_rate');
+        await db.execute(
+          'ALTER TABLE app_settings ADD COLUMN allow_manual_exchange_rate INTEGER NOT NULL DEFAULT 0',
+        );
+      }
+    } catch (e) {
+      debugPrint('Error checking/adding allow_manual_exchange_rate: $e');
+    }
+
+    // Check and add payment currency columns (v24)
+    final paymentColumns = [
+      {'name': 'payment_currency', 'def': 'TEXT'},
+      {'name': 'exchange_rate_applied', 'def': 'REAL'},
+      {'name': 'exchange_profit', 'def': 'REAL'},
+    ];
+
+    for (final col in paymentColumns) {
+      try {
+        final result = await db.rawQuery(
+          "SELECT COUNT(*) as cnt FROM pragma_table_info('payments') WHERE name='${col['name']}'",
+        );
+        final hasColumn = (result.first['cnt'] as int) > 0;
+        if (!hasColumn) {
+          debugPrint('Adding missing column to payments: ${col['name']}');
+          await db.execute(
+            'ALTER TABLE payments ADD COLUMN ${col['name']} ${col['def']}',
+          );
+        }
+      } catch (e) {
+        debugPrint('Error checking/adding ${col['name']} to payments: $e');
+      }
+    }
+
+    // Auto-create exchange_rates table if missing (v21)
+    try {
+      final result = await db.rawQuery(
+        "SELECT name FROM sqlite_master WHERE type='table' AND name='exchange_rates'",
+      );
+      if (result.isEmpty) {
+        debugPrint('Creating missing table: exchange_rates');
+        await db.execute('''
+          CREATE TABLE exchange_rates (
+            rate_id TEXT PRIMARY KEY,
+            source_currency TEXT NOT NULL,
+            target_currency TEXT NOT NULL,
+            rate_date TEXT NOT NULL,
+            buy_rate REAL NOT NULL,
+            sell_rate REAL NOT NULL,
+            created_at TEXT NOT NULL
+          )
+        ''');
+        await db.execute(
+          'CREATE UNIQUE INDEX uq_exchange_rate_pair_date ON exchange_rates(source_currency, target_currency, rate_date)',
+        );
+      }
+    } catch (e) {
+      debugPrint('Error checking/creating exchange_rates table: $e');
+    }
+
+    // Auto-add loans columns if missing (v21)
+    final loanColumns = [
+      {'name': 'currency_code', 'def': "TEXT DEFAULT 'NIO'"},
+      {'name': 'applied_exchange_rate', 'def': 'REAL'},
+    ];
+
+    for (final col in loanColumns) {
+      try {
+        final result = await db.rawQuery(
+          "SELECT COUNT(*) as cnt FROM pragma_table_info('loans') WHERE name='${col['name']}'",
+        );
+        final hasColumn = (result.first['cnt'] as int) > 0;
+        if (!hasColumn) {
+          debugPrint('Adding missing column to loans: ${col['name']}');
+          await db.execute(
+            'ALTER TABLE loans ADD COLUMN ${col['name']} ${col['def']}',
+          );
+        }
+      } catch (e) {
+        debugPrint('Error checking/adding ${col['name']} to loans: $e');
+      }
+    }
   }
 
   /// Configure database (enable foreign keys, WAL mode, busy timeout)
@@ -216,6 +411,24 @@ class DatabaseHelper {
         show_payment_legend INTEGER NOT NULL DEFAULT 0,
         enable_capital_restriction INTEGER NOT NULL DEFAULT 1,
         capital_restriction_days INTEGER NOT NULL DEFAULT 10,
+        validate_dni_format INTEGER NOT NULL DEFAULT 0,
+        dni_mask TEXT,
+        report_currency TEXT NOT NULL DEFAULT 'NIO',
+        exchange_rate REAL NOT NULL DEFAULT 1.0,
+        backup_frequency TEXT DEFAULT 'NONE',
+        backup_retention_days INTEGER DEFAULT 30,
+        backup_on_loan_creation INTEGER DEFAULT 0,
+        backup_on_payment INTEGER DEFAULT 0,
+        backup_schedule_time TEXT,
+        backup_custom_name TEXT,
+        backup_retries INTEGER DEFAULT 3,
+        company_country_code TEXT,
+        disbursement_rate_type TEXT NOT NULL DEFAULT 'SELL',
+        payment_rate_type TEXT NOT NULL DEFAULT 'BUY',
+        allow_manual_exchange_rate INTEGER NOT NULL DEFAULT 0,
+        payment_currency TEXT,
+        exchange_rate_applied REAL,
+        exchange_profit REAL,
         created_at TEXT NOT NULL,
         updated_at TEXT NOT NULL
       )
@@ -258,6 +471,8 @@ class DatabaseHelper {
         closed_at TEXT,
         notes TEXT,
         loan_number INTEGER,
+        currency_code TEXT DEFAULT 'NIO',
+        applied_exchange_rate REAL,
         created_at TEXT NOT NULL,
         updated_at TEXT NOT NULL,
         FOREIGN KEY (customer_id) REFERENCES customers(customer_id) ON DELETE RESTRICT
@@ -296,6 +511,9 @@ class DatabaseHelper {
         customer_id TEXT NOT NULL,
         payment_date TEXT NOT NULL,
         amount REAL NOT NULL,
+        payment_currency TEXT,
+        exchange_rate_applied REAL,
+        exchange_profit REAL,
         declared_type TEXT NOT NULL DEFAULT 'MIXED',
         receipt_number INTEGER NOT NULL,
         status TEXT NOT NULL DEFAULT 'VALID',
@@ -353,6 +571,22 @@ class DatabaseHelper {
         created_at TEXT NOT NULL
       )
     ''');
+
+    // ExchangeRate table (v21)
+    await db.execute('''
+      CREATE TABLE exchange_rates (
+        rate_id TEXT PRIMARY KEY,
+        source_currency TEXT NOT NULL,
+        target_currency TEXT NOT NULL,
+        rate_date TEXT NOT NULL,
+        buy_rate REAL NOT NULL,
+        sell_rate REAL NOT NULL,
+        created_at TEXT NOT NULL
+      )
+    ''');
+    await db.execute(
+      'CREATE UNIQUE INDEX uq_exchange_rate_pair_date ON exchange_rates(source_currency, target_currency, rate_date)',
+    );
 
     // Create indexes
     await _createIndexes(db);
@@ -639,6 +873,115 @@ class DatabaseHelper {
       try {
         await db.execute(
           'ALTER TABLE app_settings ADD COLUMN capital_restriction_days INTEGER DEFAULT 10',
+        );
+      } catch (_) {}
+    }
+    // Migration from v16 to v17 (DNI Format Validation)
+    if (oldVersion < 17) {
+      try {
+        await db.execute(
+          'ALTER TABLE app_settings ADD COLUMN validate_dni_format INTEGER DEFAULT 0',
+        );
+      } catch (_) {}
+      try {
+        await db.execute('ALTER TABLE app_settings ADD COLUMN dni_mask TEXT');
+      } catch (_) {}
+    }
+    // Migration from v17 to v18 (Scheduled Backup)
+    if (oldVersion < 18) {
+      try {
+        await db.execute(
+          "ALTER TABLE app_settings ADD COLUMN backup_frequency TEXT DEFAULT 'NONE'",
+        );
+      } catch (_) {}
+      try {
+        await db.execute(
+          'ALTER TABLE app_settings ADD COLUMN backup_retention_days INTEGER DEFAULT 30',
+        );
+      } catch (_) {}
+      try {
+        await db.execute(
+          'ALTER TABLE app_settings ADD COLUMN backup_on_loan_creation INTEGER DEFAULT 0',
+        );
+      } catch (_) {}
+      try {
+        await db.execute(
+          'ALTER TABLE app_settings ADD COLUMN backup_on_payment INTEGER DEFAULT 0',
+        );
+      } catch (_) {}
+      try {
+        await db.execute(
+          'ALTER TABLE app_settings ADD COLUMN backup_schedule_time TEXT',
+        );
+      } catch (_) {}
+      try {
+        await db.execute(
+          'ALTER TABLE app_settings ADD COLUMN backup_custom_name TEXT',
+        );
+      } catch (_) {}
+      try {
+        await db.execute(
+          'ALTER TABLE app_settings ADD COLUMN backup_retries INTEGER DEFAULT 3',
+        );
+      } catch (_) {}
+    }
+    // Migration from v18 to v19 (Ensure all new columns exist - Safety Check)
+    if (oldVersion < 19) {
+      // Report Currency Columns
+      try {
+        await db.execute(
+          "ALTER TABLE app_settings ADD COLUMN report_currency TEXT DEFAULT 'NIO'",
+        );
+      } catch (_) {}
+      try {
+        await db.execute(
+          'ALTER TABLE app_settings ADD COLUMN exchange_rate REAL DEFAULT 1.0',
+        );
+      } catch (_) {}
+
+      // Backup Columns (if missed in v18 or just ensuring)
+      try {
+        await db.execute(
+          "ALTER TABLE app_settings ADD COLUMN backup_frequency TEXT DEFAULT 'NONE'",
+        );
+      } catch (_) {}
+      try {
+        await db.execute(
+          'ALTER TABLE app_settings ADD COLUMN backup_retention_days INTEGER DEFAULT 30',
+        );
+      } catch (_) {}
+      try {
+        await db.execute(
+          'ALTER TABLE app_settings ADD COLUMN backup_on_loan_creation INTEGER DEFAULT 0',
+        );
+      } catch (_) {}
+      try {
+        await db.execute(
+          'ALTER TABLE app_settings ADD COLUMN backup_on_payment INTEGER DEFAULT 0',
+        );
+      } catch (_) {}
+      try {
+        await db.execute(
+          'ALTER TABLE app_settings ADD COLUMN backup_schedule_time TEXT',
+        );
+      } catch (_) {}
+      try {
+        await db.execute(
+          'ALTER TABLE app_settings ADD COLUMN backup_custom_name TEXT',
+        );
+      } catch (_) {}
+      try {
+        await db.execute(
+          'ALTER TABLE app_settings ADD COLUMN backup_retries INTEGER DEFAULT 3',
+        );
+      } catch (_) {}
+    }
+
+    // Migration from v19 to v20 (Country of Operation)
+    if (oldVersion < 20) {
+      try {
+        await db.execute(
+          'ALTER TABLE app_settings ADD COLUMN company_country_code TEXT',
         );
       } catch (_) {}
     }

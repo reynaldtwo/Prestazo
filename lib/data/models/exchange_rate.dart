@@ -1,0 +1,81 @@
+import 'package:equatable/equatable.dart';
+
+/// ExchangeRate model - Historical exchange rates
+class ExchangeRate extends Equatable {
+  final String rateId;
+  final String sourceCurrency;
+  final String targetCurrency;
+  final DateTime date;
+  final double buyRate;
+  final double sellRate;
+  final DateTime createdAt;
+
+  const ExchangeRate({
+    required this.rateId,
+    required this.sourceCurrency,
+    required this.targetCurrency,
+    required this.date,
+    required this.buyRate,
+    required this.sellRate,
+    required this.createdAt,
+  });
+
+  /// Get average rate (mid-market rate)
+  double get averageRate => (buyRate + sellRate) / 2;
+
+  /// Create from database map
+  factory ExchangeRate.fromMap(Map<String, dynamic> map) {
+    return ExchangeRate(
+      rateId: map['rate_id'] as String,
+      sourceCurrency: map['source_currency'] as String,
+      targetCurrency: map['target_currency'] as String,
+      date: DateTime.parse(map['rate_date'] as String),
+      buyRate: (map['buy_rate'] as num).toDouble(),
+      sellRate: (map['sell_rate'] as num).toDouble(),
+      createdAt: DateTime.parse(map['created_at'] as String),
+    );
+  }
+
+  /// Convert to database map
+  Map<String, dynamic> toMap() {
+    return {
+      'rate_id': rateId,
+      'source_currency': sourceCurrency,
+      'target_currency': targetCurrency,
+      'rate_date': date.toIso8601String().split('T')[0],
+      'buy_rate': buyRate,
+      'sell_rate': sellRate,
+      'created_at': createdAt.toIso8601String(),
+    };
+  }
+
+  /// Copy with modifications
+  ExchangeRate copyWith({
+    String? sourceCurrency,
+    String? targetCurrency,
+    DateTime? date,
+    double? buyRate,
+    double? sellRate,
+  }) {
+    return ExchangeRate(
+      rateId: rateId,
+      sourceCurrency: sourceCurrency ?? this.sourceCurrency,
+      targetCurrency: targetCurrency ?? this.targetCurrency,
+      date: date ?? this.date,
+      buyRate: buyRate ?? this.buyRate,
+      sellRate: sellRate ?? this.sellRate,
+      createdAt: createdAt,
+    );
+  }
+
+  @override
+  List<Object?> get props => [
+    rateId,
+    sourceCurrency,
+    targetCurrency,
+    date,
+    buyRate,
+    sellRate,
+    createdAt,
+  ];
+}

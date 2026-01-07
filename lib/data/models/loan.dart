@@ -9,13 +9,15 @@ class Loan extends Equatable {
   final double principalBalance;
   final double monthlyInterestRate;
   final String rateUnit;
-  final String billingFrequency; // 'MONTHLY' or 'BIWEEKLY'
+  final String billingFrequency; // 'MONTHLY', 'BIWEEKLY', 'WEEKLY', 'DAILY'
   final DateTime disbursementDate;
   final DateTime? endDate; // Informational end date
   final String status;
   final DateTime? closedAt;
   final String? notes;
   final String? loanNumber; // Added for consecutive numbering
+  final String currencyCode; // Currency for this loan (e.g., 'NIO', 'USD')
+  final double? appliedExchangeRate; // Exchange rate snapshot at disbursement
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -33,6 +35,8 @@ class Loan extends Equatable {
     this.closedAt,
     this.notes,
     this.loanNumber,
+    this.currencyCode = 'NIO',
+    this.appliedExchangeRate,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -50,6 +54,12 @@ class Loan extends Equatable {
   /// Calculate biweekly rate (monthly / 2)
   double get biweeklyInterestRate => monthlyInterestRate / 2;
 
+  /// Calculate weekly rate (monthly / 4)
+  double get weeklyInterestRate => monthlyInterestRate / 4;
+
+  /// Calculate daily rate (monthly / 30)
+  double get dailyInterestRate => monthlyInterestRate / 30;
+
   /// Calculate interest for one month
   double calculateMonthlyInterest() {
     return _roundMoney(principalBalance * (monthlyInterestRate / 100));
@@ -58,6 +68,16 @@ class Loan extends Equatable {
   /// Calculate interest for one biweek
   double calculateBiweeklyInterest() {
     return _roundMoney(principalBalance * (biweeklyInterestRate / 100));
+  }
+
+  /// Calculate interest for one week
+  double calculateWeeklyInterest() {
+    return _roundMoney(principalBalance * (weeklyInterestRate / 100));
+  }
+
+  /// Calculate interest for one day
+  double calculateDailyInterest() {
+    return _roundMoney(principalBalance * (dailyInterestRate / 100));
   }
 
   /// Round to 2 decimals
@@ -85,6 +105,8 @@ class Loan extends Equatable {
           : null,
       notes: map['notes'] as String?,
       loanNumber: map['loan_number']?.toString(),
+      currencyCode: map['currency_code'] as String? ?? 'NIO',
+      appliedExchangeRate: (map['applied_exchange_rate'] as num?)?.toDouble(),
       createdAt: DateTime.parse(map['created_at'] as String),
       updatedAt: DateTime.parse(map['updated_at'] as String),
     );
@@ -106,6 +128,8 @@ class Loan extends Equatable {
       'closed_at': closedAt?.toIso8601String(),
       'notes': notes,
       'loan_number': loanNumber,
+      'currency_code': currencyCode,
+      'applied_exchange_rate': appliedExchangeRate,
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
     };
@@ -123,6 +147,8 @@ class Loan extends Equatable {
     DateTime? closedAt,
     String? notes,
     String? loanNumber,
+    String? currencyCode,
+    double? appliedExchangeRate,
     DateTime? updatedAt,
   }) {
     return Loan(
@@ -139,6 +165,8 @@ class Loan extends Equatable {
       closedAt: closedAt ?? this.closedAt,
       notes: notes ?? this.notes,
       loanNumber: loanNumber ?? this.loanNumber,
+      currencyCode: currencyCode ?? this.currencyCode,
+      appliedExchangeRate: appliedExchangeRate ?? this.appliedExchangeRate,
       createdAt: createdAt,
       updatedAt: updatedAt ?? DateTime.now(),
     );
@@ -158,6 +186,9 @@ class Loan extends Equatable {
     status,
     closedAt,
     notes,
+    loanNumber,
+    currencyCode,
+    appliedExchangeRate,
     createdAt,
     updatedAt,
   ];

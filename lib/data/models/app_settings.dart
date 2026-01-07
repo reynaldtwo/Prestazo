@@ -15,6 +15,8 @@ class AppSettings extends Equatable {
   final bool dailyAccrualEnabled;
   final bool allowMultipleLoans;
   final bool validateDni;
+  final bool validateDniFormat;
+  final String? dniMask;
   final String? companyName;
   final bool showCompanyName;
   final String? companyRuc;
@@ -31,6 +33,7 @@ class AppSettings extends Equatable {
   final bool showCompanyLogo;
   final String? backupPath;
   final bool shareReceiptsWhatsApp;
+  final String? companyCountryCode;
 
   // Report settings
   final bool showDisbursementSignatures;
@@ -43,6 +46,24 @@ class AppSettings extends Equatable {
   // Capital Payment Restriction
   final bool enableCapitalRestriction;
   final int capitalRestrictionDays;
+
+  // Report Currency Settings (for prestamista reports)
+  final String reportCurrency; // Currency code for reports (e.g., 'USD')
+  final double exchangeRate; // Exchange rate: 1 reportCurrency = X baseCurrency
+
+  // Scheduled Backup Settings
+  final String backupFrequency; // 'DAILY', 'WEEKLY', 'MONTHLY', 'NONE'
+  final int backupRetentionDays; // Days to keep old backups
+  final bool backupOnLoanCreation;
+  final bool backupOnPayment;
+  final String? backupScheduleTime; // HH:MM
+  final String? backupCustomName; // Prefix for file name
+  final int backupRetries;
+  final bool allowManualExchangeRate;
+
+  // Rate Type Configuration (Buy vs Sell)
+  final String disbursementRateType; // 'BUY', 'SELL', 'MID'
+  final String paymentRateType; // 'BUY', 'SELL', 'MID'
 
   final DateTime createdAt;
   final DateTime updatedAt;
@@ -61,6 +82,8 @@ class AppSettings extends Equatable {
     this.dailyAccrualEnabled = false,
     this.allowMultipleLoans = false,
     this.validateDni = false,
+    this.validateDniFormat = false,
+    this.dniMask,
     this.companyName,
     this.showCompanyName = false,
     this.companyRuc,
@@ -77,6 +100,7 @@ class AppSettings extends Equatable {
     this.showCompanyLogo = false,
     this.backupPath,
     this.shareReceiptsWhatsApp = false,
+    this.companyCountryCode,
     this.showDisbursementSignatures = true,
     this.showPaymentSignatures = true,
     this.disbursementLegend,
@@ -85,6 +109,18 @@ class AppSettings extends Equatable {
     this.showPaymentLegend = false,
     this.enableCapitalRestriction = true,
     this.capitalRestrictionDays = 10,
+    this.reportCurrency = 'NIO',
+    this.exchangeRate = 1.0,
+    this.backupFrequency = 'NONE',
+    this.backupRetentionDays = 30,
+    this.backupOnLoanCreation = false,
+    this.backupOnPayment = false,
+    this.backupScheduleTime,
+    this.backupCustomName,
+    this.backupRetries = 3,
+    this.allowManualExchangeRate = false,
+    this.disbursementRateType = 'SELL',
+    this.paymentRateType = 'BUY',
     required this.createdAt,
     required this.updatedAt,
   });
@@ -113,6 +149,8 @@ class AppSettings extends Equatable {
       dailyAccrualEnabled: (map['daily_accrual_enabled'] as int? ?? 0) == 1,
       allowMultipleLoans: (map['allow_multiple_loans'] as int? ?? 0) == 1,
       validateDni: (map['validate_dni'] as int? ?? 0) == 1,
+      validateDniFormat: (map['validate_dni_format'] as int? ?? 0) == 1,
+      dniMask: map['dni_mask'] as String?,
       companyName: map['company_name'] as String?,
       showCompanyName: (map['show_company_name'] as int? ?? 0) == 1,
       companyRuc: map['company_ruc'] as String?,
@@ -129,6 +167,7 @@ class AppSettings extends Equatable {
       showCompanyLogo: (map['show_company_logo'] as int? ?? 0) == 1,
       backupPath: map['backup_path'] as String?,
       shareReceiptsWhatsApp: (map['share_receipts_whatsapp'] as int? ?? 0) == 1,
+      companyCountryCode: map['company_country_code'] as String?,
       showDisbursementSignatures:
           (map['show_disbursement_signatures'] as int? ?? 1) == 1,
       showPaymentSignatures: (map['show_payment_signatures'] as int? ?? 1) == 1,
@@ -140,6 +179,19 @@ class AppSettings extends Equatable {
       enableCapitalRestriction:
           (map['enable_capital_restriction'] as int? ?? 1) == 1,
       capitalRestrictionDays: map['capital_restriction_days'] as int? ?? 10,
+      reportCurrency: map['report_currency'] as String? ?? 'NIO',
+      exchangeRate: (map['exchange_rate'] as num?)?.toDouble() ?? 1.0,
+      backupFrequency: map['backup_frequency'] as String? ?? 'NONE',
+      backupRetentionDays: map['backup_retention_days'] as int? ?? 30,
+      backupOnLoanCreation: (map['backup_on_loan_creation'] as int? ?? 0) == 1,
+      backupOnPayment: (map['backup_on_payment'] as int? ?? 0) == 1,
+      backupScheduleTime: map['backup_schedule_time'] as String?,
+      backupCustomName: map['backup_custom_name'] as String?,
+      backupRetries: map['backup_retries'] as int? ?? 3,
+      allowManualExchangeRate:
+          (map['allow_manual_exchange_rate'] as int? ?? 0) == 1,
+      disbursementRateType: map['disbursement_rate_type'] as String? ?? 'SELL',
+      paymentRateType: map['payment_rate_type'] as String? ?? 'BUY',
       createdAt: DateTime.parse(map['created_at'] as String),
       updatedAt: DateTime.parse(map['updated_at'] as String),
     );
@@ -161,6 +213,8 @@ class AppSettings extends Equatable {
       'daily_accrual_enabled': dailyAccrualEnabled ? 1 : 0,
       'allow_multiple_loans': allowMultipleLoans ? 1 : 0,
       'validate_dni': validateDni ? 1 : 0,
+      'validate_dni_format': validateDniFormat ? 1 : 0,
+      'dni_mask': dniMask,
       'company_name': companyName,
       'show_company_name': showCompanyName ? 1 : 0,
       'company_ruc': companyRuc,
@@ -177,6 +231,7 @@ class AppSettings extends Equatable {
       'show_company_logo': showCompanyLogo ? 1 : 0,
       'backup_path': backupPath,
       'share_receipts_whatsapp': shareReceiptsWhatsApp ? 1 : 0,
+      'company_country_code': companyCountryCode,
       'show_disbursement_signatures': showDisbursementSignatures ? 1 : 0,
       'show_payment_signatures': showPaymentSignatures ? 1 : 0,
       'disbursement_legend': disbursementLegend,
@@ -185,6 +240,18 @@ class AppSettings extends Equatable {
       'show_payment_legend': showPaymentLegend ? 1 : 0,
       'enable_capital_restriction': enableCapitalRestriction ? 1 : 0,
       'capital_restriction_days': capitalRestrictionDays,
+      'report_currency': reportCurrency,
+      'exchange_rate': exchangeRate,
+      'backup_frequency': backupFrequency,
+      'backup_retention_days': backupRetentionDays,
+      'backup_on_loan_creation': backupOnLoanCreation ? 1 : 0,
+      'backup_on_payment': backupOnPayment ? 1 : 0,
+      'backup_schedule_time': backupScheduleTime,
+      'backup_custom_name': backupCustomName,
+      'backup_retries': backupRetries,
+      'allow_manual_exchange_rate': allowManualExchangeRate ? 1 : 0,
+      'disbursement_rate_type': disbursementRateType,
+      'payment_rate_type': paymentRateType,
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
     };
@@ -204,6 +271,8 @@ class AppSettings extends Equatable {
     bool? dailyAccrualEnabled,
     bool? allowMultipleLoans,
     bool? validateDni,
+    bool? validateDniFormat,
+    String? dniMask,
     String? companyName,
     bool? showCompanyName,
     String? companyRuc,
@@ -220,6 +289,7 @@ class AppSettings extends Equatable {
     bool? showCompanyLogo,
     String? backupPath,
     bool? shareReceiptsWhatsApp,
+    String? companyCountryCode,
     bool? showDisbursementSignatures,
     bool? showPaymentSignatures,
     String? disbursementLegend,
@@ -228,6 +298,18 @@ class AppSettings extends Equatable {
     bool? showPaymentLegend,
     bool? enableCapitalRestriction,
     int? capitalRestrictionDays,
+    String? reportCurrency,
+    double? exchangeRate,
+    String? backupFrequency,
+    int? backupRetentionDays,
+    bool? backupOnLoanCreation,
+    bool? backupOnPayment,
+    String? backupScheduleTime,
+    String? backupCustomName,
+    int? backupRetries,
+    bool? allowManualExchangeRate,
+    String? disbursementRateType,
+    String? paymentRateType,
     DateTime? updatedAt,
   }) {
     return AppSettings(
@@ -245,6 +327,8 @@ class AppSettings extends Equatable {
       dailyAccrualEnabled: dailyAccrualEnabled ?? this.dailyAccrualEnabled,
       allowMultipleLoans: allowMultipleLoans ?? this.allowMultipleLoans,
       validateDni: validateDni ?? this.validateDni,
+      validateDniFormat: validateDniFormat ?? this.validateDniFormat,
+      dniMask: dniMask ?? this.dniMask,
       companyName: companyName ?? this.companyName,
       showCompanyName: showCompanyName ?? this.showCompanyName,
       companyRuc: companyRuc ?? this.companyRuc,
@@ -262,6 +346,7 @@ class AppSettings extends Equatable {
       backupPath: backupPath ?? this.backupPath,
       shareReceiptsWhatsApp:
           shareReceiptsWhatsApp ?? this.shareReceiptsWhatsApp,
+      companyCountryCode: companyCountryCode ?? this.companyCountryCode,
       showDisbursementSignatures:
           showDisbursementSignatures ?? this.showDisbursementSignatures,
       showPaymentSignatures:
@@ -275,6 +360,19 @@ class AppSettings extends Equatable {
           enableCapitalRestriction ?? this.enableCapitalRestriction,
       capitalRestrictionDays:
           capitalRestrictionDays ?? this.capitalRestrictionDays,
+      reportCurrency: reportCurrency ?? this.reportCurrency,
+      exchangeRate: exchangeRate ?? this.exchangeRate,
+      backupFrequency: backupFrequency ?? this.backupFrequency,
+      backupRetentionDays: backupRetentionDays ?? this.backupRetentionDays,
+      backupOnLoanCreation: backupOnLoanCreation ?? this.backupOnLoanCreation,
+      backupOnPayment: backupOnPayment ?? this.backupOnPayment,
+      backupScheduleTime: backupScheduleTime ?? this.backupScheduleTime,
+      backupCustomName: backupCustomName ?? this.backupCustomName,
+      backupRetries: backupRetries ?? this.backupRetries,
+      allowManualExchangeRate:
+          allowManualExchangeRate ?? this.allowManualExchangeRate,
+      disbursementRateType: disbursementRateType ?? this.disbursementRateType,
+      paymentRateType: paymentRateType ?? this.paymentRateType,
       createdAt: createdAt,
       updatedAt: updatedAt ?? DateTime.now(),
     );
@@ -301,6 +399,8 @@ class AppSettings extends Equatable {
     dailyAccrualEnabled,
     allowMultipleLoans,
     validateDni,
+    validateDniFormat,
+    dniMask,
     companyName,
     showCompanyName,
     companyRuc,
@@ -317,6 +417,7 @@ class AppSettings extends Equatable {
     showCompanyLogo,
     backupPath,
     shareReceiptsWhatsApp,
+    companyCountryCode,
     showDisbursementSignatures,
     showPaymentSignatures,
     disbursementLegend,
@@ -325,6 +426,18 @@ class AppSettings extends Equatable {
     showPaymentLegend,
     enableCapitalRestriction,
     capitalRestrictionDays,
+    reportCurrency,
+    exchangeRate,
+    backupFrequency,
+    backupRetentionDays,
+    backupOnLoanCreation,
+    backupOnPayment,
+    backupScheduleTime,
+    backupCustomName,
+    backupRetries,
+    allowManualExchangeRate,
+    disbursementRateType,
+    paymentRateType,
     createdAt,
     updatedAt,
   ];

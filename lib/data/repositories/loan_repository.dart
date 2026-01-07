@@ -3,6 +3,7 @@ import '../database/database_helper.dart';
 import '../models/loan.dart';
 import '../../core/constants/app_status.dart';
 import '../../core/utils/string_utils.dart';
+import '../../services/backup_service.dart';
 
 /// Repository for Loan CRUD operations
 class LoanRepository {
@@ -161,7 +162,36 @@ class LoanRepository {
       resultLoan = loanWithNumber;
     });
 
+    // Trigger backup if enabled
+    await _checkAndTriggerBackup(await _databaseHelper.database);
+
     return resultLoan!;
+  }
+
+  /// Helper to check and trigger auto-backup
+  Future<void> _checkAndTriggerBackup(Database db) async {
+    try {
+      final settingsResult = await db.query(
+        'app_settings',
+        columns: ['backup_on_loan_creation', 'backup_custom_name'],
+        where: 'settings_id = ?',
+        whereArgs: ['global'],
+      );
+
+      if (settingsResult.isNotEmpty) {
+        final shouldBackup =
+            (settingsResult.first['backup_on_loan_creation'] as int? ?? 0) == 1;
+        if (shouldBackup) {
+          final customName =
+              settingsResult.first['backup_custom_name'] as String?;
+          // Run in background, don't await
+          // ignore: unawaited_futures
+          BackupService.instance.createBackup(customName: customName);
+        }
+      }
+    } catch (_) {
+      // Ignore backup errors to not affect loan creation flow
+    }
   }
 
   /// Get the current maximum loan number
@@ -280,6 +310,44 @@ class LoanRepository {
     return (result.first['total'] as num?)?.toDouble() ?? 0.0;
   }
 
+  Future<Map<String, double>> getTotalPrincipalBalanceByCurrency() async {
+    final db = await _databaseHelper.database;
+    final result = await db.rawQuery(
+      'SELECT currency_code, SUM(principal_balance) as total FROM loans WHERE status = ? GROUP BY currency_code',
+      [AppStatus.loanActive],
+    );
+
+    final Map<String, double> totals = {};
+    for (final row in result) {
+      final currency = row['currency_code'] as String? ?? 'NIO';
+      final total = (row['total'] as num?)?.toDouble() ?? 0.0;
+      totals[currency] = total;
+    }
+    return totals;
+  }
+
+  /// Get total principal balance normalized to BASE currency
+  /// Uses applied_exchange_rate (Contract Rate) for conversion
+  Future<double> getTotalNormalizedPrincipalBalance(String baseCurrency) async {
+    final db = await _databaseHelper.database;
+    // If currency equals base, use balance directly.
+    // If different, multiply by applied_exchange_rate to convert Foreign -> Base.
+    final result = await db.rawQuery(
+      '''
+      SELECT SUM(
+        CASE 
+          WHEN currency_code = ? THEN principal_balance 
+          ELSE principal_balance * COALESCE(applied_exchange_rate, 1) 
+        END
+      ) as total 
+      FROM loans 
+      WHERE status = ?
+      ''',
+      [baseCurrency, AppStatus.loanActive],
+    );
+    return (result.first['total'] as num?)?.toDouble() ?? 0.0;
+  }
+
   /// Get total original principal (active loans)
   Future<double> getTotalOriginalPrincipal() async {
     final db = await _databaseHelper.database;
@@ -288,6 +356,22 @@ class LoanRepository {
       [AppStatus.loanActive],
     );
     return (result.first['total'] as num?)?.toDouble() ?? 0.0;
+  }
+
+  Future<Map<String, double>> getTotalOriginalPrincipalByCurrency() async {
+    final db = await _databaseHelper.database;
+    final result = await db.rawQuery(
+      'SELECT currency_code, SUM(principal_original) as total FROM loans WHERE status = ? GROUP BY currency_code',
+      [AppStatus.loanActive],
+    );
+
+    final Map<String, double> totals = {};
+    for (final row in result) {
+      final currency = row['currency_code'] as String? ?? 'NIO';
+      final total = (row['total'] as num?)?.toDouble() ?? 0.0;
+      totals[currency] = total;
+    }
+    return totals;
   }
 
   /// Check if loan has payments
@@ -308,6 +392,19 @@ class LoanRepository {
       total += loan.principalBalance * (loan.monthlyInterestRate / 100);
     }
     return total;
+  }
+
+  /// Get projected monthly earnings based on active loans grouped by currency
+  Future<Map<String, double>> getProjectedMonthlyEarningsByCurrency() async {
+    final activeLoans = await getActiveLoans();
+    final Map<String, double> totals = {};
+    for (var loan in activeLoans) {
+      final currency = loan.currencyCode; // Assuming already uses 'NIO' if null
+      final monthlyReturn =
+          loan.principalBalance * (loan.monthlyInterestRate / 100);
+      totals[currency] = (totals[currency] ?? 0) + monthlyReturn;
+    }
+    return totals;
   }
 
   /// Check if customer is restricted

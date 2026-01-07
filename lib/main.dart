@@ -78,6 +78,25 @@ class PrestamosApp extends ConsumerWidget {
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
+      localeResolutionCallback: (locale, supportedLocales) {
+        // 1. Check for more specific match (languageCode + countryCode)
+        for (var supportedLocale in supportedLocales) {
+          if (supportedLocale.languageCode == locale?.languageCode &&
+              supportedLocale.countryCode == locale?.countryCode) {
+            return supportedLocale;
+          }
+        }
+
+        // 2. Check for language code match
+        for (var supportedLocale in supportedLocales) {
+          if (supportedLocale.languageCode == locale?.languageCode) {
+            return supportedLocale;
+          }
+        }
+
+        // 3. Fallback to English (Default)
+        return AppLocales.en;
+      },
       routerConfig: appRouter,
     );
   }

@@ -16,6 +16,9 @@ class Payment extends Equatable {
   final String? notes;
   final DateTime createdAt;
   final DateTime updatedAt;
+  final String? paymentCurrency;
+  final double? exchangeRateApplied;
+  final double? exchangeProfit;
 
   const Payment({
     required this.paymentId,
@@ -31,6 +34,9 @@ class Payment extends Equatable {
     this.notes,
     required this.createdAt,
     required this.updatedAt,
+    this.paymentCurrency,
+    this.exchangeRateApplied,
+    this.exchangeProfit,
   });
 
   /// Check if payment is valid
@@ -57,6 +63,9 @@ class Payment extends Equatable {
       notes: map['notes'] as String?,
       createdAt: DateTime.parse(map['created_at'] as String),
       updatedAt: DateTime.parse(map['updated_at'] as String),
+      paymentCurrency: map['payment_currency'] as String?,
+      exchangeRateApplied: (map['exchange_rate_applied'] as num?)?.toDouble(),
+      exchangeProfit: (map['exchange_profit'] as num?)?.toDouble(),
     );
   }
 
@@ -76,6 +85,9 @@ class Payment extends Equatable {
       'notes': notes,
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
+      'payment_currency': paymentCurrency,
+      'exchange_rate_applied': exchangeRateApplied,
+      'exchange_profit': exchangeProfit,
     };
   }
 
@@ -101,6 +113,9 @@ class Payment extends Equatable {
       notes: notes,
       createdAt: createdAt,
       updatedAt: updatedAt ?? DateTime.now(),
+      paymentCurrency: paymentCurrency,
+      exchangeRateApplied: exchangeRateApplied,
+      exchangeProfit: exchangeProfit,
     );
   }
 
@@ -119,5 +134,8 @@ class Payment extends Equatable {
     notes,
     createdAt,
     updatedAt,
+    paymentCurrency,
+    exchangeRateApplied,
+    exchangeProfit,
   ];
 }

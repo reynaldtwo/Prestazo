@@ -113,14 +113,6 @@ void main() {
         // C2: 16-11 -> 30-11 (Overdue)
         // C3: 01-12 -> 15-12 (Pending/Running)
 
-        print('\n--- RESULTADOS PUNTO 2 ---');
-        print('Total Ciclos Generados: ${cycles.length}');
-        for (var c in cycles) {
-          print(
-            'Ciclo ${c.cycleNumber}: ${c.periodStartDate.toIso8601String().substring(0, 10)} al ${c.periodEndDate.toIso8601String().substring(0, 10)}',
-          );
-        }
-
         expect(
           cycles.length,
           3,
@@ -203,11 +195,6 @@ void main() {
           paymentType: 'CANCEL',
           dailyAccrualEnabled: true,
         );
-
-        print('\n--- RESULTADOS PUNTO 1 ---');
-        print('Interés Ciclo Vencido: ${result.overdueInterest}');
-        print('Interés Mora (Parcial): ${result.proportionalInterest}');
-        print('Días Mora: ${result.partialDays}');
 
         // Validación:
         expect(result.partialDays, 3, reason: 'Debe detectar 3 días de atraso');

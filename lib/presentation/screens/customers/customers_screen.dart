@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:sealed_currencies/sealed_currencies.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/widgets/widgets.dart';
@@ -241,19 +242,53 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
   }
 }
 
-class _CustomerListItem extends StatelessWidget {
+class _CustomerListItem extends ConsumerWidget {
   final Customer customer;
   final VoidCallback onTap;
 
   const _CustomerListItem({required this.customer, required this.onTap});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final isActive = customer.status == 'ACTIVE';
     final displayName = customer.alias ?? customer.fullName;
     final isQuincenal = customer.billingFrequency == 'BIWEEKLY';
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    // Get customer's most recent active loan currency
+    final loansAsync = ref.watch(loansByCustomerProvider(customer.customerId));
+
+    // Determine avatar text: currency symbol or first initial
+    String avatarText = displayName.isNotEmpty
+        ? displayName[0].toUpperCase()
+        : '?';
+
+    loansAsync.whenData((loans) {
+      // Filter active loans and sort by disbursement date (most recent first)
+      final activeLoans = loans
+          .where(
+            (loan) =>
+                loan.status == 'ACTIVE' ||
+                loan.status == 'OVERDUE' ||
+                loan.status == 'IN_MORA',
+          )
+          .toList();
+
+      if (activeLoans.isNotEmpty) {
+        // Sort by disbursement date descending (most recent first)
+        activeLoans.sort(
+          (a, b) => b.disbursementDate.compareTo(a.disbursementDate),
+        );
+        final mostRecentLoan = activeLoans.first;
+
+        // Get currency symbol dynamically
+        final currency = FiatCurrency.maybeFromCode(
+          mostRecentLoan.currencyCode,
+        );
+        avatarText = currency?.symbol ?? mostRecentLoan.currencyCode;
+      }
+    });
 
     return AppCard(
       onTap: onTap,
@@ -276,12 +311,15 @@ class _CustomerListItem extends StatelessWidget {
             ),
             child: Center(
               child: Text(
-                displayName.isNotEmpty ? displayName[0].toUpperCase() : '?',
+                avatarText,
                 style: AppTypography.headlineSmall.copyWith(
                   color: isActive
                       ? (isDark ? AppColors.info : AppColors.primary)
                       : Theme.of(context).colorScheme.outline,
                   fontWeight: FontWeight.bold,
+                  fontSize: avatarText.length > 2
+                      ? 14
+                      : 18, // Smaller font for longer symbols
                 ),
               ),
             ),

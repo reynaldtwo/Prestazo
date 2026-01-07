@@ -326,53 +326,49 @@ class _CustomerDueCard extends StatelessWidget {
 
           const SizedBox(height: 16),
 
-          // Info row
-          Row(
+          // Info wrap
+          Wrap(
+            spacing: 16,
+            runSpacing: 8,
             children: [
-              Expanded(
-                child: MoneyLabel(
-                  label: S.of(context).interestExpected,
-                  amount: customer.totalInterestExpected,
-                ),
+              MoneyLabel(
+                label: S.of(context).interestExpected,
+                amount: customer.totalInterestExpected,
               ),
-              Expanded(
-                child: MoneyLabel(
-                  label: S.of(context).pending,
-                  amount: customer.totalInterestPending,
-                  amountColor: customer.totalInterestPending > 0
-                      ? AppColors.danger
-                      : null,
-                ),
+              MoneyLabel(
+                label: S.of(context).pending,
+                amount: customer.totalInterestPending,
+                amountColor: customer.totalInterestPending > 0
+                    ? AppColors.danger
+                    : null,
               ),
             ],
           ),
 
           const SizedBox(height: 12),
 
-          Row(
+          Wrap(
+            spacing: 16,
+            runSpacing: 8,
             children: [
-              Expanded(
-                child: MoneyLabel(
-                  label: S.of(context).capital,
-                  amount: customer.totalCapitalBalance,
-                ),
+              MoneyLabel(
+                label: S.of(context).capital,
+                amount: customer.totalCapitalBalance,
               ),
               if (customer.lastPaymentDate != null)
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        S.of(context).lastPayment,
-                        style: AppTypography.labelSmall,
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        _formatDate(context, customer.lastPaymentDate!),
-                        style: AppTypography.bodyMedium,
-                      ),
-                    ],
-                  ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      S.of(context).lastPayment,
+                      style: AppTypography.labelSmall,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      _formatDate(context, customer.lastPaymentDate!),
+                      style: AppTypography.bodyMedium,
+                    ),
+                  ],
                 ),
             ],
           ),
@@ -443,7 +439,7 @@ class _CustomerDueCard extends StatelessWidget {
     if (diff == 0) return S.of(context).dateToday;
     if (diff == 1) return S.of(context).dateYesterday;
     if (diff < 7) {
-      return S.of(context).dateDaysAgo.replaceAll('{days}', diff.toString());
+      return S.of(context).dateDaysAgo(diff.toString());
     }
 
     return '${date.day}/${date.month}/${date.year}';

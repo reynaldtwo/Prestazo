@@ -11,16 +11,34 @@ class Formatters {
     decimalDigits: 2,
   );
 
-  static final NumberFormat _numberFormatter = NumberFormat('#,##0.00', 'es_NI');
-  static final NumberFormat _percentFormatter = NumberFormat.percentPattern('es_NI');
+  static final NumberFormat _numberFormatter = NumberFormat(
+    '#,##0.00',
+    'es_NI',
+  );
+  static final NumberFormat _percentFormatter = NumberFormat.percentPattern(
+    'es_NI',
+  );
   static final DateFormat _dateFormatter = DateFormat('dd/MM/yyyy', 'es_NI');
-  static final DateFormat _dateTimeFormatter = DateFormat('dd/MM/yyyy HH:mm', 'es_NI');
+  static final DateFormat _dateTimeFormatter = DateFormat(
+    'dd/MM/yyyy HH:mm',
+    'es_NI',
+  );
   static final DateFormat _isoDateFormatter = DateFormat('yyyy-MM-dd');
-  static final DateFormat _monthYearFormatter = DateFormat('MMMM yyyy', 'es_NI');
+  static final DateFormat _monthYearFormatter = DateFormat(
+    'MMMM yyyy',
+    'es_NI',
+  );
   static final DateFormat _shortDateFormatter = DateFormat('dd MMM', 'es_NI');
 
-  /// Format amount as currency (C$ 1,234.56)
-  static String currency(double amount) {
+  /// Format amount as currency (C$ 1,234.56 by default, or specific symbol)
+  static String currency(double amount, {String? symbol}) {
+    if (symbol != null) {
+      return NumberFormat.currency(
+        locale: 'es_NI',
+        symbol: '$symbol ',
+        decimalDigits: 2,
+      ).format(amount);
+    }
     return _currencyFormatter.format(amount);
   }
 

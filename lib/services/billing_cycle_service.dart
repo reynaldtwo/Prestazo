@@ -61,8 +61,12 @@ class BillingCycleService {
     final existingCycles = await _cycleRepo.getBillingCyclesByLoan(loan.loanId);
 
     // Determine frequency from LOAN (not customer)
-    final isBiweekly = loan.billingFrequency == 'BIWEEKLY';
-    final cycleDays = isBiweekly ? 15 : 30;
+    final cycleDays = switch (loan.billingFrequency) {
+      'WEEKLY' => 7,
+      'DAILY' => 1,
+      'BIWEEKLY' => 15,
+      _ => 30, // MONTHLY default
+    };
 
     DateTime nextStart;
     int nextCycleNumber;
@@ -102,7 +106,6 @@ class BillingCycleService {
         cycleNumber: nextCycleNumber,
         startDate: nextStart,
         endDate: nextEnd,
-        isBiweekly: isBiweekly,
       );
 
       await _cycleRepo.insertBillingCycle(cycle);
@@ -186,15 +189,17 @@ class BillingCycleService {
     required int cycleNumber,
     required DateTime startDate,
     required DateTime endDate,
-    required bool isBiweekly,
   }) {
     final now = DateTime.now();
-    final frequency = isBiweekly ? 'BIWEEKLY' : 'MONTHLY';
+    final frequency = loan.billingFrequency;
 
     // Calculate expected interest
-    final interestExpected = isBiweekly
-        ? loan.calculateBiweeklyInterest()
-        : loan.calculateMonthlyInterest();
+    final interestExpected = switch (loan.billingFrequency) {
+      'WEEKLY' => loan.calculateWeeklyInterest(),
+      'DAILY' => loan.calculateDailyInterest(),
+      'BIWEEKLY' => loan.calculateBiweeklyInterest(),
+      _ => loan.calculateMonthlyInterest(),
+    };
 
     return BillingCycle(
       billingCycleId: '${loan.loanId}_cycle_$cycleNumber',
@@ -215,7 +220,12 @@ class BillingCycleService {
 
   /// Calculate the next due date based on frequency
   DateTime calculateNextDueDate(DateTime fromDate, String frequency) {
-    final days = frequency == 'BIWEEKLY' ? 14 : 29;
+    final days = switch (frequency) {
+      'WEEKLY' => 6,
+      'DAILY' => 0,
+      'BIWEEKLY' => 14,
+      _ => 29, // MONTHLY
+    };
     return fromDate.add(Duration(days: days));
   }
 

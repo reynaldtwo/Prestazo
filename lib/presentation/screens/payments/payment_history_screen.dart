@@ -6,6 +6,7 @@ import '../../../core/theme/app_typography.dart';
 import '../../../core/widgets/widgets.dart';
 import '../../../data/providers/providers.dart';
 import '../../../core/localization/locale_provider.dart';
+import '../../../core/utils/currency_utils.dart';
 
 /// Payment history screen - Shows all registered payments
 class PaymentHistoryScreen extends ConsumerWidget {
@@ -86,6 +87,15 @@ class _PaymentCard extends StatelessWidget {
         ? DateTime.tryParse(payment['payment_date'] as String)
         : null;
     final notes = payment['notes'] as String?;
+    final paymentCurrency = payment['payment_currency'] as String?;
+    final currencySymbol = paymentCurrency != null
+        ? CurrencyUtils.getCurrencySymbol(paymentCurrency)
+        : null;
+
+    final loanCurrencyCode = payment['loan_currency_code'] as String?;
+    final loanCurrencySymbol = loanCurrencyCode != null
+        ? CurrencyUtils.getCurrencySymbol(loanCurrencyCode)
+        : currencySymbol; // Fallback to payment symbol if loan currency missing
 
     return AppCard(
       child: Column(
@@ -125,7 +135,11 @@ class _PaymentCard extends StatelessWidget {
                   ],
                 ),
               ),
-              MoneyDisplay(amount: amount, size: MoneyDisplaySize.medium),
+              MoneyDisplay(
+                amount: amount,
+                size: MoneyDisplaySize.medium,
+                currencySymbol: currencySymbol,
+              ),
             ],
           ),
           const SizedBox(height: 12),
@@ -135,12 +149,14 @@ class _PaymentCard extends StatelessWidget {
                 child: MoneyLabel(
                   label: S.of(context).interest,
                   amount: interestPaid,
+                  currencySymbol: loanCurrencySymbol,
                 ),
               ),
               Expanded(
                 child: MoneyLabel(
                   label: S.of(context).capital,
                   amount: principalPaid,
+                  currencySymbol: loanCurrencySymbol,
                 ),
               ),
             ],
@@ -169,7 +185,7 @@ class _PaymentCard extends StatelessWidget {
     if (diff == 0) return S.of(context).dateToday;
     if (diff == 1) return S.of(context).dateYesterday;
     if (diff < 7) {
-      return S.of(context).dateDaysAgo.replaceAll('{days}', diff.toString());
+      return S.of(context).dateDaysAgo(diff.toString());
     }
 
     return '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';

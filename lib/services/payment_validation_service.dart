@@ -45,11 +45,12 @@ class PaymentValidationService {
     int daysBeforeCycleForCapital = 10,
     bool enableCapitalRestriction = true,
     required dynamic s,
+    String currencySymbol = 'C\$',
   }) {
     if (amount <= 0) {
-      return const ValidationResult.failure(
-        errorTitle: 'Monto Inválido',
-        errorMessage: 'El monto debe ser mayor a cero.',
+      return ValidationResult.failure(
+        errorTitle: s.invalidAmountTitle,
+        errorMessage: s.invalidAmountMessage,
       );
     }
 
@@ -65,13 +66,23 @@ class PaymentValidationService {
 
     switch (paymentType) {
       case 'CANCEL':
-        return _validateCancel(amount, calculation.totalDebt);
+        return _validateCancel(
+          amount,
+          calculation.totalDebt,
+          currencySymbol,
+          s,
+        );
 
       case 'INTEREST':
-        return _validateInterestOnly(amount, overdueInterestOnly);
+        return _validateInterestOnly(
+          amount,
+          overdueInterestOnly,
+          currencySymbol,
+          s,
+        );
 
       case 'MIXED':
-        return _validateMixed(amount, overdueInterestOnly);
+        return _validateMixed(amount, overdueInterestOnly, currencySymbol, s);
 
       case 'PRINCIPAL':
         return _validatePrincipal(
@@ -83,44 +94,67 @@ class PaymentValidationService {
           daysBeforeCycle: daysBeforeCycleForCapital,
           enableRestriction: enableCapitalRestriction,
           s: s,
+          currencySymbol: currencySymbol,
         );
 
       default:
-        return const ValidationResult.failure(
-          errorTitle: 'Tipo Inválido',
-          errorMessage: 'Tipo de pago no reconocido.',
+        return ValidationResult.failure(
+          errorTitle: s.invalidPaymentTypeTitle,
+          errorMessage: s.invalidPaymentTypeMessage,
         );
     }
   }
 
-  ValidationResult _validateCancel(double amount, double totalDebt) {
+  ValidationResult _validateCancel(
+    double amount,
+    double totalDebt,
+    String currencySymbol,
+    dynamic s,
+  ) {
     if ((amount - totalDebt).abs() > 0.02) {
       return ValidationResult.failure(
-        errorTitle: 'Monto Incorrecto para Cancelar',
-        errorMessage:
-            'Para cancelar el préstamo, el monto debe ser exactamente C\$ ${_formatMoney(totalDebt)} (Capital + Intereses).',
+        errorTitle: s.incorrectCancelAmountTitle,
+        errorMessage: s.incorrectCancelAmountMessage(
+          currencySymbol,
+          _formatMoney(totalDebt),
+        ),
       );
     }
     return const ValidationResult.success();
   }
 
-  ValidationResult _validateInterestOnly(double amount, double cycleInterest) {
+  ValidationResult _validateInterestOnly(
+    double amount,
+    double cycleInterest,
+    String currencySymbol,
+    dynamic s,
+  ) {
     if (amount > cycleInterest + 0.01) {
       return ValidationResult.failure(
-        errorTitle: 'Monto Excede Intereses',
-        errorMessage:
-            'El monto (C\$ ${_formatMoney(amount)}) excede los intereses pendientes (C\$ ${_formatMoney(cycleInterest)}).\n\nSeleccione "Mixto" para abonar al capital.',
+        errorTitle: s.amountExceedsInterestTitle,
+        errorMessage: s.amountExceedsInterestMessage(
+          currencySymbol,
+          _formatMoney(amount),
+          _formatMoney(cycleInterest),
+        ),
       );
     }
     return const ValidationResult.success();
   }
 
-  ValidationResult _validateMixed(double amount, double cycleInterest) {
+  ValidationResult _validateMixed(
+    double amount,
+    double cycleInterest,
+    String currencySymbol,
+    dynamic s,
+  ) {
     if (cycleInterest > 0 && amount <= cycleInterest) {
       return ValidationResult.failure(
-        errorTitle: 'Monto Insuficiente para Mixto',
-        errorMessage:
-            'Para un pago mixto, el monto debe ser mayor a los intereses pendientes (C\$ ${_formatMoney(cycleInterest)}).\n\nSi solo desea pagar intereses, seleccione "Solo Interés".',
+        errorTitle: s.insufficientMixedAmountTitle,
+        errorMessage: s.insufficientMixedAmountMessage(
+          currencySymbol,
+          _formatMoney(cycleInterest),
+        ),
       );
     }
     return const ValidationResult.success();
@@ -135,12 +169,15 @@ class PaymentValidationService {
     required int daysBeforeCycle,
     required bool enableRestriction,
     required dynamic s,
+    required String currencySymbol,
   }) {
     if (cycleInterest > 0) {
       return ValidationResult.failure(
-        errorTitle: 'Intereses Pendientes',
-        errorMessage:
-            'No puede abonar solo al capital porque tiene intereses pendientes (C\$ ${_formatMoney(cycleInterest)}).\n\nDebe pagar los intereses primero.',
+        errorTitle: s.pendingInterestTitle,
+        errorMessage: s.pendingInterestMessage(
+          currencySymbol,
+          _formatMoney(cycleInterest),
+        ),
       );
     }
 
@@ -184,9 +221,12 @@ class PaymentValidationService {
 
     if (amount > loan.principalBalance + 0.01) {
       return ValidationResult.failure(
-        errorTitle: 'Monto Excede Capital',
-        errorMessage:
-            'El monto (C\$ ${_formatMoney(amount)}) excede el capital pendiente (C\$ ${_formatMoney(loan.principalBalance)}).',
+        errorTitle: s.amountExceedsPrincipalTitle,
+        errorMessage: s.amountExceedsPrincipalMessage(
+          currencySymbol,
+          _formatMoney(amount),
+          _formatMoney(loan.principalBalance),
+        ),
       );
     }
 

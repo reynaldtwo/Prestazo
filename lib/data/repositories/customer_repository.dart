@@ -9,10 +9,10 @@ class CustomerRepository {
   CustomerRepository({DatabaseHelper? databaseHelper})
     : _databaseHelper = databaseHelper ?? DatabaseHelper();
 
-  /// Get all customers
+  /// Get all customers (ordered by most recent first)
   Future<List<Customer>> getAllCustomers() async {
     final db = await _databaseHelper.database;
-    final maps = await db.query('customers', orderBy: 'full_name ASC');
+    final maps = await db.query('customers', orderBy: 'created_at DESC');
     return maps.map((map) => Customer.fromMap(map)).toList();
   }
 
@@ -147,10 +147,17 @@ class CustomerRepository {
   /// Use excludeId to exclude a specific customer (for edit mode)
   Future<Customer?> getCustomerByDni(String dni, {String? excludeId}) async {
     final db = await _databaseHelper.database;
-    final normalizedDni = dni.trim().toUpperCase();
+    // Normalize input: remove dashes, spaces, and uppercase
+    final cleanDni = dni.replaceAll('-', '').replaceAll(' ', '').toUpperCase();
 
-    String query = 'SELECT * FROM customers WHERE UPPER(dni) = ?';
-    List<dynamic> args = [normalizedDni];
+    // Query comparing cleaned version of DB column vs cleaned input
+    // NOTE: SQLite's REPLACE is used to clean the DB side on the fly.
+    String query = '''
+      SELECT * FROM customers 
+      WHERE REPLACE(REPLACE(UPPER(dni), '-', ''), ' ', '') = ?
+    ''';
+
+    List<dynamic> args = [cleanDni];
 
     if (excludeId != null) {
       query += ' AND customer_id != ?';

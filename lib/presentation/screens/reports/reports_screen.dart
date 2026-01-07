@@ -5,8 +5,12 @@ import '../../../core/theme/app_typography.dart';
 import '../../../core/widgets/widgets.dart';
 import '../../../data/providers/providers.dart';
 import '../../../data/models/loan.dart';
-import '../../../data/providers/service_providers.dart';
+
 import '../../../core/localization/locale_provider.dart';
+import '../../../core/providers/currency_provider.dart';
+import 'package:sealed_currencies/sealed_currencies.dart';
+import '../../../data/models/app_settings.dart';
+import '../../../services/currency_service.dart';
 
 class ReportsScreen extends ConsumerStatefulWidget {
   final int initialTab;
@@ -18,6 +22,7 @@ class ReportsScreen extends ConsumerStatefulWidget {
 }
 
 class _ReportsScreenState extends ConsumerState<ReportsScreen> {
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   int _selectedTab = 0; // 0 = Ganancias Reales, 1 = Proyección
   DateTime _startDate = DateTime.now().subtract(const Duration(days: 30));
   DateTime _endDate = DateTime.now();
@@ -45,25 +50,41 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
   Future<void> _loadRealizedEarnings() async {
     setState(() => _isLoadingRealized = true);
     final paymentRepo = ref.read(paymentRepositoryProvider);
+    final currencyService = ref.read(currencyServiceProvider).value;
+
     try {
-      // Ensure endDate covers the entire day
-      final adjustedEndDate = DateTime(
+      // Use start of next day for exclusive end date comparison
+      // This properly handles all timezone scenarios
+      final exclusiveEndDate = DateTime(
         _endDate.year,
         _endDate.month,
         _endDate.day,
-        23,
-        59,
-        59,
-      );
+      ).add(const Duration(days: 1));
 
-      final total = await paymentRepo.getRealizedEarnings(
-        startDate: _startDate,
-        endDate: adjustedEndDate,
-      );
+      final earningsByCurrency = await paymentRepo
+          .getRealizedEarningsByCurrency(
+            startDate: _startDate,
+            endDate: exclusiveEndDate,
+          );
+
+      // Use proper multi-currency aggregation via CurrencyService
+      double total = 0;
+      if (currencyService != null) {
+        final context = await currencyService.getContext();
+        total = await currencyService.aggregateMultiCurrencyToDisplay(
+          earningsByCurrency,
+          context,
+        );
+      } else {
+        // Fallback: sum literal (should not happen in production)
+        earningsByCurrency.forEach((_, amount) => total += amount);
+      }
+
       final details = await paymentRepo.getPaymentsWithDetails(
         fromDate: _startDate,
-        toDate: adjustedEndDate,
+        toDate: exclusiveEndDate,
       );
+
       if (mounted) {
         setState(() {
           _realizedTotal = total;
@@ -78,9 +99,26 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
   Future<void> _loadProjectedEarnings() async {
     setState(() => _isLoadingProjected = true);
     final repo = ref.read(loanRepositoryProvider);
+    final currencyService = ref.read(currencyServiceProvider).value;
+
     try {
-      final total = await repo.getProjectedMonthlyEarnings();
+      final projectedByCurrency = await repo
+          .getProjectedMonthlyEarningsByCurrency();
       final loans = await repo.getActiveLoans();
+
+      // Use proper multi-currency aggregation via CurrencyService
+      double total = 0;
+      if (currencyService != null) {
+        final context = await currencyService.getContext();
+        total = await currencyService.aggregateMultiCurrencyToDisplay(
+          projectedByCurrency,
+          context,
+        );
+      } else {
+        // Fallback: sum literal (should not happen in production)
+        projectedByCurrency.forEach((_, amount) => total += amount);
+      }
+
       if (mounted) {
         setState(() {
           _projectedTotal = total;
@@ -92,13 +130,21 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
     }
   }
 
+  // GlobalKey for ArcSideBar control
+  final GlobalKey<ArcSideBarState> _arcSideBarKey =
+      GlobalKey<ArcSideBarState>();
+
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
     return Scaffold(
+      key: _scaffoldKey,
       appBar: AppBar(
         title: Text(S.of(context).reports),
+        leading: IconButton(
+          icon: const Icon(Icons.menu),
+          tooltip: 'Menú de reportes',
+          onPressed: () => _arcSideBarKey.currentState?.toggle(),
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.share),
@@ -113,82 +159,73 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
             },
           ),
         ],
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(48),
-          child: Container(
-            color: colorScheme.surface,
-            child: Row(
-              children: [
-                Expanded(
-                  child: InkWell(
-                    onTap: () => setState(() => _selectedTab = 0),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      decoration: BoxDecoration(
-                        border: Border(
-                          bottom: BorderSide(
-                            color: _selectedTab == 0
-                                ? colorScheme.primary
-                                : Colors.transparent,
-                            width: 2,
-                          ),
-                        ),
-                      ),
-                      alignment: Alignment.center,
-                      child: Text(
-                        S.of(context).realizedEarnings,
-                        style: TextStyle(
-                          color: _selectedTab == 0
-                              ? colorScheme.primary
-                              : colorScheme.onSurfaceVariant,
-                          fontWeight: _selectedTab == 0
-                              ? FontWeight.bold
-                              : FontWeight.normal,
-                        ),
-                      ),
-                    ),
-                  ),
+      ),
+      body: Stack(
+        children: [
+          // Main content
+          _selectedTab == 0 ? _buildRealizedTab() : _buildProjectedTab(),
+          // Arc Sidebar custom widget
+          ArcSideBar(
+            key: _arcSideBarKey,
+            accentColor: AppColors.primary,
+            selectedIndex: _selectedTab,
+            header: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+              child: Text(
+                S.of(context).reports,
+                style: AppTypography.headlineSmall.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textPrimary,
                 ),
-                Expanded(
-                  child: InkWell(
-                    onTap: () => setState(() => _selectedTab = 1),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      decoration: BoxDecoration(
-                        border: Border(
-                          bottom: BorderSide(
-                            color: _selectedTab == 1
-                                ? colorScheme.primary
-                                : Colors.transparent,
-                            width: 2,
-                          ),
-                        ),
-                      ),
-                      alignment: Alignment.center,
-                      child: Text(
-                        S.of(context).projectedEarnings,
-                        style: TextStyle(
-                          color: _selectedTab == 1
-                              ? colorScheme.primary
-                              : colorScheme.onSurfaceVariant,
-                          fontWeight: _selectedTab == 1
-                              ? FontWeight.bold
-                              : FontWeight.normal,
-                        ),
-                      ),
-                    ),
-                  ),
+              ),
+            ),
+            items: [
+              ArcSideBarItem(
+                icon: Icons.attach_money,
+                title: S.of(context).realizedEarnings,
+                onTap: () {
+                  if (_selectedTab != 0) {
+                    setState(() => _selectedTab = 0);
+                  }
+                },
+              ),
+              ArcSideBarItem(
+                icon: Icons.trending_up,
+                title: S.of(context).projectedEarnings,
+                onTap: () {
+                  if (_selectedTab != 1) {
+                    setState(() => _selectedTab = 1);
+                  }
+                },
+              ),
+            ],
+            onItemSelected: (index) {
+              setState(() => _selectedTab = index);
+            },
+            footer: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Text(
+                S.of(context).selectReportType,
+                style: AppTypography.bodySmall.copyWith(
+                  color: AppColors.textSecondary,
                 ),
-              ],
+                textAlign: TextAlign.center,
+              ),
             ),
           ),
-        ),
+        ],
       ),
-      body: _selectedTab == 0 ? _buildRealizedTab() : _buildProjectedTab(),
     );
   }
 
   Widget _buildRealizedTab() {
+    final settings = ref.watch(appSettingsProvider).value;
+    if (settings == null) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    final reportCode = settings.reportCurrency;
+    final symbol = FiatCurrency.maybeFromCode(reportCode)?.symbol ?? reportCode;
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -256,6 +293,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                     amount: _realizedTotal,
                     size: MoneyDisplaySize.large,
                     color: AppColors.success,
+                    currencySymbol: symbol,
                   ),
                   const SizedBox(height: 4),
                   Text(
@@ -293,9 +331,19 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
   }
 
   Widget _buildPaymentDetailCard(Map<String, dynamic> payment) {
+    final settings = ref.read(appSettingsProvider).value;
     final date = DateTime.parse(payment['payment_date'] as String);
+
+    // Get raw amounts (NO conversion - show in loan's original currency)
     final amount = (payment['amount'] as num).toDouble();
     final interestPaid = (payment['interest_paid'] as num?)?.toDouble() ?? 0;
+
+    // Use the LOAN'S currency, not the report currency
+    final loanCurrencyCode =
+        payment['currency_code'] as String? ?? settings?.baseCurrency ?? '';
+    final symbol =
+        FiatCurrency.maybeFromCode(loanCurrencyCode)?.symbol ??
+        loanCurrencyCode;
 
     final customerName = payment['customer_name'] ?? 'Sin nombre';
 
@@ -310,9 +358,31 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(customerName, style: AppTypography.titleSmall),
-                  Text(
-                    '${date.day}/${date.month}/${date.year} • ${S.of(context).receiptNumber}${payment['receipt_number'] ?? '---'}',
-                    style: AppTypography.labelSmall,
+                  Row(
+                    children: [
+                      Text(
+                        '${date.day}/${date.month}/${date.year} • ${S.of(context).receiptNumber}${payment['receipt_number'] ?? '---'}',
+                        style: AppTypography.labelSmall,
+                      ),
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppColors.primary.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          loanCurrencyCode,
+                          style: AppTypography.labelSmall.copyWith(
+                            color: AppColors.primary,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -320,10 +390,14 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
             Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                MoneyDisplay(amount: amount, size: MoneyDisplaySize.small),
+                MoneyDisplay(
+                  amount: amount,
+                  size: MoneyDisplaySize.small,
+                  currencySymbol: symbol,
+                ),
                 if (interestPaid > 0)
                   Text(
-                    'Int: C\$${interestPaid.toStringAsFixed(0)}',
+                    'Int: $symbol ${interestPaid.toStringAsFixed(0)}',
                     style: AppTypography.labelSmall.copyWith(
                       color: AppColors.success,
                     ),
@@ -340,6 +414,13 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
     if (_isLoadingProjected) {
       return const Center(child: CircularProgressIndicator());
     }
+
+    final settings = ref.watch(appSettingsProvider).value;
+    if (settings == null) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    final reportCode = settings.reportCurrency;
+    final symbol = FiatCurrency.maybeFromCode(reportCode)?.symbol ?? reportCode;
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
@@ -360,6 +441,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                   amount: _projectedTotal,
                   size: MoneyDisplaySize.large,
                   color: AppColors.info,
+                  currencySymbol: symbol,
                 ),
                 const SizedBox(height: 4),
                 Text(
@@ -379,16 +461,54 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
             ),
             const SizedBox(height: 8),
             ..._activeLoans.map((loan) {
+              // NO conversion - show in loan's original currency
+              final principal = loan.principalBalance;
               final monthlyReturn =
                   loan.principalBalance * (loan.monthlyInterestRate / 100);
+
+              // Use the LOAN'S original currency
+              final loanSymbol =
+                  FiatCurrency.maybeFromCode(loan.currencyCode)?.symbol ??
+                  'C\$';
+
               return Card(
                 margin: const EdgeInsets.only(bottom: 8),
                 child: ListTile(
-                  title: Text(
-                    '${S.of(context).loan} #${loan.loanNumber ?? '---'}',
+                  title: Row(
+                    children: [
+                      Text(
+                        '${S.of(context).loan} #${loan.loanNumber ?? '---'}',
+                      ),
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppColors.primary.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          loan.currencyCode,
+                          style: AppTypography.labelSmall.copyWith(
+                            color: AppColors.primary,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                  subtitle: Text(
-                    'Capital: C\$${loan.principalBalance.toStringAsFixed(0)} @ ${loan.monthlyInterestRate}%',
+                  subtitle: Wrap(
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    children: [
+                      Text('${S.of(context).capital}: '),
+                      MoneyDisplay(
+                        amount: principal,
+                        currencySymbol: loanSymbol,
+                      ),
+                      Text(' @ ${loan.monthlyInterestRate}%'),
+                    ],
                   ),
                   trailing: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -402,6 +522,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                         amount: monthlyReturn,
                         size: MoneyDisplaySize.small,
                         color: AppColors.success,
+                        currencySymbol: loanSymbol,
                       ),
                     ],
                   ),
@@ -433,40 +554,84 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
 
     if (settings == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Error: Configuración no cargada')),
+        SnackBar(
+          content: Text(
+            S.of(context).genericError(S.of(context).configNotLoaded),
+          ),
+        ),
       );
       return;
     }
 
     try {
+      final currencyService = ref.read(currencyServiceProvider).value;
+
       if (_selectedTab == 0) {
         // Earnings Report
         if (_paymentsDetail.isEmpty) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('No hay datos de pagos para generar reporte'),
-            ),
+            SnackBar(content: Text(S.of(context).noPaymentDataForReport)),
           );
           return;
         }
 
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Generando Reporte de Ganancias...')),
+          SnackBar(content: Text(S.of(context).generatingEarningsReport)),
         );
 
-        // Ensure accurate breakdown is available (should be if using updated repo)
+        // Calculate aggregated totals using multi-currency normalization
+        double? aggregatedTotalEarnings;
+        double? aggregatedTotalPrincipal;
+        double? aggregatedTotalCollected;
+        String? displayCurrencySymbol;
+
+        if (currencyService != null) {
+          final context = await currencyService.getContext();
+          displayCurrencySymbol = context.displayCurrency.symbol;
+
+          // Aggregate earnings (interest + mora) by currency
+          final earningsByCurrency = <String, double>{};
+          final principalByCurrency = <String, double>{};
+
+          for (var row in _paymentsDetail) {
+            final currency =
+                row['currency_code'] as String? ?? settings.baseCurrency;
+            final interest = (row['interest_paid'] as num?)?.toDouble() ?? 0;
+            final mora = (row['mora_paid'] as num?)?.toDouble() ?? 0;
+            final principal = (row['principal_paid'] as num?)?.toDouble() ?? 0;
+
+            earningsByCurrency[currency] =
+                (earningsByCurrency[currency] ?? 0) + interest + mora;
+            principalByCurrency[currency] =
+                (principalByCurrency[currency] ?? 0) + principal;
+          }
+
+          aggregatedTotalEarnings = await currencyService
+              .aggregateMultiCurrencyToDisplay(earningsByCurrency, context);
+          aggregatedTotalPrincipal = await currencyService
+              .aggregateMultiCurrencyToDisplay(principalByCurrency, context);
+          aggregatedTotalCollected =
+              aggregatedTotalEarnings + aggregatedTotalPrincipal;
+        }
+
         await pdfService.generateEarningsReport(
           startDate: _startDate,
-          endDate:
-              _endDate, // Logic handles end-of-day in query, displayed as date only
+          endDate: _endDate,
           paymentsData: _paymentsDetail,
           settings: settings,
-          locale: S.of(context).locale,
+          locale: Localizations.localeOf(this.context),
+          currencySymbol:
+              displayCurrencySymbol ??
+              ref.read(currencyProvider).symbol ??
+              ref.read(currencyProvider).code,
+          aggregatedTotalEarnings: aggregatedTotalEarnings,
+          aggregatedTotalPrincipal: aggregatedTotalPrincipal,
+          aggregatedTotalCollected: aggregatedTotalCollected,
         );
       } else {
         // Consolidated Active Loans Report
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Generando Reporte Consolidado...')),
+          SnackBar(content: Text(S.of(context).generatingConsolidatedReport)),
         );
 
         final loanRepo = ref.read(loanRepositoryProvider);
@@ -476,24 +641,72 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
 
         if (loansData.isEmpty) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('No hay préstamos vigentes para reportar'),
-            ),
+            SnackBar(content: Text(S.of(context).noActiveLoansForReport)),
           );
           return;
+        }
+
+        // Calculate aggregated totals using multi-currency normalization
+        double? aggregatedTotalOriginal;
+        double? aggregatedTotalBalance;
+        String? displayCurrencySymbol;
+        String? baseCurrencyCode;
+        double? totalInBaseCurrency;
+        Map<String, double>? originalByCurrency;
+        Map<String, double>? balanceByCurrency;
+
+        if (currencyService != null) {
+          final context = await currencyService.getContext();
+          displayCurrencySymbol = context.displayCurrency.symbol;
+          baseCurrencyCode = context.baseCurrency.code;
+
+          // Aggregate by currency
+          originalByCurrency = <String, double>{};
+          balanceByCurrency = <String, double>{};
+
+          for (var row in loansData) {
+            final currency =
+                row['currency_code'] as String? ?? settings.baseCurrency;
+            final original = (row['principal_original'] as num).toDouble();
+            final balance = (row['principal_balance'] as num).toDouble();
+
+            originalByCurrency[currency] =
+                (originalByCurrency[currency] ?? 0) + original;
+            balanceByCurrency[currency] =
+                (balanceByCurrency[currency] ?? 0) + balance;
+          }
+
+          // Calculate total in base currency (before display conversion)
+          totalInBaseCurrency = await currencyService
+              .aggregateMultiCurrencyToBase(balanceByCurrency, context);
+
+          aggregatedTotalOriginal = await currencyService
+              .aggregateMultiCurrencyToDisplay(originalByCurrency, context);
+          aggregatedTotalBalance = await currencyService
+              .aggregateMultiCurrencyToDisplay(balanceByCurrency, context);
         }
 
         await pdfService.generateConsolidatedActiveLoansReport(
           loansData: loansData,
           settings: settings,
-          locale: S.of(context).locale,
+          locale: Localizations.localeOf(this.context),
+          currencySymbol:
+              displayCurrencySymbol ??
+              ref.read(currencyProvider).symbol ??
+              ref.read(currencyProvider).code,
+          aggregatedTotalOriginal: aggregatedTotalOriginal,
+          aggregatedTotalBalance: aggregatedTotalBalance,
+          totalsByCurrencyOriginal: originalByCurrency,
+          totalsByCurrencyBalance: balanceByCurrency,
+          baseCurrencyCode: baseCurrencyCode,
+          totalInBaseCurrency: totalInBaseCurrency,
         );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error al generar reporte: $e'),
+            content: Text(S.of(context).errorGeneratingReport(e)),
             backgroundColor: AppColors.danger,
           ),
         );

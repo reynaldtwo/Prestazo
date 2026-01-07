@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:uuid/uuid.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/localization/locale_provider.dart';
 
 import '../../../core/widgets/widgets.dart';
 import '../../../data/models/customer.dart';
@@ -100,14 +102,20 @@ class _CustomerFormScreenState extends ConsumerState<CustomerFormScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final settingsAsync = ref.watch(appSettingsProvider);
+    final settings = settingsAsync.value;
+
     return Scaffold(
       appBar: AppBar(
-        title: Text(isEditing ? 'Editar Cliente' : 'Nuevo Cliente'),
+        title: Text(
+          isEditing ? S.of(context).editCustomer : S.of(context).newCustomer,
+        ),
       ),
       body: _isLoading && isEditing
           ? const Center(child: CircularProgressIndicator())
           : Form(
               key: _formKey,
+              autovalidateMode: AutovalidateMode.onUserInteraction,
               child: ListView(
                 padding: const EdgeInsets.all(16),
                 children: [
@@ -115,8 +123,8 @@ class _CustomerFormScreenState extends ConsumerState<CustomerFormScreen> {
                   AppTextField(
                     label: 'Nombre completo *',
                     hint: 'Ej: Juan Pérez García',
-                    controller: _nameController,
                     prefixIcon: Icons.person,
+                    controller: _nameController,
                     textInputAction: TextInputAction.next,
                     validator: (value) {
                       if (value == null || value.trim().isEmpty) {
@@ -133,13 +141,66 @@ class _CustomerFormScreenState extends ConsumerState<CustomerFormScreen> {
                   // DNI Field
                   AppTextField(
                     label: 'DNI (Cédula) *',
-                    hint: 'Ej: 001-010100-0000A',
+                    hint: settings?.dniMask ?? 'Ej: 001-010100-0000A',
                     controller: _dniController,
                     prefixIcon: Icons.badge_outlined,
                     textInputAction: TextInputAction.next,
+                    inputFormatters:
+                        (settings != null &&
+                            settings.dniMask != null &&
+                            settings.dniMask!.isNotEmpty)
+                        ? [
+                            MaskTextInputFormatter(
+                              mask: settings.dniMask,
+                              filter: {
+                                "#": RegExp(r'[0-9]'),
+                                "@": RegExp(r'[a-zA-Z]'),
+                                "*": RegExp(r'.'),
+                              },
+                              type: MaskAutoCompletionType.lazy,
+                            ),
+                          ]
+                        : null,
                     validator: (value) {
                       if (value == null || value.trim().isEmpty) {
                         return 'El DNI es requerido';
+                      }
+
+                      // Format validation
+                      if (settings != null &&
+                          settings.validateDniFormat &&
+                          settings.dniMask != null &&
+                          settings.dniMask!.isNotEmpty) {
+                        final mask = settings.dniMask!;
+                        final input = value.trim();
+
+                        // Mask length check
+                        if (input.length != mask.length) {
+                          return 'El formato debe ser: $mask';
+                        }
+
+                        // Character check
+                        for (int i = 0; i < mask.length; i++) {
+                          final maskChar = mask[i];
+                          final inputChar = input[i];
+
+                          if (maskChar == '#') {
+                            if (!RegExp(r'\d').hasMatch(inputChar)) {
+                              return 'Posición ${i + 1} debe ser un dígito';
+                            }
+                          } else if (maskChar == '@') {
+                            if (!RegExp(r'[a-zA-Z]').hasMatch(inputChar)) {
+                              return 'Posición ${i + 1} debe ser una letra';
+                            }
+                          } else if (maskChar == '*') {
+                            // Any char allowed
+                          } else {
+                            // Separator
+                            if (inputChar != maskChar) {
+                              return 'Falta el separador "$maskChar" en posición ${i + 1}';
+                            }
+                          }
+                        }
                       }
                       return null;
                     },
@@ -295,7 +356,9 @@ class _CustomerFormScreenState extends ConsumerState<CustomerFormScreen> {
 
                   // Submit button
                   AppButton(
-                    label: isEditing ? 'Guardar Cambios' : 'Crear Cliente',
+                    label: isEditing
+                        ? S.of(context).save
+                        : S.of(context).createCustomer,
                     variant: AppButtonVariant.primary,
                     isFullWidth: true,
                     isLoading: _isLoading,
@@ -307,8 +370,54 @@ class _CustomerFormScreenState extends ConsumerState<CustomerFormScreen> {
     );
   }
 
+  void _showManualValidationError(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), backgroundColor: AppColors.danger),
+    );
+  }
+
   void _submitForm() async {
-    if (!_formKey.currentState!.validate()) return;
+    // 1. Force validation of UI fields
+    final isFormValid = _formKey.currentState?.validate() ?? false;
+    if (!isFormValid) {
+      return;
+    }
+
+    // 2. EXTRA SAFETY: Manual Validation of DNI logic
+    final settings = ref.read(appSettingsProvider).value;
+    if (settings?.validateDniFormat == true && settings?.dniMask != null) {
+      final mask = settings!.dniMask!;
+      final dni = _dniController.text.trim();
+
+      // Perform same logic as UI validator
+      if (dni.isNotEmpty && dni.length != mask.length) {
+        _showManualValidationError(
+          'El DNI debe tener ${mask.length} caracteres',
+        );
+        return;
+      }
+
+      for (int i = 0; i < mask.length; i++) {
+        final maskChar = mask[i];
+        final inputChar = dni[i];
+        bool error = false;
+        if (maskChar == '#') {
+          if (!RegExp(r'\d').hasMatch(inputChar)) error = true;
+        } else if (maskChar == '@') {
+          if (!RegExp(r'[a-zA-Z]').hasMatch(inputChar)) error = true;
+        } else if (maskChar == '*') {
+          // ok
+        } else {
+          if (inputChar != maskChar) error = true;
+        }
+
+        if (error) {
+          _showManualValidationError('El formato del DNI es inválido');
+          return;
+        }
+      }
+    }
 
     setState(() => _isLoading = true);
 
@@ -330,11 +439,11 @@ class _CustomerFormScreenState extends ConsumerState<CustomerFormScreen> {
             await showDialog(
               context: context,
               builder: (ctx) => AlertDialog(
-                title: const Row(
+                title: Row(
                   children: [
-                    Icon(Icons.warning_amber, color: AppColors.danger),
-                    SizedBox(width: 8),
-                    Expanded(child: Text('DNI Duplicado')),
+                    const Icon(Icons.warning_amber, color: AppColors.danger),
+                    const SizedBox(width: 8),
+                    Expanded(child: Text(S.of(context).dniDuplicate)),
                   ],
                 ),
                 content: Text(
@@ -346,7 +455,7 @@ class _CustomerFormScreenState extends ConsumerState<CustomerFormScreen> {
                 actions: [
                   ElevatedButton(
                     onPressed: () => Navigator.pop(ctx),
-                    child: const Text('Entendido'),
+                    child: Text(S.of(context).understood),
                   ),
                 ],
               ),
@@ -414,8 +523,8 @@ class _CustomerFormScreenState extends ConsumerState<CustomerFormScreen> {
             SnackBar(
               content: Text(
                 isEditing
-                    ? 'Cliente actualizado'
-                    : 'Cliente creado exitosamente',
+                    ? S.of(context).customerUpdated
+                    : S.of(context).customerCreated,
               ),
               backgroundColor: AppColors.success,
             ),

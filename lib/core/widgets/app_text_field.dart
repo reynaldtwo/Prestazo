@@ -24,6 +24,7 @@ class AppTextField extends StatelessWidget {
   final FocusNode? focusNode;
   final TextInputAction? textInputAction;
   final ValueChanged<String>? onSubmitted;
+  final String? prefixText;
 
   const AppTextField({
     super.key,
@@ -47,6 +48,7 @@ class AppTextField extends StatelessWidget {
     this.focusNode,
     this.textInputAction,
     this.onSubmitted,
+    this.prefixText,
   });
 
   @override
@@ -89,6 +91,11 @@ class AppTextField extends StatelessWidget {
             hintStyle: TextStyle(color: colorScheme.onSurfaceVariant),
             helperText: helperText,
             errorText: errorText,
+            prefixText: prefixText,
+            prefixStyle: TextStyle(
+              color: colorScheme.onSurface,
+              fontWeight: FontWeight.bold,
+            ),
             prefixIcon: prefixIcon != null
                 ? Icon(prefixIcon, color: colorScheme.onSurfaceVariant)
                 : null,
@@ -135,7 +142,7 @@ class AppMoneyField extends StatelessWidget {
       keyboardType: const TextInputType.numberWithOptions(decimal: true),
       onChanged: onChanged,
       validator: validator,
-      prefixIcon: Icons.attach_money,
+      prefixText: '$currencySymbol ',
       inputFormatters: [
         FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
       ],

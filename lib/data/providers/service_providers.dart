@@ -54,3 +54,12 @@ final paymentServiceProvider = Provider<PaymentService>((ref) {
 final cobrarRepositoryProvider = Provider<CobrarRepository>((ref) {
   return CobrarRepository(databaseHelper: ref.read(databaseHelperProvider));
 });
+
+/// Provider for CurrencyService (async loading)
+final currencyServiceProvider = FutureProvider<CurrencyService>((ref) async {
+  final settings = await ref.watch(appSettingsProvider.future);
+  return CurrencyService(
+    exchangeRateRepo: ref.read(exchangeRateRepositoryProvider),
+    settings: settings,
+  );
+});

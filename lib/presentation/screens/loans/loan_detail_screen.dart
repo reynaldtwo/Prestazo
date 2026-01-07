@@ -8,12 +8,14 @@ import '../../../data/models/loan.dart';
 import '../../../data/models/billing_cycle.dart';
 import '../../../data/models/payment.dart';
 import '../../../data/providers/providers.dart';
-import '../../../data/providers/service_providers.dart';
 import 'package:go_router/go_router.dart';
+
 import '../../../services/billing_cycle_service.dart';
 import '../../../core/constants/app_status.dart';
 import '../../../core/localization/locale_provider.dart';
 import '../../../services/whatsapp_service.dart';
+
+import '../../../core/utils/currency_utils.dart';
 
 /// Handle edit loan action with validation
 Future<void> _handleEditLoan(
@@ -53,9 +55,9 @@ Future<void> _handleEditLoan(
     context.pushNamed('edit-loan', pathParameters: {'id': loanId});
   } catch (e) {
     if (context.mounted) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Error al verificar pagos: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(S.of(context).errorCheckingPayments(e))),
+      );
     }
   }
 }
@@ -192,7 +194,7 @@ Future<void> _shareStatement(
 ) async {
   try {
     final s = S.of(context);
-    final locale = s.locale;
+    final locale = Localizations.localeOf(context);
 
     ScaffoldMessenger.of(
       context,
@@ -200,12 +202,12 @@ Future<void> _shareStatement(
 
     // Force refresh the loan to ensure we have the latest balance
     final loan = await ref.refresh(loanByIdProvider(loanId).future);
-    if (loan == null) throw Exception('Préstamo no cargado');
+    if (loan == null) throw Exception(s.loanNotLoaded);
 
     final customer = await ref.read(
       customerByIdProvider(loan.customerId).future,
     );
-    if (customer == null) throw Exception('Cliente no encontrado');
+    if (customer == null) throw Exception(s.customerNotFound);
 
     final payments = await ref.read(paymentsByLoanProvider(loanId).future);
 
@@ -214,7 +216,10 @@ Future<void> _shareStatement(
     final allocations = await paymentRepo.getAllAllocationsForLoan(loanId);
 
     final settings = ref.read(appSettingsProvider).value;
-    if (settings == null) throw Exception('Configuración no cargada');
+    if (settings == null) throw Exception(s.configNotLoaded);
+
+    // Use LOAN currency for client-facing documents, not global settings
+    final currencySymbol = CurrencyUtils.getCurrencySymbol(loan.currencyCode);
 
     await WhatsAppService.shareLoanStatement(
       loan: loan,
@@ -223,12 +228,13 @@ Future<void> _shareStatement(
       allocations: allocations,
       settings: settings,
       locale: locale,
+      currencySymbol: currencySymbol,
     );
   } catch (e) {
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Error al generar PDF: $e'),
+          content: Text(S.of(context).errorGeneratingPdf(e)),
           backgroundColor: AppColors.danger,
         ),
       );
@@ -243,35 +249,39 @@ Future<void> _shareDisbursementReceipt(
 ) async {
   try {
     final s = S.of(context);
-    final locale = s.locale;
+    final locale = Localizations.localeOf(context);
 
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(SnackBar(content: Text(s.generatingDisbursement)));
 
     final loan = await ref.read(loanByIdProvider(loanId).future);
-    if (loan == null) throw Exception('Préstamo no encontrado');
+    if (loan == null) throw Exception(s.loanNotFound);
 
     final customer = await ref.read(
       customerByIdProvider(loan.customerId).future,
     );
-    if (customer == null) throw Exception('Cliente no encontrado');
+    if (customer == null) throw Exception(s.customerNotFound);
 
     final settings = ref.read(appSettingsProvider).value;
-    if (settings == null) throw Exception('Configuración no cargada');
+    if (settings == null) throw Exception(s.configNotLoaded);
 
     final pdfService = ref.read(pdfGeneratorServiceProvider);
+    // Use LOAN currency for client-facing documents, not global settings
+    final currencySymbol = CurrencyUtils.getCurrencySymbol(loan.currencyCode);
+
     await pdfService.generateDisbursementReceipt(
       loan: loan,
       customer: customer,
       settings: settings,
       locale: locale,
+      currencySymbol: currencySymbol,
     );
   } catch (e) {
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Error al generar comprobante: $e'),
+          content: Text(S.of(context).errorGeneratingReceipt(e)),
           backgroundColor: AppColors.danger,
         ),
       );
@@ -286,7 +296,7 @@ Future<void> _shareReceipt(
 ) async {
   try {
     final s = S.of(context);
-    final locale = s.locale;
+    final locale = Localizations.localeOf(context);
 
     ScaffoldMessenger.of(
       context,
@@ -294,19 +304,22 @@ Future<void> _shareReceipt(
 
     // Force refresh loan to get updated balance
     final loan = await ref.refresh(loanByIdProvider(payment.loanId).future);
-    if (loan == null) throw Exception('Préstamo no visible');
+    if (loan == null) throw Exception(s.loanNotFound);
 
     final customer = await ref.read(
       customerByIdProvider(payment.customerId).future,
     );
-    if (customer == null) throw Exception('Cliente no encontrado');
+    if (customer == null) throw Exception(s.customerNotFound);
 
     final allocations = await ref.read(
       allocationsByPaymentIdProvider(payment.paymentId).future,
     );
 
     final settings = ref.read(appSettingsProvider).value;
-    if (settings == null) throw Exception('Configuración no cargada');
+    if (settings == null) throw Exception(s.configNotLoaded);
+
+    // Use LOAN currency for client-facing documents, not global settings
+    final currencySymbol = CurrencyUtils.getCurrencySymbol(loan.currencyCode);
 
     await ref
         .read(pdfGeneratorServiceProvider)
@@ -317,12 +330,13 @@ Future<void> _shareReceipt(
           allocations: allocations,
           settings: settings,
           locale: locale,
+          currencySymbol: currencySymbol,
         );
   } catch (e) {
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Error al generar recibo: $e'),
+          content: Text(S.of(context).errorGeneratingVoucher(e)),
           backgroundColor: AppColors.danger,
         ),
       );
@@ -371,7 +385,7 @@ class _LoanDetailScreenState extends ConsumerState<LoanDetailScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
-                'Se han generado ${newCycles.length} nuevos ciclos de cobro',
+                S.of(context).generatedBillingCycles(newCycles.length),
               ),
               backgroundColor: AppColors.info,
             ),
@@ -399,11 +413,7 @@ class _LoanDetailScreenState extends ConsumerState<LoanDetailScreen> {
       appBar: AppBar(
         title: Text(S.of(context).loanDetail),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.share),
-            tooltip: 'Estado de Cuenta',
-            onPressed: () => _shareStatement(context, ref, widget.loanId),
-          ),
+          // Share button moved to summary card
 
           // Actions removed from here
           IconButton(
@@ -418,10 +428,10 @@ class _LoanDetailScreenState extends ConsumerState<LoanDetailScreen> {
       ),
       body: loanAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, st) => Center(child: Text('Error: $e')),
+        error: (e, st) => Center(child: Text(S.of(context).genericError(e))),
         data: (loan) {
           if (loan == null) {
-            return const Center(child: Text('Préstamo no encontrado'));
+            return Center(child: Text(S.of(context).loanNotFound));
           }
           return RefreshIndicator(
             onRefresh: () async {
@@ -487,135 +497,170 @@ class _LoanDetailScreenState extends ConsumerState<LoanDetailScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Row 1: Loan Number, Capital, Status
+          // Row 1: Header (Loan Number + Status)
           Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (loan.loanNumber != null) ...[
-                      Text(
-                        '${S.of(context).loanNumber}${loan.loanNumber}',
-                        style: AppTypography.titleMedium.copyWith(
-                          color: AppColors.primary,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                    ],
-                    Text(
-                      S.of(context).originalCapital,
-                      style: AppTypography.labelMedium,
+              if (loan.loanNumber != null)
+                Expanded(
+                  child: Text(
+                    '${S.of(context).loanNumber}${loan.loanNumber}',
+                    style: AppTypography.titleMedium.copyWith(
+                      color: AppColors.primary,
+                      fontWeight: FontWeight.bold,
                     ),
-                    const SizedBox(height: 4),
-                    MoneyDisplay(
-                      amount: loan.principalOriginal,
-                      size: MoneyDisplaySize.large,
-                    ),
-                  ],
+                  ),
                 ),
+              StatusBadge(status: loan.status),
+            ],
+          ),
+
+          const SizedBox(height: 16),
+
+          // Row 2: Capital Data
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                S.of(context).originalCapital,
+                style: AppTypography.labelMedium,
               ),
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  StatusBadge(status: loan.status),
-                  if (loan.status == 'ACTIVE' || loan.status == 'IN_MORA') ...[
-                    const SizedBox(width: 4),
-                    // Disbursement Receipt
-                    IconButton(
-                      icon: const Icon(
-                        Icons.receipt_long,
-                        size: 20,
-                        color: AppColors.primary,
-                      ),
-                      tooltip: S.of(context).disbursementReceiptTooltip,
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(),
-                      style: IconButton.styleFrom(
-                        padding: const EdgeInsets.all(8),
-                      ),
-                      onPressed: () =>
-                          _shareDisbursementReceipt(context, ref, loan.loanId),
-                    ),
-                    const SizedBox(width: 4),
-                    IconButton(
-                      icon: const Icon(Icons.edit, size: 20),
-                      tooltip: S.of(context).editTooltip,
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(),
-                      style: IconButton.styleFrom(
-                        padding: const EdgeInsets.all(8),
-                      ),
-                      onPressed: () =>
-                          _handleEditLoan(context, ref, loan.loanId),
-                    ),
-                    const SizedBox(width: 4),
-                    IconButton(
-                      icon: const Icon(
-                        Icons.delete_outline,
-                        size: 20,
-                        color: AppColors.danger,
-                      ),
-                      tooltip: S.of(context).deleteTooltip,
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(),
-                      style: IconButton.styleFrom(
-                        padding: const EdgeInsets.all(8),
-                      ),
-                      onPressed: () =>
-                          _showDeleteConfirmation(context, ref, loan.loanId),
-                    ),
-                  ],
-                ],
+              const SizedBox(height: 4),
+              MoneyDisplay(
+                amount: loan.principalOriginal,
+                size: MoneyDisplaySize.large,
+                currencySymbol: CurrencyUtils.getCurrencySymbol(
+                  loan.currencyCode,
+                ),
               ),
             ],
           ),
+
+          const SizedBox(height: 16),
+
+          // Row 2: Actions (Moved down to prevent distortion)
+          if (loan.status == 'ACTIVE' || loan.status == 'IN_MORA')
+            Wrap(
+              alignment: WrapAlignment.end,
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                // Share Statement
+                IconButton(
+                  icon: const Icon(
+                    Icons.ios_share_rounded,
+                    size: 20,
+                    color: Colors.indigoAccent,
+                  ),
+                  tooltip: 'Estado de Cuenta',
+                  style: IconButton.styleFrom(
+                    backgroundColor: Colors.indigoAccent.withValues(alpha: 0.1),
+                    padding: const EdgeInsets.all(8),
+                  ),
+                  onPressed: () => _shareStatement(context, ref, loan.loanId),
+                ),
+                // Disbursement Receipt
+                IconButton(
+                  icon: const Icon(
+                    Icons.receipt_long,
+                    size: 20,
+                    color: AppColors.primary,
+                  ),
+                  tooltip: S.of(context).disbursementReceiptTooltip,
+                  style: IconButton.styleFrom(
+                    backgroundColor: AppColors.primary.withValues(alpha: 0.1),
+                    padding: const EdgeInsets.all(8),
+                  ),
+                  onPressed: () =>
+                      _shareDisbursementReceipt(context, ref, loan.loanId),
+                ),
+                // Edit
+                IconButton(
+                  icon: const Icon(
+                    Icons.edit,
+                    size: 20,
+                    color: AppColors.textPrimary,
+                  ),
+                  tooltip: S.of(context).editTooltip,
+                  style: IconButton.styleFrom(
+                    backgroundColor: AppColors.textPrimary.withValues(
+                      alpha: 0.1,
+                    ),
+                    padding: const EdgeInsets.all(8),
+                  ),
+                  onPressed: () => _handleEditLoan(context, ref, loan.loanId),
+                ),
+                // Delete
+                IconButton(
+                  icon: const Icon(
+                    Icons.delete_outline,
+                    size: 20,
+                    color: AppColors.danger,
+                  ),
+                  tooltip: S.of(context).deleteTooltip,
+                  style: IconButton.styleFrom(
+                    backgroundColor: AppColors.danger.withValues(alpha: 0.1),
+                    padding: const EdgeInsets.all(8),
+                  ),
+                  onPressed: () =>
+                      _showDeleteConfirmation(context, ref, loan.loanId),
+                ),
+              ],
+            ),
           const Divider(height: 24),
-          Row(
+          Wrap(
+            spacing: 16,
+            runSpacing: 8,
             children: [
-              Expanded(
-                child: MoneyLabel(
-                  label: S.of(context).capitalBalance,
-                  amount: loan.principalBalance,
+              MoneyLabel(
+                label: S.of(context).capitalBalance,
+                amount: loan.principalBalance,
+                currencySymbol: CurrencyUtils.getCurrencySymbol(
+                  loan.currencyCode,
                 ),
               ),
-              Expanded(child: _PendingInterestLabel(loanId: loan.loanId)),
+              _PendingInterestLabel(
+                loanId: loan.loanId,
+                currencySymbol: CurrencyUtils.getCurrencySymbol(
+                  loan.currencyCode,
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 12),
-          Row(
+          Wrap(
+            spacing: 16,
+            runSpacing: 8,
             children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      '${S.of(context).rate} ${loan.rateUnit == 'MONTHLY' ? S.of(context).monthly : S.of(context).otherFreq}',
-                      style: AppTypography.labelSmall,
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      '${loan.monthlyInterestRate.toStringAsFixed(0)}%',
-                      style: AppTypography.titleMedium,
-                    ),
-                  ],
-                ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '${S.of(context).rate} ${loan.rateUnit == 'MONTHLY' ? S.of(context).monthly : S.of(context).otherFreq}',
+                    style: AppTypography.labelSmall,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    '${loan.monthlyInterestRate.toStringAsFixed(0)}%',
+                    style: AppTypography.titleMedium,
+                  ),
+                ],
               ),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      S.of(context).disbursement,
-                      style: AppTypography.labelSmall,
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      _formatDate(loan.disbursementDate),
-                      style: AppTypography.titleMedium,
-                    ),
-                  ],
-                ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    S.of(context).disbursement,
+                    style: AppTypography.labelSmall,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    _formatDate(loan.disbursementDate),
+                    style: AppTypography.titleMedium,
+                  ),
+                ],
               ),
             ],
           ),
@@ -625,14 +670,20 @@ class _LoanDetailScreenState extends ConsumerState<LoanDetailScreen> {
   }
 
   String _formatDate(DateTime date) {
-    return DateFormat('dd/MM/yyyy').format(date);
+    return DateFormat.yMd(
+      Localizations.localeOf(context).toString(),
+    ).format(date);
   }
 }
 
 class _PendingInterestLabel extends ConsumerWidget {
   final String loanId;
+  final String currencySymbol;
 
-  const _PendingInterestLabel({required this.loanId});
+  const _PendingInterestLabel({
+    required this.loanId,
+    required this.currencySymbol,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -648,8 +699,8 @@ class _PendingInterestLabel extends ConsumerWidget {
     final calcAsync = ref.watch(loanCalculationProvider(calcParams));
 
     return calcAsync.when(
-      loading: () => const Text('Calculando...'),
-      error: (e, __) => const Text('-'),
+      loading: () => Text(S.of(context).calculating),
+      error: (e, _) => const Text('-'),
       data: (calc) {
         // overdueInterest is the correct value from centralized service
         return MoneyLabel(
@@ -658,6 +709,7 @@ class _PendingInterestLabel extends ConsumerWidget {
           amountColor: calc.overdueInterest > 0
               ? AppColors.warning
               : AppColors.success,
+          currencySymbol: currencySymbol,
         );
       },
     );
@@ -675,13 +727,13 @@ class _BillingCyclesList extends ConsumerWidget {
 
     return cyclesAsync.when(
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (e, _) => Text('Error al cargar ciclos: $e'),
+      error: (e, _) => Text(S.of(context).errorLoadingCycles(e)),
       data: (cycles) {
         if (cycles.isEmpty) {
-          return const Center(
+          return Center(
             child: Padding(
               padding: EdgeInsets.all(16.0),
-              child: Text('No hay ciclos de cobro generados'),
+              child: Text(S.of(context).noBillingCycles),
             ),
           );
         }
@@ -716,13 +768,13 @@ class _PaymentsList extends ConsumerWidget {
 
     return paymentsAsync.when(
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (e, _) => Text('Error al cargar pagos: $e'),
+      error: (e, _) => Text(S.of(context).errorLoadingPayments(e)),
       data: (payments) {
         if (payments.isEmpty) {
-          return const Center(
+          return Center(
             child: Padding(
               padding: EdgeInsets.all(16.0),
-              child: Text('No hay pagos registrados'),
+              child: Text(S.of(context).noPaymentsRegistered),
             ),
           );
         }
@@ -777,7 +829,7 @@ class _CycleCard extends StatelessWidget {
                 Row(
                   children: [
                     Text(
-                      '${S.of(context).dueDate} ${_formatDate(cycle.dueDate)}',
+                      '${S.of(context).dueDate} ${_formatDate(context, cycle.dueDate)}',
                       style: AppTypography.bodyMedium,
                     ),
                     const Spacer(),
@@ -818,8 +870,10 @@ class _CycleCard extends StatelessWidget {
     );
   }
 
-  String _formatDate(DateTime date) {
-    return DateFormat('dd/MM/yyyy').format(date);
+  String _formatDate(BuildContext context, DateTime date) {
+    return DateFormat.yMd(
+      Localizations.localeOf(context).toString(),
+    ).format(date);
   }
 }
 
@@ -863,7 +917,7 @@ class _PaymentCard extends ConsumerWidget {
                       style: AppTypography.titleSmall,
                     ),
                     Text(
-                      _formatDate(payment.paymentDate),
+                      _formatDate(context, payment.paymentDate),
                       style: AppTypography.bodySmall,
                     ),
                   ],
@@ -873,6 +927,9 @@ class _PaymentCard extends ConsumerWidget {
                 amount: payment.amount,
                 size: MoneyDisplaySize.medium,
                 color: AppColors.accent,
+                currencySymbol: payment.paymentCurrency != null
+                    ? CurrencyUtils.getCurrencySymbol(payment.paymentCurrency!)
+                    : null,
               ),
               IconButton(
                 icon: Icon(
@@ -889,11 +946,12 @@ class _PaymentCard extends ConsumerWidget {
           const SizedBox(height: 4),
 
           allocationsAsync.when(
-            loading: () => const Text('Cargando detalles...'),
-            error: (_, __) => const Text('Error al cargar detalles'),
+            loading: () => Text(S.of(context).loadingDetails),
+            error: (e, st) => Text(S.of(context).errorLoadingDetails),
             data: (allocations) {
-              if (allocations.isEmpty)
-                return const Text('Sin asignación detallada');
+              if (allocations.isEmpty) {
+                return Text(S.of(context).noAllocationDetails);
+              }
 
               return Column(
                 children: allocations
@@ -943,7 +1001,9 @@ class _PaymentCard extends ConsumerWidget {
     };
   }
 
-  String _formatDate(DateTime date) {
-    return DateFormat('dd/MM/yyyy').format(date);
+  String _formatDate(BuildContext context, DateTime date) {
+    return DateFormat.yMd(
+      Localizations.localeOf(context).toString(),
+    ).format(date);
   }
 }

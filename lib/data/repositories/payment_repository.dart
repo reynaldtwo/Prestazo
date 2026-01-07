@@ -3,6 +3,7 @@ import '../database/database_helper.dart';
 import '../models/payment.dart';
 import '../models/payment_allocation.dart';
 import '../../core/utils/string_utils.dart';
+import '../../services/backup_service.dart';
 
 /// Repository for Payment CRUD operations
 class PaymentRepository {
@@ -106,6 +107,7 @@ class PaymentRepository {
         c.alias as customer_alias,
         l.principal_original,
         l.principal_balance,
+        l.currency_code,
         (SELECT COALESCE(SUM(amount), 0) FROM payment_allocations WHERE payment_id = p.payment_id AND allocation_type = 'INTEREST') as interest_paid,
         (SELECT COALESCE(SUM(amount), 0) FROM payment_allocations WHERE payment_id = p.payment_id AND allocation_type = 'MORA') as mora_paid,
         (SELECT COALESCE(SUM(amount), 0) FROM payment_allocations WHERE payment_id = p.payment_id AND allocation_type = 'PRINCIPAL') as principal_paid
@@ -155,10 +157,12 @@ class PaymentRepository {
         p.*,
         c.full_name as customer_name,
         c.alias as customer_alias,
-        COALESCE((SELECT SUM(pa.amount) FROM payment_allocations pa WHERE pa.payment_id = p.payment_id AND pa.allocation_type = 'INTEREST'), 0) as interest_paid,
-        COALESCE((SELECT SUM(pa.amount) FROM payment_allocations pa WHERE pa.payment_id = p.payment_id AND pa.allocation_type = 'PRINCIPAL'), 0) as principal_paid
+        l.currency_code as loan_currency_code,
+        COALESCE((SELECT SUM(pa.amount) FROM payment_allocations pa WHERE pa.payment_id = p.payment_id AND allocation_type = 'INTEREST'), 0) as interest_paid,
+        COALESCE((SELECT SUM(pa.amount) FROM payment_allocations pa WHERE pa.payment_id = p.payment_id AND allocation_type = 'PRINCIPAL'), 0) as principal_paid
       FROM payments p
       INNER JOIN customers c ON p.customer_id = c.customer_id
+      INNER JOIN loans l ON p.loan_id = l.loan_id
       WHERE p.status = 'VALID'
       ORDER BY p.payment_date DESC, p.created_at DESC
       LIMIT 100
@@ -172,7 +176,7 @@ class PaymentRepository {
   ) async {
     final db = await _databaseHelper.database;
 
-    return await db.transaction((txn) async {
+    final result = await db.transaction((txn) async {
       // 1. Get next receipt number from settings
       final settingsResult = await txn.query(
         'app_settings',
@@ -277,12 +281,17 @@ class PaymentRepository {
 
       return paymentWithNumber;
     });
+
+    // Trigger backup if enabled
+    await _checkAndTriggerBackup(await _databaseHelper.database);
+
+    return result;
   }
 
   /// Insert simple payment (no allocations)
   Future<Payment> insertPayment(Payment payment) async {
     final db = await _databaseHelper.database;
-    return await db.transaction((txn) async {
+    final result = await db.transaction((txn) async {
       // 1. Get next receipt number
       final settingsResult = await txn.query(
         'app_settings',
@@ -312,6 +321,11 @@ class PaymentRepository {
 
       return paymentWithNumber;
     });
+
+    // Trigger backup if enabled
+    await _checkAndTriggerBackup(await _databaseHelper.database);
+
+    return result;
   }
 
   /// Void payment
@@ -323,6 +337,20 @@ class PaymentRepository {
         'status': 'VOIDED',
         'void_reason': reason,
         'voided_at': DateTime.now().toIso8601String(),
+        'updated_at': DateTime.now().toIso8601String(),
+      },
+      where: 'payment_id = ?',
+      whereArgs: [paymentId],
+    );
+  }
+
+  /// Update exchange profit
+  Future<int> updateExchangeProfit(String paymentId, double profit) async {
+    final db = await _databaseHelper.database;
+    return await db.update(
+      'payments',
+      {
+        'exchange_profit': profit,
         'updated_at': DateTime.now().toIso8601String(),
       },
       where: 'payment_id = ?',
@@ -377,6 +405,30 @@ class PaymentRepository {
     return (result.first['total'] as num?)?.toDouble() ?? 0.0;
   }
 
+  /// Get total collected today grouped by currency
+  Future<Map<String, double>> getTotalCollectedTodayByCurrency() async {
+    final db = await _databaseHelper.database;
+    final today = DateTime.now().toIso8601String().split('T')[0];
+    final result = await db.rawQuery(
+      '''
+      SELECT l.currency_code, COALESCE(SUM(p.amount), 0) as total
+      FROM payments p
+      INNER JOIN loans l ON p.loan_id = l.loan_id
+      WHERE date(p.payment_date) = date(?) AND p.status = 'VALID'
+      GROUP BY l.currency_code
+    ''',
+      [today],
+    );
+
+    final Map<String, double> totals = {};
+    for (final row in result) {
+      final currency = row['currency_code'] as String? ?? 'NIO';
+      final total = (row['total'] as num?)?.toDouble() ?? 0.0;
+      totals[currency] = total;
+    }
+    return totals;
+  }
+
   /// Get capital (principal) recovered today
   Future<double> getCapitalRecoveredToday() async {
     final db = await _databaseHelper.database;
@@ -391,6 +443,31 @@ class PaymentRepository {
       [today],
     );
     return (result.first['total'] as num?)?.toDouble() ?? 0.0;
+  }
+
+  /// Get capital recovered today grouped by currency
+  Future<Map<String, double>> getCapitalRecoveredTodayByCurrency() async {
+    final db = await _databaseHelper.database;
+    final today = DateTime.now().toIso8601String().split('T')[0];
+    final result = await db.rawQuery(
+      '''
+      SELECT l.currency_code, COALESCE(SUM(pa.amount), 0) as total
+      FROM payment_allocations pa
+      INNER JOIN payments p ON pa.payment_id = p.payment_id
+      INNER JOIN loans l ON p.loan_id = l.loan_id
+      WHERE date(p.payment_date) = date(?) AND p.status = 'VALID' AND pa.allocation_type = 'PRINCIPAL'
+      GROUP BY l.currency_code
+    ''',
+      [today],
+    );
+
+    final Map<String, double> totals = {};
+    for (final row in result) {
+      final currency = row['currency_code'] as String? ?? 'NIO';
+      final total = (row['total'] as num?)?.toDouble() ?? 0.0;
+      totals[currency] = total;
+    }
+    return totals;
   }
 
   /// Get total collected in date range
@@ -443,6 +520,35 @@ class PaymentRepository {
     return (result.first['total'] as num?)?.toDouble() ?? 0.0;
   }
 
+  /// Get realized earnings (Interest + Fees) in date range grouped by currency
+  Future<Map<String, double>> getRealizedEarningsByCurrency({
+    required DateTime startDate,
+    required DateTime endDate,
+  }) async {
+    final db = await _databaseHelper.database;
+    final result = await db.rawQuery(
+      '''
+      SELECT l.currency_code, COALESCE(SUM(pa.amount), 0) as total
+      FROM payment_allocations pa
+      INNER JOIN payments p ON pa.payment_id = p.payment_id
+      INNER JOIN loans l ON p.loan_id = l.loan_id
+      WHERE p.payment_date >= ? AND p.payment_date <= ? 
+        AND p.status = 'VALID' 
+        AND pa.allocation_type IN ('INTEREST', 'MORA', 'FEES')
+      GROUP BY l.currency_code
+    ''',
+      [startDate.toIso8601String(), endDate.toIso8601String()],
+    );
+
+    final Map<String, double> totals = {};
+    for (final row in result) {
+      final currency = row['currency_code'] as String? ?? 'NIO';
+      final total = (row['total'] as num?)?.toDouble() ?? 0.0;
+      totals[currency] = total;
+    }
+    return totals;
+  }
+
   /// Get max receipt number
   Future<String?> getMaxReceiptNumber() async {
     final db = await _databaseHelper.database;
@@ -461,7 +567,7 @@ class PaymentRepository {
   }) async {
     final db = await _databaseHelper.database;
 
-    return await db.transaction((txn) async {
+    final result = await db.transaction((txn) async {
       // 1. Get next receipt number
       final settingsResult = await txn.query(
         'app_settings',
@@ -542,5 +648,36 @@ class PaymentRepository {
 
       return paymentWithNumber;
     });
+
+    // Trigger backup if enabled
+    await _checkAndTriggerBackup(await _databaseHelper.database);
+
+    return result;
+  }
+
+  /// Helper to check and trigger auto-backup
+  Future<void> _checkAndTriggerBackup(Database db) async {
+    try {
+      final settingsResult = await db.query(
+        'app_settings',
+        columns: ['backup_on_payment', 'backup_custom_name'],
+        where: 'settings_id = ?',
+        whereArgs: ['global'],
+      );
+
+      if (settingsResult.isNotEmpty) {
+        final shouldBackup =
+            (settingsResult.first['backup_on_payment'] as int? ?? 0) == 1;
+        if (shouldBackup) {
+          final customName =
+              settingsResult.first['backup_custom_name'] as String?;
+          // Run in background
+          // ignore: unawaited_futures
+          BackupService.instance.createBackup(customName: customName);
+        }
+      }
+    } catch (_) {
+      // Ignore backup errors
+    }
   }
 }

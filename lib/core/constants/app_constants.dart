@@ -8,12 +8,11 @@ class AppConstants {
 
   // Database
   static const String databaseName = 'prestamos_app.db';
-  static const int databaseVersion =
-      16; // Added Capital Payment Restriction settings
+  static const int databaseVersion = 19; // Bump for missed columns
 
-  // Currency
-  static const String defaultCurrency = 'NIO';
-  static const String currencySymbol = 'C\$';
+  // Currency - NO DEFAULTS HERE
+  // Currency must always come from settings.baseCurrency at runtime
+  // The database schema defines NULL-safe defaults for new installations
 
   // Default values from documentation
   static const int defaultMoratoriumDays = 1;

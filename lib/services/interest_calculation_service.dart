@@ -255,10 +255,6 @@ class InterestCalculationService {
         cycle.dueDate.day,
       );
 
-      print(
-        'DEBUG: Cycle #${cycle.cycleNumber} dueDate=$dueDate, status=${cycle.status}, interestPending=${cycle.interestPending}',
-      );
-
       if (dueDate.isBefore(paymentDateOnly)) {
         // Cycle is overdue (due date passed)
         overdueCycles.add(cycle);

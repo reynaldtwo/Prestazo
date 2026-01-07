@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/Widgets/widgets.dart';
@@ -8,12 +9,52 @@ import '../../../data/providers/providers.dart';
 import '../../../core/localization/locale_provider.dart';
 
 /// Dashboard screen - Main home with real KPIs from database
-class DashboardScreen extends ConsumerWidget {
+class DashboardScreen extends ConsumerStatefulWidget {
   const DashboardScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<DashboardScreen> createState() => _DashboardScreenState();
+}
+
+class _DashboardScreenState extends ConsumerState<DashboardScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // Check for scheduled backups after build
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkScheduledBackups();
+    });
+  }
+
+  Future<void> _checkScheduledBackups() async {
+    try {
+      final settings = await ref.read(appSettingsProvider.future);
+      final backupService = ref.read(backupServiceProvider);
+
+      await backupService.checkScheduledBackup(
+        frequency: settings.backupFrequency,
+        retentionDays: settings.backupRetentionDays,
+        retries: 3,
+        customName: settings.backupCustomName,
+      );
+    } catch (e) {
+      debugPrint('Error checking scheduled backups: $e');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final dashboardState = ref.watch(dashboardProvider);
+
+    // Listen for rate warnings
+    ref.listen<DashboardStats>(dashboardProvider, (previous, next) {
+      if ((previous?.isLoading == true) &&
+          !next.isLoading &&
+          next.showRateWarning) {
+        // Show dialog only when transition from loading to done with warning
+        _showRateWarningDialog(context);
+      }
+    });
 
     return Scaffold(
       body: RefreshIndicator(
@@ -33,14 +74,55 @@ class DashboardScreen extends ConsumerWidget {
             ),
 
             // Today's Summary
+            // Today's Summary
             SliverToBoxAdapter(
-              child: _buildTodaySummary(context, dashboardState),
+              child: _buildTodaySummary(context, dashboardState, ref),
             ),
 
             // Recent Activity Section
             SliverToBoxAdapter(child: _buildRecentSection(context)),
           ],
         ),
+      ),
+    );
+  }
+
+  void _showRateWarningDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: false, // User must choose an action
+      builder: (context) => AlertDialog(
+        title: Row(
+          children: [
+            Icon(Icons.warning_amber_rounded, color: AppColors.warning),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                S.of(context).defineExchangeRateMessage,
+                style: AppTypography.titleMedium,
+              ),
+            ),
+          ],
+        ),
+        content: Text(
+          'Detailed conversion error: Missing exchange rate for today. Values may be inaccurate.',
+          style: AppTypography.bodyMedium,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context); // Close dialog
+            },
+            child: Text(S.of(context).cancel),
+          ),
+          FilledButton(
+            onPressed: () {
+              Navigator.pop(context);
+              context.push('/settings/exchange-rates');
+            },
+            child: Text(S.of(context).goToExchangeRates),
+          ),
+        ],
       ),
     );
   }
@@ -162,9 +244,13 @@ class DashboardScreen extends ConsumerWidget {
     }
 
     if (stats.error != null) {
+      // Handle missing exchange rate error with localized message
+      final errorMessage = stats.error == 'exchange_rate_required'
+          ? S.of(context).defineExchangeRateMessage
+          : stats.error!;
       return SliverToBoxAdapter(
         child: AppError(
-          title: stats.error!,
+          title: errorMessage,
           onRetry: () => ref.read(dashboardProvider.notifier).refresh(),
         ),
       );
@@ -175,12 +261,16 @@ class DashboardScreen extends ConsumerWidget {
       stats.capitalUsagePercentage,
     );
 
+    // Use displaySymbol from stats (provided by CurrencyContext)
+    final reportSymbol = stats.displaySymbol;
+
     final kpiCards = [
       // Capital Colocado with usage indicator
       _buildCapitalCard(
         context,
         stats: stats,
         capitalColor: capitalColor,
+        currencySymbol: reportSymbol,
         onTap: () => context.go('/customers'),
       ),
       _buildKpiCard(
@@ -214,6 +304,7 @@ class DashboardScreen extends ConsumerWidget {
         iconColor: AppColors.success,
         label: S.of(context).earningsMonthLabel,
         value: stats.earningsMonth,
+        currencySymbol: reportSymbol,
         onTap: () => context.go('/reports?tab=0'),
       ),
       _buildKpiCard(
@@ -222,6 +313,7 @@ class DashboardScreen extends ConsumerWidget {
         iconColor: AppColors.info,
         label: S.of(context).projectedMonthLabel,
         value: stats.projectedEarnings,
+        currencySymbol: reportSymbol,
         onTap: () => context.go('/reports?tab=1'),
       ),
     ];
@@ -248,11 +340,12 @@ class DashboardScreen extends ConsumerWidget {
     BuildContext context, {
     required DashboardStats stats,
     required Color capitalColor,
+    required String currencySymbol,
     VoidCallback? onTap,
   }) {
     return AppCard(
       onTap: onTap,
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
@@ -270,16 +363,23 @@ class DashboardScreen extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 6),
-          MoneyDisplay(
-            amount: stats.totalPrincipalBalance,
-            size: MoneyDisplaySize.medium,
-            color: capitalColor,
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: MoneyDisplay(
+              amount: stats.totalPrincipalBalance,
+              size: MoneyDisplaySize.medium,
+              color: capitalColor,
+              currencySymbol:
+                  currencySymbol, // CRITICAL: Use display currency symbol
+            ),
           ),
           const SizedBox(height: 2),
           Text(
             S.of(context).capitalPlacedLabel,
-            style: AppTypography.labelSmall.copyWith(
+            style: AppTypography.bodyMedium.copyWith(
               color: Theme.of(context).colorScheme.onSurface,
+              fontWeight: FontWeight.bold,
             ),
           ),
           if (stats.availableCapital > 0) ...[
@@ -297,10 +397,10 @@ class DashboardScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 2),
             Text(
-              '${stats.capitalUsagePercentage.toStringAsFixed(0)}% ${S.of(context).ofLabel} C\$${stats.availableCapital.toStringAsFixed(0)}',
+              '${stats.capitalUsagePercentage.toStringAsFixed(0)}% ${S.of(context).ofLabel} $currencySymbol${NumberFormat('#,##0.00').format(stats.availableCapital)}',
               style: AppTypography.labelSmall.copyWith(
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
-                fontSize: 8,
+                // Removed explicit fontSize to improve readability
               ),
             ),
           ],
@@ -309,8 +409,14 @@ class DashboardScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildTodaySummary(BuildContext context, DashboardStats stats) {
+  Widget _buildTodaySummary(
+    BuildContext context,
+    DashboardStats stats,
+    WidgetRef ref,
+  ) {
     final colorScheme = Theme.of(context).colorScheme;
+    // Use displaySymbol from stats (provided by CurrencyContext)
+    final reportSymbol = stats.displaySymbol;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -346,6 +452,7 @@ class DashboardScreen extends ConsumerWidget {
                       MoneyDisplay(
                         amount: stats.capitalRecoveredToday,
                         size: MoneyDisplaySize.medium,
+                        currencySymbol: reportSymbol,
                       ),
                     ],
                   ),
@@ -400,6 +507,7 @@ class DashboardScreen extends ConsumerWidget {
                     amount: stats.collectedToday,
                     size: MoneyDisplaySize.small,
                     color: AppColors.success,
+                    currencySymbol: reportSymbol,
                   ),
                 ],
               ),
@@ -419,13 +527,14 @@ class DashboardScreen extends ConsumerWidget {
     double? value,
     String? valueText,
     bool isWarning = false,
+    String? currencySymbol,
     VoidCallback? onTap,
   }) {
     final colorScheme = Theme.of(context).colorScheme;
 
     return AppCard(
       onTap: onTap,
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
@@ -440,7 +549,11 @@ class DashboardScreen extends ConsumerWidget {
           ),
           const SizedBox(height: 16),
           if (value != null)
-            MoneyDisplay(amount: value, size: MoneyDisplaySize.medium)
+            MoneyDisplay(
+              amount: value,
+              size: MoneyDisplaySize.medium,
+              currencySymbol: currencySymbol,
+            )
           else if (valueText != null)
             FittedBox(
               fit: BoxFit.scaleDown,
@@ -452,11 +565,12 @@ class DashboardScreen extends ConsumerWidget {
                 ),
               ),
             ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 8),
           Text(
             label,
-            style: AppTypography.labelMedium.copyWith(
+            style: AppTypography.titleSmall.copyWith(
               color: colorScheme.onSurface,
+              fontWeight: FontWeight.bold,
             ),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,

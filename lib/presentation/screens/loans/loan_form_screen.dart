@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:uuid/uuid.dart';
@@ -8,8 +9,12 @@ import '../../../core/widgets/widgets.dart';
 import '../../../data/models/customer.dart';
 import '../../../data/models/loan.dart';
 import '../../../data/providers/providers.dart';
+
 import '../../../core/localization/locale_provider.dart';
 import '../../../services/whatsapp_service.dart';
+import '../../../services/currency_service.dart';
+import '../../../data/models/currency_context.dart';
+import 'package:sealed_currencies/sealed_currencies.dart';
 
 /// Loan form screen for creating new loans with Riverpod
 class LoanFormScreen extends ConsumerStatefulWidget {
@@ -28,13 +33,130 @@ class _LoanFormScreenState extends ConsumerState<LoanFormScreen> {
   DateTime _disbursementDate = DateTime.now();
   DateTime? _endDate; // Optional informational end date
   String _billingFrequency = 'MONTHLY'; // 'MONTHLY' or 'BIWEEKLY'
+  String _selectedCurrencyCode = 'NIO'; // Default currency
+  double? _appliedExchangeRate; // Exchange Rate State
+  bool _isLoadingRate = false;
+  final TextEditingController _exchangeRateController = TextEditingController();
+
   bool _isLoading = false;
+  bool _hasValidRate = true;
   Customer? _customer;
 
   @override
   void initState() {
     super.initState();
+    _initializeCurrency();
     _loadCustomer();
+  }
+
+  void _initializeCurrency() {
+    final settings = ref.read(appSettingsProvider).value;
+    // EMERGENCY FIX: Default to Base Currency (not USD)
+    _selectedCurrencyCode = settings?.baseCurrency ?? 'NIO';
+    // No need to load exchange rate if defaulting to base
+  }
+
+  /// Load exchange rate from CurrencyService when currency is not base currency
+  /// EMERGENCY FIX: Use TODAY's rate ONLY, block if not found
+  Future<void> _loadExchangeRate() async {
+    final settings = ref.read(appSettingsProvider).value;
+    final baseCurrency = settings?.baseCurrency ?? 'NIO';
+
+    // Only load rate if loan currency differs from base currency
+    if (_selectedCurrencyCode == baseCurrency) {
+      setState(() {
+        _appliedExchangeRate = null;
+        _exchangeRateController.clear();
+        _isLoadingRate = false;
+        _hasValidRate = true;
+      });
+      return;
+    }
+
+    setState(() => _isLoadingRate = true);
+
+    try {
+      final currencyService = await ref.read(currencyServiceProvider.future);
+      // STRICT: Check for TODAY's rate only
+      final hasTodayRate = await currencyService.hasTodayRate(
+        _selectedCurrencyCode,
+        baseCurrency,
+      );
+
+      if (!hasTodayRate) {
+        // No TODAY rate - show blocking dialog
+        if (mounted) {
+          setState(() {
+            _appliedExchangeRate = null;
+            _exchangeRateController.clear();
+            _isLoadingRate = false;
+            _hasValidRate = false;
+          });
+          _showNoRateDialog();
+        }
+        return;
+      }
+
+      // Get the rate
+      final rate = await currencyService.getRate(
+        _selectedCurrencyCode,
+        baseCurrency,
+        type: settings?.disbursementRateType ?? 'SELL',
+      );
+
+      if (mounted) {
+        setState(() {
+          _appliedExchangeRate = rate;
+          _exchangeRateController.text = rate.toStringAsFixed(4);
+          _isLoadingRate = false;
+          _hasValidRate = true;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _appliedExchangeRate = null;
+          _exchangeRateController.clear();
+          _isLoadingRate = false;
+          _hasValidRate = false;
+        });
+        _showNoRateDialog();
+      }
+    }
+  }
+
+  /// Show dialog when no TODAY's rate exists
+  void _showNoRateDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        title: Text(S.of(context).warning),
+        content: Text(S.of(context).noExchangeRateToday),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(ctx).pop();
+              // Reset to base currency
+              final settings = ref.read(appSettingsProvider).value;
+              setState(() {
+                _selectedCurrencyCode = settings?.baseCurrency ?? 'NIO';
+                _hasValidRate = true;
+              });
+            },
+            child: Text(S.of(context).cancel),
+          ),
+          FilledButton(
+            onPressed: () {
+              Navigator.of(ctx).pop();
+              // Navigate to exchange rates screen
+              context.push('/settings/exchange-rates');
+            },
+            child: Text(S.of(context).goToExchangeRates),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> _loadCustomer() async {
@@ -133,11 +255,13 @@ class _LoanFormScreenState extends ConsumerState<LoanFormScreen> {
     _principalController.dispose();
     _rateController.dispose();
     _notesController.dispose();
+    _exchangeRateController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final displayCurrency = FiatCurrency.maybeFromCode(_selectedCurrencyCode);
     return Scaffold(
       appBar: AppBar(title: Text(S.of(context).newLoan)),
       body: Form(
@@ -147,9 +271,15 @@ class _LoanFormScreenState extends ConsumerState<LoanFormScreen> {
           children: [
             _buildCustomerInfo(),
             const SizedBox(height: 24),
+            _buildCurrencySelector(),
+            const SizedBox(height: 16),
+            // Exchange rate field (always visible, right after currency)
+            _buildExchangeRateField(),
+            const SizedBox(height: 16),
             AppMoneyField(
               label: S.of(context).loanAmountLabel,
               controller: _principalController,
+              currencySymbol: displayCurrency?.symbol ?? '\$',
               validator: (v) {
                 if (v == null || v.isEmpty) return S.of(context).fieldRequired;
                 final amount = double.tryParse(v.replaceAll(',', ''));
@@ -263,8 +393,19 @@ class _LoanFormScreenState extends ConsumerState<LoanFormScreen> {
 
     if (principal <= 0 || rate <= 0) return const SizedBox.shrink();
 
-    final isQuincenal = _billingFrequency == 'BIWEEKLY';
-    final periodInterest = isQuincenal ? monthlyInterest / 2 : monthlyInterest;
+    final periodInterest = switch (_billingFrequency) {
+      'WEEKLY' => monthlyInterest / 4,
+      'DAILY' => monthlyInterest / 30,
+      'BIWEEKLY' => monthlyInterest / 2,
+      _ => monthlyInterest,
+    };
+
+    final frequencyLabel = switch (_billingFrequency) {
+      'WEEKLY' => S.of(context).weekly.toLowerCase(),
+      'DAILY' => S.of(context).daily.toLowerCase(),
+      'BIWEEKLY' => S.of(context).biweekly.toLowerCase(),
+      _ => S.of(context).monthly.toLowerCase(),
+    };
 
     return Container(
       padding: const EdgeInsets.all(12),
@@ -280,16 +421,23 @@ class _LoanFormScreenState extends ConsumerState<LoanFormScreen> {
             color: Theme.of(context).colorScheme.onSurfaceVariant,
           ),
           const SizedBox(width: 8),
-          Text(
-            'Interés ${isQuincenal ? "quincenal" : "mensual"}: ',
-            style: AppTypography.bodySmall,
-          ),
-          Text(
-            'C\$ ${periodInterest.toStringAsFixed(2)}',
-            style: AppTypography.titleSmall.copyWith(
-              color: Theme.of(context).brightness == Brightness.dark
-                  ? AppColors.info
-                  : AppColors.primary,
+          Expanded(
+            child: Wrap(
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                Text(
+                  '${S.of(context).interest} $frequencyLabel: ',
+                  style: AppTypography.bodySmall,
+                ),
+                DefaultTextStyle(
+                  style: AppTypography.titleSmall.copyWith(
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? AppColors.info
+                        : AppColors.primary,
+                  ),
+                  child: MoneyDisplay(amount: periodInterest),
+                ),
+              ],
             ),
           ),
         ],
@@ -297,34 +445,245 @@ class _LoanFormScreenState extends ConsumerState<LoanFormScreen> {
     );
   }
 
+  Widget _buildCurrencySelector() {
+    // Get the currency info dynamically
+    final settings = ref.watch(appSettingsProvider).value;
+    final baseCurrencyCode = settings?.baseCurrency ?? 'NIO';
+
+    // Use CurrencyInfo for dynamic symbol
+    final currencyInfo = CurrencyInfo.fromCode(_selectedCurrencyCode);
+    final baseCurrencyInfo = CurrencyInfo.fromCode(baseCurrencyCode);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(S.of(context).loanCurrencyLabel, style: AppTypography.labelMedium),
+        const SizedBox(height: 8),
+        AppCard(
+          child: ListTile(
+            leading: Text(
+              currencyInfo.symbol,
+              style: AppTypography.headlineMedium.copyWith(
+                color: AppColors.primary,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            title: Text('${currencyInfo.name} (${currencyInfo.code})'),
+            subtitle: _selectedCurrencyCode != baseCurrencyCode
+                ? Text(
+                    'Moneda Base: ${baseCurrencyInfo.symbol} ${baseCurrencyInfo.code}',
+                    style: AppTypography.bodySmall.copyWith(
+                      color: AppColors.textSecondary,
+                    ),
+                  )
+                : null,
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () async {
+              final result = await context.push<String>(
+                '/settings/currency-selection',
+              );
+              if (result != null && result.isNotEmpty && mounted) {
+                setState(() => _selectedCurrencyCode = result);
+                _loadExchangeRate();
+              }
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildExchangeRateField() {
+    final settings = ref.read(appSettingsProvider).value;
+    final baseCurrency = settings?.baseCurrency ?? 'NIO';
+    final allowManual = settings?.allowManualExchangeRate ?? false;
+
+    // If currencies match, strictly show 1.0 (or hide logic, but here we show field disabled)
+    final isSameCurrency = _selectedCurrencyCode == baseCurrency;
+    final canEdit = allowManual && !isSameCurrency;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          S.of(context).appliedExchangeRate,
+          style: AppTypography.labelMedium,
+        ),
+        const SizedBox(height: 8),
+        AppCard(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.currency_exchange,
+                  color: _isLoadingRate
+                      ? AppColors.textSecondary
+                      : AppColors.primary,
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Text(
+                            '1 $_selectedCurrencyCode = ',
+                            style: AppTypography.bodyLarge.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          Expanded(
+                            child: SizedBox(
+                              height: 40,
+                              child: TextFormField(
+                                controller: _exchangeRateController,
+                                enabled: canEdit,
+                                keyboardType:
+                                    const TextInputType.numberWithOptions(
+                                      decimal: true,
+                                    ),
+                                inputFormatters: [
+                                  FilteringTextInputFormatter.allow(
+                                    RegExp(r'^\d*\.?\d*'),
+                                  ),
+                                ],
+                                style: AppTypography.bodyLarge.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: canEdit
+                                      ? AppColors.primary
+                                      : AppColors.textPrimary,
+                                ),
+                                decoration: InputDecoration(
+                                  suffixText: baseCurrency,
+                                  contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 8,
+                                  ),
+                                  border: canEdit
+                                      ? const OutlineInputBorder()
+                                      : InputBorder.none,
+                                  isDense: true,
+                                ),
+                                onChanged: (value) {
+                                  final newRate = double.tryParse(value);
+                                  if (newRate != null) {
+                                    setState(() {
+                                      _appliedExchangeRate = newRate;
+                                    });
+                                  }
+                                },
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      if (_isLoadingRate)
+                        Text(
+                          'Cargando tasa...',
+                          style: AppTypography.bodySmall.copyWith(
+                            color: AppColors.textSecondary,
+                          ),
+                        )
+                      else if (canEdit)
+                        Text(
+                          'Puede editar la tasa manualmente',
+                          style: AppTypography.bodySmall.copyWith(
+                            color: AppColors.info,
+                          ),
+                        )
+                      else
+                        Text(
+                          'Tasa del día aplicada al préstamo',
+                          style: AppTypography.bodySmall.copyWith(
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+                if (_isLoadingRate) ...[
+                  const SizedBox(width: 8),
+                  const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildFrequencySelector() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Frecuencia de Cobro *', style: AppTypography.labelMedium),
+        Text(S.of(context).billingFrequency, style: AppTypography.labelMedium),
         const SizedBox(height: 8),
-        Row(
-          children: [
-            Expanded(
-              child: _FrequencyOption(
-                label: 'Quincenal',
-                subtitle: '15 días',
-                icon: Icons.calendar_view_week,
-                isSelected: _billingFrequency == 'BIWEEKLY',
-                onTap: () => setState(() => _billingFrequency = 'BIWEEKLY'),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: _FrequencyOption(
-                label: 'Mensual',
-                subtitle: '30 días',
-                icon: Icons.calendar_month,
-                isSelected: _billingFrequency == 'MONTHLY',
-                onTap: () => setState(() => _billingFrequency = 'MONTHLY'),
-              ),
-            ),
-          ],
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final double itemWidth = (constraints.maxWidth - 8) / 2;
+            return Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                SizedBox(
+                  width: itemWidth,
+                  child: _FrequencyOption(
+                    label: S.of(context).daily,
+                    subtitle:
+                        '1 ${S.of(context).today.toLowerCase().substring(0, 3)}',
+                    icon: Icons.calendar_view_day,
+                    isSelected: _billingFrequency == 'DAILY',
+                    onTap: () => setState(() => _billingFrequency = 'DAILY'),
+                    isCompact: true,
+                  ),
+                ),
+                SizedBox(
+                  width: itemWidth,
+                  child: _FrequencyOption(
+                    label: S.of(context).weekly,
+                    subtitle:
+                        '7 ${S.of(context).today.toLowerCase().substring(0, 3)}',
+                    icon: Icons.calendar_view_week,
+                    isSelected: _billingFrequency == 'WEEKLY',
+                    onTap: () => setState(() => _billingFrequency = 'WEEKLY'),
+                    isCompact: true,
+                  ),
+                ),
+                SizedBox(
+                  width: itemWidth,
+                  child: _FrequencyOption(
+                    label: S.of(context).biweekly,
+                    subtitle:
+                        '15 ${S.of(context).today.toLowerCase().substring(0, 3)}',
+                    icon: Icons.calendar_view_month,
+                    isSelected: _billingFrequency == 'BIWEEKLY',
+                    onTap: () => setState(() => _billingFrequency = 'BIWEEKLY'),
+                    isCompact: true,
+                  ),
+                ),
+                SizedBox(
+                  width: itemWidth,
+                  child: _FrequencyOption(
+                    label: S.of(context).monthly,
+                    subtitle:
+                        '30 ${S.of(context).today.toLowerCase().substring(0, 3)}',
+                    icon: Icons.calendar_month,
+                    isSelected: _billingFrequency == 'MONTHLY',
+                    onTap: () => setState(() => _billingFrequency = 'MONTHLY'),
+                    isCompact: true,
+                  ),
+                ),
+              ],
+            );
+          },
         ),
       ],
     );
@@ -614,6 +973,8 @@ class _LoanFormScreenState extends ConsumerState<LoanFormScreen> {
         notes: _notesController.text.trim().isEmpty
             ? null
             : _notesController.text.trim(),
+        currencyCode: _selectedCurrencyCode,
+        appliedExchangeRate: _appliedExchangeRate, // Exchange rate snapshot
         createdAt: now,
         updatedAt: now,
       );
@@ -640,19 +1001,36 @@ class _LoanFormScreenState extends ConsumerState<LoanFormScreen> {
             ),
           );
 
-          // Send WhatsApp notification with PDF if enabled (use createdLoan with loanNumber)
+          // TRIGGER AUTO BACKUP
           final settings = ref.read(appSettingsProvider).value;
+          if (settings != null && settings.backupOnLoanCreation) {
+            // Run in background
+            ref
+                .read(backupServiceProvider)
+                .createBackup(customName: settings.backupCustomName)
+                .then((_) => debugPrint('Auto backup triggered'));
+          }
+
+          // Send WhatsApp notification with PDF if enabled (use createdLoan with loanNumber)
+          // valid settings is already in scope
           if (settings != null &&
               settings.shareReceiptsWhatsApp &&
               _customer != null) {
             final phone = _customer!.phone ?? '';
             if (WhatsAppService.isValidNumber(phone)) {
-              // Generate PDF receipt and share via WhatsApp
+              // Generate PDF receipt and share via WhatsApp - use LOAN currency
+              FiatCurrency loanCurrency;
+              try {
+                loanCurrency = FiatCurrency.fromCode(createdLoan.currencyCode);
+              } catch (_) {
+                loanCurrency = FiatCurrency.fromCode('NIO');
+              }
               await WhatsAppService.shareDisbursementReceipt(
                 loan: createdLoan,
                 customer: _customer!,
                 settings: settings,
                 locale: Localizations.localeOf(context),
+                currencySymbol: loanCurrency.symbol ?? loanCurrency.code,
               );
             } else if (mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
@@ -664,6 +1042,7 @@ class _LoanFormScreenState extends ConsumerState<LoanFormScreen> {
             }
           }
 
+          // ignore: use_build_context_synchronously
           context.pop();
         } else {
           final error = ref.read(loansProvider).error;
@@ -706,7 +1085,15 @@ class _SummaryRow extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(label, style: AppTypography.bodySmall),
-          Text(value, style: AppTypography.titleSmall),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              value,
+              style: AppTypography.titleSmall,
+              textAlign: TextAlign.end,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
         ],
       ),
     );
@@ -719,6 +1106,7 @@ class _FrequencyOption extends StatelessWidget {
   final IconData icon;
   final bool isSelected;
   final VoidCallback onTap;
+  final bool isCompact;
 
   const _FrequencyOption({
     required this.label,
@@ -726,6 +1114,7 @@ class _FrequencyOption extends StatelessWidget {
     required this.icon,
     required this.isSelected,
     required this.onTap,
+    this.isCompact = false,
   });
 
   @override
@@ -737,7 +1126,7 @@ class _FrequencyOption extends StatelessWidget {
       onTap: onTap,
       borderRadius: BorderRadius.circular(12),
       child: Container(
-        padding: const EdgeInsets.all(16),
+        padding: EdgeInsets.all(isCompact ? 8 : 16),
         decoration: BoxDecoration(
           border: Border.all(
             color: isSelected
@@ -749,28 +1138,37 @@ class _FrequencyOption extends StatelessWidget {
           color: isSelected ? primaryColor.withValues(alpha: 0.1) : null,
         ),
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
               icon,
               color: isSelected
                   ? primaryColor
                   : Theme.of(context).colorScheme.onSurfaceVariant,
-              size: 28,
+              size: isCompact ? 24 : 28,
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: isCompact ? 4 : 8),
             Text(
               label,
-              style: AppTypography.titleSmall.copyWith(
-                color: isSelected ? primaryColor : null,
-                fontWeight: isSelected ? FontWeight.bold : null,
-              ),
+              style:
+                  (isCompact
+                          ? AppTypography.bodySmall
+                          : AppTypography.titleSmall)
+                      .copyWith(
+                        color: isSelected ? primaryColor : null,
+                        fontWeight: isSelected ? FontWeight.bold : null,
+                        fontSize: isCompact ? 10 : null,
+                      ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
-            Text(
-              subtitle,
-              style: AppTypography.bodySmall.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
+            if (!isCompact)
+              Text(
+                subtitle,
+                style: AppTypography.bodySmall.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
               ),
-            ),
           ],
         ),
       ),

@@ -99,19 +99,27 @@ class LoansNotifier extends StateNotifier<LoansState> {
         // Calculate first due date based on disbursement date and LOAN frequency
         // Note: Subtract 1 because start date counts as day 1
         // So for 15-day cycle: start + 14 = end date (day 15)
-        final isBiweekly = loan.billingFrequency == 'BIWEEKLY';
-        final daysToAdd = isBiweekly ? 14 : 29;
+        // For DAILY: start + 0 = end date (day 1)
+        final daysToAdd = switch (loan.billingFrequency) {
+          'WEEKLY' => 6,
+          'DAILY' => 0,
+          'BIWEEKLY' => 14,
+          _ => 29, // MONTHLY
+        };
         final dueDate = loan.disbursementDate.add(Duration(days: daysToAdd));
 
         // Calculate interest for first cycle
-        final interestExpected = isBiweekly
-            ? loan.calculateBiweeklyInterest()
-            : loan.calculateMonthlyInterest();
+        final interestExpected = switch (loan.billingFrequency) {
+          'WEEKLY' => loan.calculateWeeklyInterest(),
+          'DAILY' => loan.calculateDailyInterest(),
+          'BIWEEKLY' => loan.calculateBiweeklyInterest(),
+          _ => loan.calculateMonthlyInterest(),
+        };
 
         final now = DateTime.now();
 
         // Create first billing cycle
-        final frequency = isBiweekly ? 'BIWEEKLY' : 'MONTHLY';
+        final frequency = loan.billingFrequency;
         final firstCycle = BillingCycle(
           billingCycleId: '${loan.loanId}_cycle_1',
           loanId: loan.loanId,

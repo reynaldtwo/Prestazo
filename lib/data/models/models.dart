@@ -9,3 +9,4 @@ export 'payment.dart';
 export 'payment_allocation.dart';
 export 'loan_event.dart';
 export 'audit_log.dart';
+export 'exchange_rate.dart';

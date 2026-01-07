@@ -12,7 +12,16 @@ import 'screens/payments/payment_history_screen.dart';
 import 'screens/settings/company_settings_screen.dart';
 import 'screens/settings/settings_screen.dart';
 import 'screens/settings/about_screen.dart';
+import 'screens/settings/dni_format_screen.dart';
+import 'screens/settings/currency_selection_screen.dart';
+import 'screens/settings/report_currency_screen.dart';
+import 'screens/settings/scheduled_backup_screen.dart';
+import 'screens/settings/country_selection_screen.dart';
+import 'screens/settings/monetary_settings_screen.dart';
 import 'screens/reports/reports_screen.dart';
+import 'screens/reports/currency_differential_report_screen.dart';
+import 'screens/settings/exchange_rate_screen.dart';
+import 'screens/settings/exchange_rate_form_screen.dart';
 import 'shell_screen.dart';
 
 /// App router configuration
@@ -56,6 +65,61 @@ final appRouter = GoRouter(
               path: 'about',
               name: 'about',
               builder: (context, state) => const AboutScreen(),
+            ),
+            GoRoute(
+              path: 'dni-format',
+              name: 'dni-format',
+              builder: (context, state) => const DniFormatScreen(),
+            ),
+            GoRoute(
+              path: 'currency-selection',
+              name: 'currency-selection',
+              builder: (context, state) => const CurrencySelectionScreen(),
+            ),
+            GoRoute(
+              path: 'monetary',
+              name: 'monetary-settings',
+              builder: (context, state) => const MonetarySettingsScreen(),
+            ),
+            GoRoute(
+              path: 'report-currency',
+              name: 'report-currency',
+              builder: (context, state) => const ReportCurrencyScreen(),
+            ),
+            GoRoute(
+              path: 'scheduled-backup',
+              name: 'scheduled-backup',
+              builder: (context, state) => const ScheduledBackupScreen(),
+            ),
+            GoRoute(
+              path: 'country-selection',
+              name: 'country-selection',
+              builder: (context, state) => const CountrySelectionScreen(),
+            ),
+            GoRoute(
+              path: 'exchange-rates',
+              name: 'exchange-rates',
+              builder: (context, state) => const ExchangeRateScreen(),
+              routes: [
+                GoRoute(
+                  path: 'new',
+                  name: 'new-exchange-rate',
+                  builder: (context, state) => const ExchangeRateFormScreen(),
+                ),
+                GoRoute(
+                  path: ':id',
+                  name: 'edit-exchange-rate',
+                  builder: (context, state) => ExchangeRateFormScreen(
+                    rateId: state.pathParameters['id'],
+                  ),
+                ),
+              ],
+            ),
+            GoRoute(
+              path: 'currency-differential',
+              name: 'currency-differential',
+              builder: (context, state) =>
+                  const CurrencyDifferentialReportScreen(),
             ),
           ],
         ),

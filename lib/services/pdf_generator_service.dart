@@ -11,12 +11,10 @@ import 'package:flutter/widgets.dart' show FileImage; // For loading image
 import '../data/models/app_settings.dart';
 import '../data/models/payment_allocation.dart';
 import '../core/localization/locale_provider.dart';
+import 'package:sealed_currencies/sealed_currencies.dart';
 
 class PdfGeneratorService {
-  final _currencyFormat = NumberFormat.currency(
-    symbol: 'C\$ ',
-    decimalDigits: 2,
-  );
+  // Removed static currencyFormat to allow dynamic symbols
   final _dateFormat = DateFormat('dd/MM/yyyy');
   final _dateTimeFormat = DateFormat('dd/MM/yyyy h:mm a');
 
@@ -27,9 +25,14 @@ class PdfGeneratorService {
     required List<PaymentAllocation> allocations,
     required AppSettings settings,
     required Locale locale,
+    required String currencySymbol,
   }) async {
-    final s = S(locale);
+    final s = lookupS(locale);
     final pdf = pw.Document();
+    final currencyFormat = NumberFormat.currency(
+      symbol: '$currencySymbol ',
+      decimalDigits: 2,
+    );
 
     // Load image if path provided and enabled
     pw.ImageProvider? profileImage;
@@ -58,6 +61,7 @@ class PdfGeneratorService {
           settings: settings,
           s: s,
           profileImage: profileImage,
+          currencyFormat: currencyFormat,
         ),
       ),
     );
@@ -77,9 +81,14 @@ class PdfGeneratorService {
     required List<PaymentAllocation> allocations,
     required AppSettings settings,
     required Locale locale,
+    required String currencySymbol,
   }) async {
-    final s = S(locale);
+    final s = lookupS(locale);
     final pdf = pw.Document();
+    final currencyFormat = NumberFormat.currency(
+      symbol: '$currencySymbol ',
+      decimalDigits: 2,
+    );
 
     // Load image if path provided and enabled
     pw.ImageProvider? profileImage;
@@ -108,6 +117,7 @@ class PdfGeneratorService {
           settings: settings,
           s: s,
           profileImage: profileImage,
+          currencyFormat: currencyFormat,
         ),
       ),
     );
@@ -122,9 +132,14 @@ class PdfGeneratorService {
     required List<PaymentAllocation> allocations,
     required AppSettings settings,
     required Locale locale,
+    required String currencySymbol,
   }) async {
-    final s = S(locale);
+    final s = lookupS(locale);
     final pdf = pw.Document();
+    final currencyFormat = NumberFormat.currency(
+      symbol: '$currencySymbol ',
+      decimalDigits: 2,
+    );
 
     pdf.addPage(
       pw.Page(
@@ -137,6 +152,7 @@ class PdfGeneratorService {
           allocations,
           settings,
           s,
+          currencyFormat,
         ),
       ),
     );
@@ -152,16 +168,26 @@ class PdfGeneratorService {
     required Customer customer,
     required AppSettings settings,
     required Locale locale,
+    required String currencySymbol,
   }) async {
-    final s = S(locale);
+    final s = lookupS(locale);
     final pdf = pw.Document();
+    final currencyFormat = NumberFormat.currency(
+      symbol: '$currencySymbol ',
+      decimalDigits: 2,
+    );
 
     pdf.addPage(
       pw.Page(
         pageFormat: PdfPageFormat.roll80,
         margin: const pw.EdgeInsets.all(10),
-        build: (context) =>
-            _buildDisbursementReceiptContent(loan, customer, settings, s),
+        build: (context) => _buildDisbursementReceiptContent(
+          loan,
+          customer,
+          settings,
+          s,
+          currencyFormat,
+        ),
       ),
     );
 
@@ -179,16 +205,26 @@ class PdfGeneratorService {
     required Customer customer,
     required AppSettings settings,
     required Locale locale,
+    required String currencySymbol,
   }) async {
-    final s = S(locale);
+    final s = lookupS(locale);
     final pdf = pw.Document();
+    final currencyFormat = NumberFormat.currency(
+      symbol: '$currencySymbol ',
+      decimalDigits: 2,
+    );
 
     pdf.addPage(
       pw.Page(
         pageFormat: PdfPageFormat.roll80,
         margin: const pw.EdgeInsets.all(10),
-        build: (context) =>
-            _buildDisbursementReceiptContent(loan, customer, settings, s),
+        build: (context) => _buildDisbursementReceiptContent(
+          loan,
+          customer,
+          settings,
+          s,
+          currencyFormat,
+        ),
       ),
     );
 
@@ -204,9 +240,14 @@ class PdfGeneratorService {
     required List<PaymentAllocation> allocations,
     required AppSettings settings,
     required Locale locale,
+    required String currencySymbol,
   }) async {
-    final s = S(locale);
+    final s = lookupS(locale);
     final pdf = pw.Document();
+    final currencyFormat = NumberFormat.currency(
+      symbol: '$currencySymbol ',
+      decimalDigits: 2,
+    );
 
     pdf.addPage(
       pw.Page(
@@ -219,6 +260,7 @@ class PdfGeneratorService {
           allocations,
           settings,
           s,
+          currencyFormat,
         ),
       ),
     );
@@ -230,93 +272,204 @@ class PdfGeneratorService {
     required List<Map<String, dynamic>> loansData,
     required AppSettings settings,
     required Locale locale,
+    required String currencySymbol,
+    // Pre-calculated multi-currency aggregated totals (optional)
+    double? aggregatedTotalOriginal,
+    double? aggregatedTotalBalance,
+    // New: totals by currency for dynamic display
+    Map<String, double>? totalsByCurrencyOriginal,
+    Map<String, double>? totalsByCurrencyBalance,
+    String? baseCurrencyCode,
+    double? totalInBaseCurrency,
   }) async {
-    final s = S(locale);
+    final s = lookupS(locale);
     final pdf = pw.Document();
+    final now = DateTime.now();
+    final dateStr = _dateFormat.format(now);
+    final timeStr =
+        '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}';
 
-    // Calculate totals
-    double totalPrincipalOriginal = 0;
-    double totalPrincipalBalance = 0;
-    for (var row in loansData) {
-      totalPrincipalOriginal += (row['principal_original'] as num).toDouble();
-      totalPrincipalBalance += (row['principal_balance'] as num).toDouble();
+    // Calculate totals by currency if not provided
+    final currencyTotalsOriginal =
+        totalsByCurrencyOriginal ?? <String, double>{};
+    final currencyTotalsBalance = totalsByCurrencyBalance ?? <String, double>{};
+
+    if (totalsByCurrencyOriginal == null) {
+      for (var row in loansData) {
+        final currency =
+            row['currency_code'] as String? ?? settings.baseCurrency;
+        final original = (row['principal_original'] as num).toDouble();
+        final balance = (row['principal_balance'] as num).toDouble();
+        currencyTotalsOriginal[currency] =
+            (currencyTotalsOriginal[currency] ?? 0) + original;
+        currencyTotalsBalance[currency] =
+            (currencyTotalsBalance[currency] ?? 0) + balance;
+      }
     }
-    final int count = loansData.length;
+
+    // Get unique currencies sorted
+    final uniqueCurrencies = currencyTotalsBalance.keys.toList()..sort();
+    final int clientCount = loansData
+        .map((r) => r['customer_id'])
+        .toSet()
+        .length;
+
+    // Use aggregated values if provided
+    final displayTotalBalance =
+        aggregatedTotalBalance ??
+        currencyTotalsBalance.values.fold<double>(0.0, (a, b) => a + b);
+    final baseTotalBalance = totalInBaseCurrency ?? displayTotalBalance;
 
     pdf.addPage(
       pw.MultiPage(
         pageFormat: PdfPageFormat.a4,
         orientation: pw.PageOrientation.landscape,
-        margin: const pw.EdgeInsets.all(20),
+        margin: const pw.EdgeInsets.all(24),
         build: (context) => [
-          _buildReportHeader(
-            title: s.consolidatedReport,
-            settings: settings,
-            s: s,
+          // === HEADER SECTION ===
+          pw.Text(
+            s.consolidatedReport,
+            style: pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold),
           ),
-          pw.SizedBox(height: 20),
-          pw.TableHelper.fromTextArray(
-            headers: [
-              '#',
-              s.clientLabel.replaceAll(':', ''),
-              s.dateLabel.replaceAll(':', ''),
-              s.loanLabel.replaceAll(':', ''),
-              s.originalCapital,
-              s.currentBalance,
-              s.statusActive, // Using generic status label
-            ],
-            data: loansData.map((row) {
-              final loanId =
-                  row['loan_number']?.toString() ??
-                  (row['loan_id'] as String).substring(0, 6);
-              final date = DateTime.parse(row['disbursement_date']);
-              final balance = (row['principal_balance'] as num).toDouble();
-              final original = (row['principal_original'] as num).toDouble();
+          pw.SizedBox(height: 4),
+          pw.Text(
+            (settings.companyName?.isNotEmpty ?? false)
+                ? settings.companyName!
+                : 'Prestazo',
+            style: const pw.TextStyle(fontSize: 11),
+          ),
+          pw.SizedBox(height: 12),
 
-              return [
-                (loansData.indexOf(row) + 1).toString(),
-                row['customer_name']?.toString() ?? 'N/A',
-                _dateFormat.format(date),
-                loanId,
-                _currencyFormat.format(original),
-                _currencyFormat.format(balance),
-                row['status'].toString(),
-              ];
-            }).toList(),
-            headerStyle: pw.TextStyle(
-              fontWeight: pw.FontWeight.bold,
-              fontSize: 10,
-            ),
-            cellStyle: const pw.TextStyle(fontSize: 9),
-            cellAlignment: pw.Alignment.centerLeft,
-            cellAlignments: {
-              4: pw.Alignment.centerRight,
-              5: pw.Alignment.centerRight,
-            },
-          ),
-          pw.SizedBox(height: 10),
-          pw.Divider(),
+          // === SUMMARY ROW WITH TOTALS ===
           pw.Row(
-            mainAxisAlignment: pw.MainAxisAlignment.end,
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
+              // Left side: Currency totals
+              pw.Expanded(
+                child: pw.Column(
+                  crossAxisAlignment: pw.CrossAxisAlignment.start,
+                  children: [
+                    pw.Text(
+                      'Total de clientes registrados: $clientCount',
+                      style: const pw.TextStyle(fontSize: 10),
+                    ),
+                    pw.SizedBox(height: 4),
+                    // Dynamic currency totals
+                    ...uniqueCurrencies.map((currency) {
+                      final symbol = _getCurrencySymbol(currency);
+                      final total = currencyTotalsBalance[currency] ?? 0;
+                      return pw.Padding(
+                        padding: const pw.EdgeInsets.only(bottom: 2),
+                        child: pw.Text(
+                          'Total en $currency: $symbol ${_formatNumber(total)}',
+                          style: const pw.TextStyle(fontSize: 10),
+                        ),
+                      );
+                    }),
+                    pw.SizedBox(height: 4),
+                    // Total in Base Currency (yellow background)
+                    pw.Container(
+                      padding: const pw.EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: const pw.BoxDecoration(
+                        color: PdfColors.yellow100,
+                      ),
+                      child: pw.Text(
+                        'Total en ${baseCurrencyCode ?? settings.baseCurrency}: ${_getCurrencySymbol(baseCurrencyCode ?? settings.baseCurrency)} ${_formatNumber(baseTotalBalance)}',
+                        style: pw.TextStyle(
+                          fontSize: 10,
+                          fontWeight: pw.FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    pw.SizedBox(height: 4),
+                    // Total in Display Currency (green background)
+                    pw.Container(
+                      padding: const pw.EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: const pw.BoxDecoration(
+                        color: PdfColors.green100,
+                      ),
+                      child: pw.Text(
+                        'Total en moneda de visualización: $currencySymbol ${_formatNumber(displayTotalBalance)}',
+                        style: pw.TextStyle(
+                          fontSize: 10,
+                          fontWeight: pw.FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              // Right side: Date and Time (aligned right)
               pw.Column(
                 crossAxisAlignment: pw.CrossAxisAlignment.end,
                 children: [
                   pw.Text(
-                    'Total ${s.originalCapital}: ${_currencyFormat.format(totalPrincipalOriginal)}',
-                    style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+                    'Fecha del reporte    $dateStr',
+                    style: const pw.TextStyle(fontSize: 10),
                   ),
                   pw.Text(
-                    'Total ${s.pendingBalance}: ${_currencyFormat.format(totalPrincipalBalance)}',
-                    style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
-                  ),
-                  pw.Text(
-                    'Total ${s.customers}/${s.loans}: $count',
-                    style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+                    'Hora    $timeStr',
+                    style: const pw.TextStyle(fontSize: 10),
                   ),
                 ],
               ),
             ],
+          ),
+          pw.SizedBox(height: 16),
+
+          // === DATA TABLE ===
+          pw.TableHelper.fromTextArray(
+            headers: [
+              s.dateLabel.replaceAll(':', ''),
+              'N° Préstamo',
+              'DNI',
+              s.clientLabel.replaceAll(':', ''),
+              'Moneda',
+              'Capital Desembolsado',
+              s.currentBalance,
+            ],
+            data: loansData.map((row) {
+              final loanNumber =
+                  row['loan_number']?.toString() ??
+                  (row['loan_id'] as String).substring(0, 6);
+              final date = DateTime.parse(row['disbursement_date'] as String);
+              final currency =
+                  row['currency_code'] as String? ?? settings.baseCurrency;
+              final symbol = _getCurrencySymbol(currency);
+              final original = (row['principal_original'] as num).toDouble();
+              final balance = (row['principal_balance'] as num).toDouble();
+              final dni = row['customer_dni']?.toString() ?? 'N/A';
+
+              return [
+                _dateFormat.format(date),
+                loanNumber,
+                dni,
+                row['customer_name']?.toString() ?? 'N/A',
+                currency,
+                '$symbol ${_formatNumber(original)}',
+                '$symbol ${_formatNumber(balance)}',
+              ];
+            }).toList(),
+            headerStyle: pw.TextStyle(
+              fontWeight: pw.FontWeight.bold,
+              fontSize: 9,
+            ),
+            headerDecoration: const pw.BoxDecoration(
+              border: pw.Border(bottom: pw.BorderSide(width: 1)),
+            ),
+            cellStyle: const pw.TextStyle(fontSize: 9),
+            cellAlignment: pw.Alignment.centerLeft,
+            cellAlignments: {
+              5: pw.Alignment.centerRight,
+              6: pw.Alignment.centerRight,
+            },
+            border: pw.TableBorder.all(color: PdfColors.grey400, width: 0.5),
           ),
         ],
       ),
@@ -325,8 +478,20 @@ class PdfGeneratorService {
     await Printing.layoutPdf(
       onLayout: (format) async => pdf.save(),
       name:
-          '${s.consolidatedReport.replaceAll(" ", "_")}_${_dateFormat.format(DateTime.now()).replaceAll('/', '-')}',
+          '${s.consolidatedReport.replaceAll(" ", "_")}_${dateStr.replaceAll('/', '-')}',
     );
+  }
+
+  /// Helper to get currency symbol from code (dynamic, no hardcoded values)
+  String _getCurrencySymbol(String code) {
+    // Use sealed_currencies package for dynamic symbol lookup
+    final currency = FiatCurrency.maybeFromCode(code);
+    return currency?.symbol ?? code; // Fallback to code if not found
+  }
+
+  /// Helper to format numbers with commas
+  String _formatNumber(double value) {
+    return NumberFormat('#,##0.00').format(value);
   }
 
   Future<void> generateEarningsReport({
@@ -335,11 +500,20 @@ class PdfGeneratorService {
     required List<Map<String, dynamic>> paymentsData,
     required AppSettings settings,
     required Locale locale,
+    required String currencySymbol,
+    // Pre-calculated multi-currency aggregated totals (optional)
+    double? aggregatedTotalEarnings,
+    double? aggregatedTotalPrincipal,
+    double? aggregatedTotalCollected,
   }) async {
-    final s = S(locale);
+    final s = lookupS(locale);
     final pdf = pw.Document();
+    final currencyFormat = NumberFormat.currency(
+      symbol: '$currencySymbol ',
+      decimalDigits: 2,
+    );
 
-    // Calculate totals
+    // Use pre-calculated totals if provided, otherwise calculate locally
     double totalInterest = 0;
     double totalMora = 0;
     double totalPrincipal = 0;
@@ -349,8 +523,12 @@ class PdfGeneratorService {
       totalMora += (row['mora_paid'] as num?)?.toDouble() ?? 0;
       totalPrincipal += (row['principal_paid'] as num?)?.toDouble() ?? 0;
     }
-    final totalEarnings = totalInterest + totalMora;
-    final totalCollected = totalEarnings + totalPrincipal;
+
+    // Use aggregated values if provided (multi-currency normalized)
+    final totalEarnings =
+        aggregatedTotalEarnings ?? (totalInterest + totalMora);
+    final totalCollected =
+        aggregatedTotalCollected ?? (totalEarnings + totalPrincipal);
 
     pdf.addPage(
       pw.MultiPage(
@@ -383,7 +561,7 @@ class PdfGeneratorService {
                       ),
                     ),
                     pw.Text(
-                      _currencyFormat.format(totalEarnings),
+                      currencyFormat.format(totalEarnings),
                       style: pw.TextStyle(
                         fontWeight: pw.FontWeight.bold,
                         fontSize: 14,
@@ -397,7 +575,7 @@ class PdfGeneratorService {
                   mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                   children: [
                     pw.Text('${s.capitalRecovered}:'),
-                    pw.Text(_currencyFormat.format(totalPrincipal)),
+                    pw.Text(currencyFormat.format(totalPrincipal)),
                   ],
                 ),
                 pw.SizedBox(height: 5),
@@ -408,7 +586,7 @@ class PdfGeneratorService {
                       '${s.collectedToday.replaceAll("Hoy", "")}:',
                     ), // "Total Cobrado" roughly
                     pw.Text(
-                      _currencyFormat.format(totalCollected),
+                      currencyFormat.format(totalCollected),
                       style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
                     ),
                   ],
@@ -426,12 +604,12 @@ class PdfGeneratorService {
           pw.TableHelper.fromTextArray(
             headers: ['Concepto', 'Monto'],
             data: [
-              ['${s.interest} Cobrado', _currencyFormat.format(totalInterest)],
-              ['${s.mora} Cobrada', _currencyFormat.format(totalMora)],
-              ['Otros/Fees', _currencyFormat.format(0.0)],
+              ['${s.interest} Cobrado', currencyFormat.format(totalInterest)],
+              ['${s.mora} Cobrada', currencyFormat.format(totalMora)],
+              ['Otros/Fees', currencyFormat.format(0.0)],
               [
                 s.totalEarnings.toUpperCase(),
-                _currencyFormat.format(totalEarnings),
+                currencyFormat.format(totalEarnings),
               ],
             ],
             headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold),
@@ -459,6 +637,7 @@ class PdfGeneratorService {
     required AppSettings settings,
     required S s,
     pw.ImageProvider? profileImage,
+    required NumberFormat currencyFormat,
   }) {
     return [
       _buildHeader(
@@ -470,11 +649,11 @@ class PdfGeneratorService {
       pw.SizedBox(height: 20),
       _buildCustomerInfo(customer, s),
       pw.Divider(),
-      _buildLoanInfo(loan, s),
+      _buildLoanInfo(loan, s, currencyFormat),
       pw.SizedBox(height: 20),
-      _buildPaymentsTable(payments, allocations, s),
+      _buildPaymentsTable(payments, allocations, s, currencyFormat),
       pw.SizedBox(height: 20),
-      _buildSummary(loan, payments, s),
+      _buildSummary(loan, payments, s, currencyFormat),
     ];
   }
 
@@ -581,7 +760,7 @@ class PdfGeneratorService {
     );
   }
 
-  pw.Widget _buildLoanInfo(Loan loan, S s) {
+  pw.Widget _buildLoanInfo(Loan loan, S s, NumberFormat currencyFormat) {
     return pw.Row(
       mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
       children: [
@@ -598,10 +777,10 @@ class PdfGeneratorService {
           crossAxisAlignment: pw.CrossAxisAlignment.end,
           children: [
             pw.Text(
-              '${s.amountGranted} ${_currencyFormat.format(loan.principalOriginal)}',
+              '${s.amountGranted} ${currencyFormat.format(loan.principalOriginal)}',
             ),
             pw.Text(
-              '${s.currentBalance}: ${_currencyFormat.format(loan.principalBalance)}',
+              '${s.currentBalance}: ${currencyFormat.format(loan.principalBalance)}',
             ),
           ],
         ),
@@ -613,6 +792,7 @@ class PdfGeneratorService {
     List<Payment> payments,
     List<PaymentAllocation> allocations,
     S s,
+    NumberFormat currencyFormat,
   ) {
     if (payments.isEmpty) {
       return pw.Text(s.noPayments);
@@ -651,9 +831,9 @@ class PdfGeneratorService {
         return [
           _dateFormat.format(p.paymentDate),
           p.receiptNumber.toString(),
-          _currencyFormat.format(p.amount),
-          _currencyFormat.format(interest),
-          _currencyFormat.format(capital),
+          currencyFormat.format(p.amount),
+          currencyFormat.format(interest),
+          currencyFormat.format(capital),
         ];
       }).toList(),
       headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold),
@@ -662,14 +842,19 @@ class PdfGeneratorService {
     );
   }
 
-  pw.Widget _buildSummary(Loan loan, List<Payment> payments, S s) {
+  pw.Widget _buildSummary(
+    Loan loan,
+    List<Payment> payments,
+    S s,
+    NumberFormat currencyFormat,
+  ) {
     final totalPaid = payments.fold<double>(0, (sum, p) => sum + p.amount);
 
     return pw.Column(
       crossAxisAlignment: pw.CrossAxisAlignment.end,
       children: [
         pw.Text(
-          '${s.totalPaidLabel} ${_currencyFormat.format(totalPaid)}',
+          '${s.totalPaidLabel} ${currencyFormat.format(totalPaid)}',
           style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
         ),
       ],
@@ -681,6 +866,7 @@ class PdfGeneratorService {
     Customer customer,
     AppSettings settings,
     S s,
+    NumberFormat currencyFormat,
   ) {
     return pw.Column(
       mainAxisSize: pw.MainAxisSize.min,
@@ -732,7 +918,19 @@ class PdfGeneratorService {
             ),
           ],
         ),
-        if (customer.dni != null) pw.Text('${s.dniLabel} ${customer.dni}'),
+        if (customer.dni != null)
+          pw.Row(
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            children: [
+              pw.Text('${s.dniLabel} '),
+              pw.Expanded(
+                child: pw.Text(
+                  customer.dni!,
+                  style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+                ),
+              ),
+            ],
+          ),
 
         pw.SizedBox(height: 10),
         pw.Divider(),
@@ -743,7 +941,7 @@ class PdfGeneratorService {
           children: [
             pw.Text(s.amountGranted),
             pw.Text(
-              _currencyFormat.format(loan.principalOriginal),
+              currencyFormat.format(loan.principalOriginal),
               style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
             ),
           ],
@@ -838,6 +1036,7 @@ class PdfGeneratorService {
     List<PaymentAllocation> allocations,
     AppSettings settings,
     S s,
+    NumberFormat currencyFormat,
   ) {
     final interestPaid = allocations
         .where(
@@ -889,7 +1088,7 @@ class PdfGeneratorService {
           children: [
             pw.Text('${s.paymentAmount}:'),
             pw.Text(
-              _currencyFormat.format(payment.amount),
+              currencyFormat.format(payment.amount),
               style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
             ),
           ],
@@ -900,19 +1099,19 @@ class PdfGeneratorService {
           mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
           children: [
             pw.Text(s.interestMoraLabel),
-            pw.Text(_currencyFormat.format(interestPaid)),
+            pw.Text(currencyFormat.format(interestPaid)),
           ],
         ),
         pw.Row(
           mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
           children: [
             pw.Text(s.capitalLabel),
-            pw.Text(_currencyFormat.format(principalPaid)),
+            pw.Text(currencyFormat.format(principalPaid)),
           ],
         ),
         pw.Divider(),
         pw.Text(
-          '${s.remainingBalance}: ${_currencyFormat.format(loan.principalBalance)}',
+          '${s.remainingBalance}: ${currencyFormat.format(loan.principalBalance)}',
         ),
         if (settings.showPaymentSignatures) ...[
           pw.SizedBox(height: 30),

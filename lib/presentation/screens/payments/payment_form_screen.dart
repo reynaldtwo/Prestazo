@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:uuid/uuid.dart';
+import 'dart:async';
+import 'package:sealed_currencies/sealed_currencies.dart';
+import '../../widgets/modals/currency_calculator_modal.dart';
+import '../settings/currency_selection_screen.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/widgets/widgets.dart';
@@ -11,13 +15,7 @@ import '../../../data/models/payment.dart';
 import '../../../data/models/payment_allocation.dart';
 import '../../../core/localization/locale_provider.dart';
 import '../../../data/models/billing_cycle.dart';
-import '../../../data/providers/customer_provider.dart';
-import '../../../data/providers/loan_provider.dart';
-import '../../../data/providers/payment_provider.dart';
-import '../../../data/providers/database_providers.dart';
-import '../../../data/providers/cobrar_provider.dart';
-import '../../../data/providers/billing_cycle_provider.dart';
-import '../../../data/providers/dashboard_provider.dart';
+import '../../../data/providers/providers.dart';
 import '../../../services/services.dart';
 
 /// Payment form screen for registering payments
@@ -47,6 +45,12 @@ class _PaymentFormScreenState extends ConsumerState<PaymentFormScreen> {
   bool _enableCapitalRestriction = true;
   int _capitalRestrictionDays = 10;
 
+  // Cross-Currency State
+  String? _paymentCurrency; // The actual currency received (e.g., NIO)
+  final _exchangeRateController = TextEditingController();
+  double? _officialSellRate; // For profit calculation
+  Timer? _debounceRate;
+
   // Allocation preview
   double _toOverdueInterest = 0;
   double _toCurrentInterest = 0;
@@ -54,7 +58,7 @@ class _PaymentFormScreenState extends ConsumerState<PaymentFormScreen> {
 
   // Calculated debt for cancellation
   double _calculatedTotalDebt = 0;
-  double _calculatedAdjustedInterest = 0;
+
   double _calculatedPartialInterest = 0;
 
   @override
@@ -63,16 +67,30 @@ class _PaymentFormScreenState extends ConsumerState<PaymentFormScreen> {
     _amountController.addListener(_calculateAllocation);
     _loadSettings();
     _initializeFromParams();
+    _loadOfficialRate();
+  }
+
+  Future<void> _loadOfficialRate() async {
+    // Determine target currencies (assuming USD/NIO pair usually)
+    // In a real generic app, we'd check Loan Currency vs System Currency.
+    // Here we assume if Loan is USD, we might check NIO rate.
+    // Safe default: Fetch USD->NIO Sell Rate from service
+    // Here we assume if Loan is USD, we might check NIO rate.
+    // Safe default: Fetch USD->NIO Sell Rate from service
+    try {
+      // Logic placeholder for future rate fetching
+    } catch (_) {}
   }
 
   Future<void> _loadSettings() async {
     final settings = await ref.read(settingsRepositoryProvider).getSettings();
-    if (mounted)
+    if (mounted) {
       setState(() {
         _dailyAccrualEnabled = settings.dailyAccrualEnabled;
         _enableCapitalRestriction = settings.enableCapitalRestriction;
         _capitalRestrictionDays = settings.capitalRestrictionDays;
       });
+    }
   }
 
   Future<void> _initializeFromParams() async {
@@ -168,7 +186,7 @@ class _PaymentFormScreenState extends ConsumerState<PaymentFormScreen> {
     if (_selectedLoan == null) {
       setState(() {
         _calculatedTotalDebt = 0;
-        _calculatedAdjustedInterest = 0;
+
         _calculatedPartialInterest = 0;
       });
       return;
@@ -184,10 +202,28 @@ class _PaymentFormScreenState extends ConsumerState<PaymentFormScreen> {
     );
 
     setState(() {
-      _calculatedAdjustedInterest = result.totalPendingInterest;
       _calculatedPartialInterest = result.proportionalInterest;
       _calculatedTotalDebt = result.totalDebt;
     });
+  }
+
+  double _convertAmountIfNeeded(double amountInLoanCurrency) {
+    if (_selectedLoan == null) return amountInLoanCurrency;
+    final loanCurrency = _selectedLoan!.currencyCode;
+    final paymentCurrency = _paymentCurrency ?? loanCurrency;
+
+    if (loanCurrency == paymentCurrency) return amountInLoanCurrency;
+
+    // Rate convention: 1 paymentCurrency = rate loanCurrency
+    // Example: rate=37 means 1 USD = 37 NIO
+    // To convert FROM loanCurrency TO paymentCurrency: DIVIDE
+    // Example: 1000 NIO / 37 = 27.03 USD
+    final rate = double.tryParse(_exchangeRateController.text);
+    if (rate != null && rate > 0) {
+      return amountInLoanCurrency / rate;
+    }
+
+    return amountInLoanCurrency;
   }
 
   /// Calculate how payment amount is distributed
@@ -239,6 +275,8 @@ class _PaymentFormScreenState extends ConsumerState<PaymentFormScreen> {
   void dispose() {
     _amountController.removeListener(_calculateAllocation);
     _amountController.dispose();
+    _exchangeRateController.dispose();
+    _debounceRate?.cancel();
     _notesController.dispose();
     super.dispose();
   }
@@ -272,18 +310,71 @@ class _PaymentFormScreenState extends ConsumerState<PaymentFormScreen> {
               const SizedBox(height: 24),
 
               // Amount field
-              AppMoneyField(
+              // Amount
+              // Payment Currency (Row 1)
+              _buildPaymentCurrencySelector(),
+              const SizedBox(height: 16),
+
+              // Exchange Rate (Row 2 - Moved Up)
+              if (_selectedLoan != null) _buildExchangeRateSection(),
+              if (_selectedLoan != null) const SizedBox(height: 16),
+
+              // Amount (Row 3 - Moved Down)
+              AppTextField(
                 label: S.of(context).paymentAmountLabel,
                 controller: _amountController,
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
+                prefixText:
+                    _paymentCurrency != null &&
+                        _paymentCurrency != (_selectedLoan?.currencyCode ?? '')
+                    ? '${FiatCurrency.maybeFromCode(_paymentCurrency!)?.symbol ?? _paymentCurrency} '
+                    : '$_currencySymbol ',
+                suffix: IconButton(
+                  icon: const Icon(Icons.calculate_outlined),
+                  tooltip: 'Calculadora de Divisas',
+                  onPressed: () {
+                    showModalBottomSheet(
+                      context: context,
+                      isScrollControlled: true,
+                      builder: (context) => CurrencyCalculatorModal(
+                        initialSourceCurrency:
+                            _paymentCurrency ??
+                            _selectedLoan?.currencyCode ??
+                            'USD',
+                        initialTargetCurrency:
+                            _selectedLoan?.currencyCode ?? 'USD',
+                        initialAmount: double.tryParse(
+                          _amountController.text.replaceAll(',', ''),
+                        ),
+                        onTakeAmount: (result, currency, rate) {
+                          setState(() {
+                            _amountController.text = _formatMoney(result);
+                            _paymentCurrency = currency;
+                            _exchangeRateController.text = rate.toStringAsFixed(
+                              4,
+                            );
+                            _officialSellRate = rate;
+                          });
+                        },
+                      ),
+                    );
+                  },
+                ),
                 validator: (v) {
-                  if (v == null || v.isEmpty)
+                  if (v == null || v.isEmpty) {
                     return S.of(context).fieldRequired;
+                  }
                   final amount = double.tryParse(v.replaceAll(',', ''));
-                  if (amount == null || amount <= 0)
+                  if (amount == null || amount <= 0) {
                     return S.of(context).invalidAmountMsg;
+                  }
                   return null;
                 },
               ),
+
+              const SizedBox(height: 16),
 
               const SizedBox(height: 16),
 
@@ -525,11 +616,11 @@ class _PaymentFormScreenState extends ConsumerState<PaymentFormScreen> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      '${S.of(context).capital}: C\$ ${_formatMoney(_selectedLoan!.principalBalance)}',
+                      '${S.of(context).capital}: $_currencySymbol ${_formatMoney(_selectedLoan!.principalBalance)}',
                       style: AppTypography.titleMedium,
                     ),
                     Text(
-                      '${S.of(context).pendingInterest}: C\$ ${_formatMoney(totalPendingInterest)}',
+                      '${S.of(context).pendingInterest}: $_currencySymbol ${_formatMoney(totalPendingInterest)}',
                       style: AppTypography.bodySmall.copyWith(
                         color: totalPendingInterest > 0
                             ? AppColors.danger
@@ -572,7 +663,7 @@ class _PaymentFormScreenState extends ConsumerState<PaymentFormScreen> {
                           ),
                         ),
                         Text(
-                          'C\$ ${_formatMoney(cycle.interestPending)}',
+                          '$_currencySymbol ${_formatMoney(cycle.interestPending)}',
                           style: AppTypography.bodySmall.copyWith(
                             fontWeight: FontWeight.w600,
                           ),
@@ -627,13 +718,15 @@ class _PaymentFormScreenState extends ConsumerState<PaymentFormScreen> {
 
                 setState(() {
                   _declaredType = 'INTEREST';
-                  _calculatedAdjustedInterest = result.totalPendingInterest;
+
                   _calculatedPartialInterest = result.proportionalInterest;
                   _calculatedTotalDebt = result.totalDebt;
 
-                  // Set text explicitly
-                  _amountController.text = result.totalPendingInterest
-                      .toStringAsFixed(2);
+                  // Set text explicitly with auto-conversion
+                  final converted = _convertAmountIfNeeded(
+                    result.totalPendingInterest,
+                  );
+                  _amountController.text = _formatMoney(converted);
                 });
                 _calculateAllocation();
               },
@@ -653,11 +746,15 @@ class _PaymentFormScreenState extends ConsumerState<PaymentFormScreen> {
 
                 setState(() {
                   _declaredType = 'PRINCIPAL';
-                  _calculatedAdjustedInterest = result.totalPendingInterest;
+
                   _calculatedPartialInterest = result.proportionalInterest;
                   _calculatedTotalDebt = result.totalDebt;
-                  _amountController
-                      .clear(); // Principal is usually manual amount
+
+                  // Auto-convert principal if needed (optional for Principal mode, but good for UX)
+                  final converted = _convertAmountIfNeeded(
+                    result.principalBalance,
+                  );
+                  _amountController.text = _formatMoney(converted);
                 });
                 _calculateAllocation();
               },
@@ -679,18 +776,18 @@ class _PaymentFormScreenState extends ConsumerState<PaymentFormScreen> {
                       loan: _selectedLoan!,
                       pendingCycles: _pendingCycles,
                       paymentDate: _paymentDate,
-                      paymentType: 'CANCEL',
+                      paymentType: 'CANCEL', // Force type
                       dailyAccrualEnabled: _dailyAccrualEnabled,
                     );
 
                 setState(() {
                   _declaredType = 'CANCEL';
-                  _calculatedAdjustedInterest = result.totalPendingInterest;
                   _calculatedPartialInterest = result.proportionalInterest;
                   _calculatedTotalDebt = result.totalDebt;
 
-                  // Set text explicitly (Total Debt)
-                  _amountController.text = result.totalDebt.toStringAsFixed(2);
+                  // Auto-convert total debt
+                  final converted = _convertAmountIfNeeded(result.totalDebt);
+                  _amountController.text = _formatMoney(converted);
                 });
                 _calculateAllocation();
               },
@@ -711,12 +808,15 @@ class _PaymentFormScreenState extends ConsumerState<PaymentFormScreen> {
                   setState(() {
                     _declaredType = 'RECOVERY';
                     // For Recovery, we only pay principal
-                    _calculatedAdjustedInterest = 0;
+
                     _calculatedPartialInterest = 0;
                     _calculatedTotalDebt = _selectedLoan!.principalBalance;
 
-                    _amountController.text = _selectedLoan!.principalBalance
-                        .toStringAsFixed(2);
+                    // Auto-convert principal balance
+                    final converted = _convertAmountIfNeeded(
+                      _selectedLoan!.principalBalance,
+                    );
+                    _amountController.text = _formatMoney(converted);
                   });
                   _calculateAllocation();
                 }
@@ -835,7 +935,7 @@ class _PaymentFormScreenState extends ConsumerState<PaymentFormScreen> {
             style: isTotal ? AppTypography.titleSmall : AppTypography.bodySmall,
           ),
           Text(
-            'C\$ ${_formatMoney(amount)}',
+            '$_currencySymbol ${_formatMoney(amount)}',
             style:
                 (isTotal ? AppTypography.titleSmall : AppTypography.bodyMedium)
                     .copyWith(
@@ -862,7 +962,7 @@ class _PaymentFormScreenState extends ConsumerState<PaymentFormScreen> {
     if (_selectedLoan == null) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('Seleccione un préstamo')));
+      ).showSnackBar(SnackBar(content: Text(S.of(context).selectALoan)));
       return;
     }
 
@@ -1126,6 +1226,28 @@ class _PaymentFormScreenState extends ConsumerState<PaymentFormScreen> {
         notes: _notesController.text.isNotEmpty ? _notesController.text : null,
         createdAt: now,
         updatedAt: now,
+        paymentCurrency: _paymentCurrency ?? _selectedLoan!.currencyCode,
+        exchangeRateApplied:
+            (_paymentCurrency != null &&
+                _paymentCurrency != _selectedLoan!.currencyCode)
+            ? double.tryParse(_exchangeRateController.text)
+            : null,
+        exchangeProfit: () {
+          if (_paymentCurrency == null ||
+              _paymentCurrency == _selectedLoan!.currencyCode)
+            return 0.0;
+          // Profit = (Amount * AppliedRate) - (Amount * OfficialSellRate)
+          // (Received NIO) - (Cost of USD in NIO)
+
+          final appliedRate =
+              double.tryParse(_exchangeRateController.text) ?? 0;
+          if (appliedRate <= 0 || _officialSellRate == null) return 0.0;
+
+          final received = amount * appliedRate;
+          final cost = amount * _officialSellRate!;
+
+          return received - cost;
+        }(),
       );
 
       // Create allocations
@@ -1273,6 +1395,15 @@ class _PaymentFormScreenState extends ConsumerState<PaymentFormScreen> {
         ref.invalidate(pendingBillingCyclesProvider(_selectedLoan!.loanId));
       }
 
+      // TRIGGER AUTO BACKUP
+      final backupSettings = ref.read(appSettingsProvider).value;
+      if (backupSettings != null && backupSettings.backupOnPayment) {
+        ref
+            .read(backupServiceProvider)
+            .createBackup(customName: backupSettings.backupCustomName)
+            .then((_) => debugPrint('Auto backup triggered (Payment)'));
+      }
+
       // Check for WhatsApp Auto-Share
       if (createdPayment != null) {
         final settings = await ref
@@ -1285,14 +1416,21 @@ class _PaymentFormScreenState extends ConsumerState<PaymentFormScreen> {
               SnackBar(content: Text(S.of(context).sendingToWhatsApp)),
             );
 
-            final locale = S.of(context).locale;
+            // Use LOAN currency for client-facing documents, not global settings
+            FiatCurrency loanCurrency;
+            try {
+              loanCurrency = FiatCurrency.fromCode(_selectedLoan!.currencyCode);
+            } catch (_) {
+              loanCurrency = FiatCurrency.fromCode('NIO');
+            }
             await WhatsAppService.sharePaymentReceipt(
               payment: createdPayment,
               loan: _selectedLoan!,
               customer: customer,
               allocations: allocations,
               settings: settings,
-              locale: locale,
+              locale: Localizations.localeOf(context),
+              currencySymbol: loanCurrency.symbol ?? loanCurrency.code,
             );
           } else if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
@@ -1340,6 +1478,152 @@ class _PaymentFormScreenState extends ConsumerState<PaymentFormScreen> {
             onPressed: () => Navigator.pop(ctx),
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
             child: const Text('Entendido'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String get _currencySymbol {
+    if (_selectedLoan == null) return 'C\$';
+    return FiatCurrency.maybeFromCode(_selectedLoan!.currencyCode)?.symbol ??
+        'C\$';
+  }
+
+  Widget _buildPaymentCurrencySelector() {
+    if (_selectedLoan == null) return const SizedBox.shrink();
+
+    final currentCode = _paymentCurrency ?? _selectedLoan!.currencyCode;
+    final fiat = FiatCurrency.maybeFromCode(currentCode);
+    final displayText = '${fiat?.name ?? currentCode} ($currentCode)';
+
+    return InkWell(
+      onTap: () async {
+        final newCode = await Navigator.push<String>(
+          context,
+          MaterialPageRoute(
+            builder: (context) => CurrencySelectionScreen(
+              initialValue: currentCode,
+              isGlobalUpdate: false,
+            ),
+          ),
+        );
+
+        if (newCode == null) return;
+
+        setState(() => _paymentCurrency = newCode);
+
+        if (newCode != _selectedLoan!.currencyCode) {
+          final service = ref.read(currencyServiceProvider);
+          if (service.hasValue) {
+            try {
+              final rate = await service.requireValue.getDisbursementRate(
+                _selectedLoan!.currencyCode,
+                newCode,
+              );
+
+              setState(() {
+                _officialSellRate = rate;
+                _exchangeRateController.text = rate.toStringAsFixed(4);
+              });
+            } catch (_) {}
+          }
+        }
+      },
+      child: InputDecorator(
+        decoration: const InputDecoration(
+          labelText: 'Moneda de Pago', // TODO: Localize
+          border: OutlineInputBorder(),
+          prefixIcon: Icon(Icons.monetization_on_outlined),
+          suffixIcon: Icon(Icons.arrow_drop_down),
+        ),
+        child: Text(
+          displayText,
+          style: AppTypography.bodyMedium.copyWith(
+            color: Theme.of(context).colorScheme.onSurface,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildExchangeRateSection() {
+    if (_selectedLoan == null) return const SizedBox.shrink();
+
+    final loanCurrency = _selectedLoan!.currencyCode;
+    if (_paymentCurrency == null || _paymentCurrency == loanCurrency) {
+      return const SizedBox.shrink();
+    }
+
+    return AppCard(
+      title: 'Tasa de Cambio', // TODO: Localize
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: AppTextField(
+                  label: 'Tasa de Cambio Aplicada', // Todo: Localize
+                  controller: _exchangeRateController,
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
+                  onChanged: (_) => setState(() {}), // Trigger recalc
+                ),
+              ),
+              const SizedBox(width: 8),
+              Tooltip(
+                message:
+                    'Tasa oficial: ${_officialSellRate?.toStringAsFixed(4) ?? "N/A"}. La diferencia se registrará como utilidad cambiaria.',
+                triggerMode: TooltipTriggerMode.tap,
+                child: Icon(
+                  Icons.info_outline,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          _buildEquivalentCalculation(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEquivalentCalculation() {
+    final amount =
+        double.tryParse(_amountController.text.replaceAll(',', '')) ?? 0;
+    final rate = double.tryParse(_exchangeRateController.text) ?? 0;
+
+    if (amount <= 0 || rate <= 0) return const SizedBox.shrink();
+
+    final equivalent = amount * rate;
+    final symbol =
+        FiatCurrency.maybeFromCode(_paymentCurrency!)?.symbol ??
+        _paymentCurrency!;
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.success.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: AppColors.success.withValues(alpha: 0.3)),
+      ),
+      child: Row(
+        children: [
+          const Icon(
+            Icons.currency_exchange,
+            size: 20,
+            color: AppColors.success,
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              'Cobrar al Cliente: $symbol ${_formatMoney(equivalent)}',
+              style: AppTypography.titleSmall.copyWith(
+                color: AppColors.success,
+              ),
+            ),
           ),
         ],
       ),

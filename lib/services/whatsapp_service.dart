@@ -16,6 +16,13 @@ import '../data/models/app_settings.dart';
 import '../core/localization/locale_provider.dart';
 import 'pdf_generator_service.dart';
 
+/// Debug logging helper - only prints in debug mode
+void _log(String message) {
+  if (kDebugMode) {
+    debugPrint(message);
+  }
+}
+
 /// WhatsApp integration service for sharing PDF receipts
 class WhatsAppService {
   WhatsAppService._();
@@ -39,9 +46,10 @@ class WhatsAppService {
     required Customer customer,
     required AppSettings settings,
     required Locale locale,
+    required String currencySymbol,
   }) async {
     try {
-      final s = S(locale);
+      final s = lookupS(locale);
 
       // Generate PDF bytes using PdfGeneratorService (same format as print)
       final pdfGenerator = PdfGeneratorService();
@@ -50,6 +58,7 @@ class WhatsAppService {
         customer: customer,
         settings: settings,
         locale: locale,
+        currencySymbol: currencySymbol,
       );
 
       // Save to temp file
@@ -59,10 +68,11 @@ class WhatsAppService {
       final tempFile = File('${tempDir.path}/$fileName');
       await tempFile.writeAsBytes(pdfBytes);
 
-      debugPrint('WhatsApp: PDF saved to ${tempFile.path}');
+      _log('WhatsApp: PDF saved to ${tempFile.path}');
 
       // Share via WhatsApp with PDF attached (using translations)
-      final currencyFormat = 'C\$ ${loan.principalOriginal.toStringAsFixed(2)}';
+      final currencyFormat =
+          '$currencySymbol ${loan.principalOriginal.toStringAsFixed(2)}';
       final message = s.whatsAppDisbursementMsg(
         customer.fullName,
         loan.loanNumber ?? '',
@@ -77,7 +87,7 @@ class WhatsAppService {
 
       return true;
     } catch (e) {
-      debugPrint('WhatsApp: Error sharing disbursement receipt - $e');
+      _log('WhatsApp: Error sharing disbursement receipt - $e');
       return false;
     }
   }
@@ -91,9 +101,10 @@ class WhatsAppService {
     required List<PaymentAllocation> allocations,
     required AppSettings settings,
     required Locale locale,
+    required String currencySymbol,
   }) async {
     try {
-      final s = S(locale);
+      final s = lookupS(locale);
 
       // Generate PDF bytes
       final pdfGenerator = PdfGeneratorService();
@@ -104,6 +115,7 @@ class WhatsAppService {
         allocations: allocations,
         settings: settings,
         locale: locale,
+        currencySymbol: currencySymbol,
       );
 
       // Save to temp file
@@ -113,10 +125,11 @@ class WhatsAppService {
       final tempFile = File('${tempDir.path}/$fileName');
       await tempFile.writeAsBytes(pdfBytes);
 
-      debugPrint('WhatsApp: PDF saved to ${tempFile.path}');
+      _log('WhatsApp: PDF saved to ${tempFile.path}');
 
       // Share via WhatsApp with PDF attached
-      final currencyFormat = 'C\$ ${payment.amount.toStringAsFixed(2)}';
+      final currencyFormat =
+          '$currencySymbol ${payment.amount.toStringAsFixed(2)}';
 
       // We might need a specific message for payment receipt
       // For now reusing a similar pattern or adding a new translation if needed
@@ -137,7 +150,7 @@ class WhatsAppService {
 
       return true;
     } catch (e) {
-      debugPrint('WhatsApp: Error sharing payment receipt - $e');
+      _log('WhatsApp: Error sharing payment receipt - $e');
       return false;
     }
   }
@@ -151,9 +164,10 @@ class WhatsAppService {
     required List<PaymentAllocation> allocations,
     required AppSettings settings,
     required Locale locale,
+    required String currencySymbol,
   }) async {
     try {
-      final s = S(locale);
+      final s = lookupS(locale);
 
       // Generate PDF bytes
       final pdfGenerator = PdfGeneratorService();
@@ -164,6 +178,7 @@ class WhatsAppService {
         allocations: allocations,
         settings: settings,
         locale: locale,
+        currencySymbol: currencySymbol,
       );
 
       // Save to temp file
@@ -173,7 +188,7 @@ class WhatsAppService {
       final tempFile = File('${tempDir.path}/$fileName');
       await tempFile.writeAsBytes(pdfBytes);
 
-      debugPrint('WhatsApp: PDF saved to ${tempFile.path}');
+      _log('WhatsApp: PDF saved to ${tempFile.path}');
 
       // Share via WhatsApp with PDF attached
       final message = s.whatsAppStatementMsg(
@@ -189,7 +204,7 @@ class WhatsAppService {
 
       return true;
     } catch (e) {
-      debugPrint('WhatsApp: Error sharing loan statement - $e');
+      _log('WhatsApp: Error sharing loan statement - $e');
       return false;
     }
   }

@@ -46,3 +46,9 @@ final appSettingsProvider = FutureProvider<AppSettings>((ref) async {
   final repo = ref.watch(settingsRepositoryProvider);
   return repo.getSettings();
 });
+
+/// ExchangeRate repository provider
+final exchangeRateRepositoryProvider = Provider<ExchangeRateRepository>((ref) {
+  final dbHelper = ref.watch(databaseHelperProvider);
+  return ExchangeRateRepository(dbHelper: dbHelper);
+});

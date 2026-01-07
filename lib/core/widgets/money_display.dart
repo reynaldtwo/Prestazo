@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_typography.dart';
+import '../providers/currency_provider.dart';
 
 /// Money display widget with consistent formatting
-class MoneyDisplay extends StatelessWidget {
+class MoneyDisplay extends ConsumerWidget {
   final double amount;
   final MoneyDisplaySize size;
   final Color? color;
   final bool showSign;
   final bool showCurrency;
-  final String currencySymbol;
+  final String? currencySymbol; // Made nullable
 
   const MoneyDisplay({
     super.key,
@@ -18,11 +20,15 @@ class MoneyDisplay extends StatelessWidget {
     this.color,
     this.showSign = false,
     this.showCurrency = true,
-    this.currencySymbol = 'C\$',
+    this.currencySymbol, // default will be pulled from provider
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    // Get symbol from provider if not explicit
+    final effectiveSymbol =
+        currencySymbol ?? ref.watch(currencyProvider).symbol;
+
     // Nicaraguan format: comma for thousands, dot for decimals
     final formattedAmount = _formatNicaraguan(amount.abs());
 
@@ -34,7 +40,7 @@ class MoneyDisplay extends StatelessWidget {
     }
 
     if (showCurrency) {
-      displayText += '$currencySymbol ';
+      displayText += '$effectiveSymbol '; // Use variable, not hardcoded
     }
     displayText += formattedAmount;
 
@@ -93,6 +99,7 @@ class MoneyLabel extends StatelessWidget {
   final double amount;
   final Color? amountColor;
   final bool isCompact;
+  final String? currencySymbol;
 
   const MoneyLabel({
     super.key,
@@ -100,6 +107,7 @@ class MoneyLabel extends StatelessWidget {
     required this.amount,
     this.amountColor,
     this.isCompact = false,
+    this.currencySymbol,
   });
 
   @override
@@ -114,6 +122,7 @@ class MoneyLabel extends StatelessWidget {
               amount: amount,
               size: MoneyDisplaySize.small,
               color: amountColor,
+              currencySymbol: currencySymbol,
             ),
           ),
         ],
@@ -130,6 +139,7 @@ class MoneyLabel extends StatelessWidget {
           amount: amount,
           size: MoneyDisplaySize.medium,
           color: amountColor,
+          currencySymbol: currencySymbol,
         ),
       ],
     );

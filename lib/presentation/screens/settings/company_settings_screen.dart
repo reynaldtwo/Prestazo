@@ -6,6 +6,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/widgets.dart';
 import '../../../data/providers/providers.dart';
 import '../../../core/localization/locale_provider.dart';
+import 'package:country_picker/country_picker.dart';
 
 class CompanySettingsScreen extends ConsumerStatefulWidget {
   const CompanySettingsScreen({super.key});
@@ -20,12 +21,14 @@ class _CompanySettingsScreenState extends ConsumerState<CompanySettingsScreen> {
 
   // Controllers
   final _nameController = TextEditingController();
+  final _countryController = TextEditingController();
   final _rucController = TextEditingController();
   final _phoneController = TextEditingController();
   final _cellController = TextEditingController();
   final _whatsappController = TextEditingController();
   final _addressController = TextEditingController();
   final _logoPathController = TextEditingController();
+  String? _selectedCountryCode;
 
   // Visibility Flags
   bool _showName = false;
@@ -48,6 +51,13 @@ class _CompanySettingsScreenState extends ConsumerState<CompanySettingsScreen> {
     final settings = ref.read(appSettingsProvider).value;
     if (settings != null) {
       _nameController.text = settings.companyName ?? '';
+      _selectedCountryCode = settings.companyCountryCode;
+      if (_selectedCountryCode != null) {
+        final country = Country.tryParse(_selectedCountryCode!);
+        _countryController.text = country != null
+            ? '${country.flagEmoji} ${country.name}'
+            : _selectedCountryCode!;
+      }
       _rucController.text = settings.companyRuc ?? '';
       _phoneController.text = settings.companyPhone ?? '';
       _cellController.text = settings.companyCell ?? '';
@@ -91,6 +101,7 @@ class _CompanySettingsScreenState extends ConsumerState<CompanySettingsScreen> {
             _buildInfoCard(),
             const SizedBox(height: 24),
             _buildSectionHeader(S.of(context).identity),
+            _buildCountryField(), // Country first per user requirement
             _buildFieldWithToggle(
               controller: _nameController,
               label: S.of(context).companyName,
@@ -242,6 +253,33 @@ class _CompanySettingsScreenState extends ConsumerState<CompanySettingsScreen> {
     );
   }
 
+  Widget _buildCountryField() {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: AppTextField(
+        controller: _countryController,
+        label: S.of(context).countryOfOperation,
+        hint: S.of(context).selectCountry,
+        prefixIcon: Icons.public,
+        readOnly: true,
+        onTap: _pickCountry,
+      ),
+    );
+  }
+
+  Future<void> _pickCountry() async {
+    final result = await context.push<String>('/settings/country-selection');
+    if (result != null && mounted) {
+      setState(() {
+        _selectedCountryCode = result;
+        final country = Country.tryParse(result);
+        _countryController.text = country != null
+            ? '${country.flagEmoji} ${country.name}'
+            : result;
+      });
+    }
+  }
+
   Widget _buildLogoField() {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
@@ -341,6 +379,7 @@ class _CompanySettingsScreenState extends ConsumerState<CompanySettingsScreen> {
       final currentSettings = ref.read(appSettingsProvider).value!;
       final newSettings = currentSettings.copyWith(
         companyName: _nameController.text.trim(),
+        companyCountryCode: _selectedCountryCode,
         showCompanyName: _showName,
         companyRuc: _rucController.text.trim(),
         showCompanyRuc: _showRuc,
@@ -371,6 +410,10 @@ class _CompanySettingsScreenState extends ConsumerState<CompanySettingsScreen> {
 
       // PROVISIONAL: Calling updateSetting for each field.
       await repo.updateSetting('company_name', newSettings.companyName);
+      await repo.updateSetting(
+        'company_country_code',
+        newSettings.companyCountryCode,
+      );
       await repo.updateSetting(
         'show_company_name',
         newSettings.showCompanyName ? 1 : 0,
@@ -413,8 +456,8 @@ class _CompanySettingsScreenState extends ConsumerState<CompanySettingsScreen> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Datos de la empresa actualizados'),
+          SnackBar(
+            content: Text(S.of(context).companyDataUpdated),
             backgroundColor: AppColors.success,
           ),
         );
@@ -424,7 +467,7 @@ class _CompanySettingsScreenState extends ConsumerState<CompanySettingsScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error al guardar: $e'),
+            content: Text(S.of(context).errorSaving(e)),
             backgroundColor: AppColors.danger,
           ),
         );
