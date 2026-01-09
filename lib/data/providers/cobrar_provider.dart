@@ -209,7 +209,7 @@ class CobrarNotifier extends StateNotifier<CobrarState> {
             bc.interest_paid,
             bc.interest_pending,
             bc.status as cycle_status,
-            (SELECT MAX(p.payment_date) FROM payments p WHERE p.customer_id = c.customer_id AND p.status = 'VALID') as last_payment_date
+            (SELECT MAX(p.created_at) FROM payments p WHERE p.customer_id = c.customer_id AND p.status = 'VALID') as last_payment_date
           FROM customers c
           INNER JOIN loans l ON c.customer_id = l.customer_id AND l.status IN ('ACTIVE', 'IN_MORA')
           INNER JOIN billing_cycles bc ON l.loan_id = bc.loan_id 
@@ -236,7 +236,7 @@ class CobrarNotifier extends StateNotifier<CobrarState> {
             bc.interest_expected,
             bc.interest_paid,
             bc.interest_pending,
-            (SELECT MAX(p.payment_date) FROM payments p WHERE p.customer_id = c.customer_id AND p.status = 'VALID') as last_payment_date
+            (SELECT MAX(p.created_at) FROM payments p WHERE p.customer_id = c.customer_id AND p.status = 'VALID') as last_payment_date
           FROM customers c
           INNER JOIN loans l ON c.customer_id = l.customer_id AND l.status IN ('ACTIVE', 'IN_MORA')
           INNER JOIN billing_cycles bc ON l.loan_id = bc.loan_id 
@@ -266,7 +266,7 @@ class CobrarNotifier extends StateNotifier<CobrarState> {
             bc.interest_expected,
             bc.interest_paid,
             bc.interest_pending,
-            (SELECT MAX(p.payment_date) FROM payments p WHERE p.customer_id = c.customer_id AND p.status = 'VALID') as last_payment_date
+            (SELECT MAX(p.created_at) FROM payments p WHERE p.customer_id = c.customer_id AND p.status = 'VALID') as last_payment_date
           FROM customers c
           INNER JOIN loans l ON c.customer_id = l.customer_id AND l.status IN ('ACTIVE', 'IN_MORA')
           INNER JOIN billing_cycles bc ON l.loan_id = bc.loan_id 
@@ -294,7 +294,7 @@ class CobrarNotifier extends StateNotifier<CobrarState> {
             bc.interest_expected,
             bc.interest_paid,
             bc.interest_pending,
-            (SELECT MAX(p.payment_date) FROM payments p WHERE p.customer_id = c.customer_id AND p.status = 'VALID') as last_payment_date
+            (SELECT MAX(p.created_at) FROM payments p WHERE p.customer_id = c.customer_id AND p.status = 'VALID') as last_payment_date
           FROM customers c
           INNER JOIN loans l ON c.customer_id = l.customer_id AND l.status IN ('ACTIVE', 'IN_MORA')
           INNER JOIN billing_cycles bc ON l.loan_id = bc.loan_id 

@@ -11,3 +11,4 @@ export 'pdf_generator_service.dart';
 export 'payment_service.dart';
 export 'whatsapp_service.dart';
 export 'currency_service.dart';
+export 'fx_service.dart';

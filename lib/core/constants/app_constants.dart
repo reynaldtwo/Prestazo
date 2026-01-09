@@ -8,7 +8,7 @@ class AppConstants {
 
   // Database
   static const String databaseName = 'prestamos_app.db';
-  static const int databaseVersion = 19; // Bump for missed columns
+  static const int databaseVersion = 26; // V26: Customer Categories feature
 
   // Currency - NO DEFAULTS HERE
   // Currency must always come from settings.baseCurrency at runtime

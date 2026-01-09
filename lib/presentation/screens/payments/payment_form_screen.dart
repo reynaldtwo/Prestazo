@@ -17,6 +17,8 @@ import '../../../core/localization/locale_provider.dart';
 import '../../../data/models/billing_cycle.dart';
 import '../../../data/providers/providers.dart';
 import '../../../services/services.dart';
+import '../../../services/idempotency_service.dart';
+import '../../../data/providers/customer_category_provider.dart';
 
 /// Payment form screen for registering payments
 class PaymentFormScreen extends ConsumerStatefulWidget {
@@ -65,6 +67,7 @@ class _PaymentFormScreenState extends ConsumerState<PaymentFormScreen> {
   void initState() {
     super.initState();
     _amountController.addListener(_calculateAllocation);
+    _exchangeRateController.addListener(_calculateAllocation);
     _loadSettings();
     _initializeFromParams();
     _loadOfficialRate();
@@ -252,12 +255,34 @@ class _PaymentFormScreenState extends ConsumerState<PaymentFormScreen> {
       return;
     }
 
+    // Apply conversion if needed using centralized FxService
+    // Fix: Handle comma as decimal separator
+    final rateRaw = _exchangeRateController.text.replaceAll(',', '.');
+    final rate = double.tryParse(rateRaw);
+    final loanCurrency = _selectedLoan!.currencyCode;
+    final paymentCurrency = _paymentCurrency ?? loanCurrency;
+    final baseCurrency =
+        ref.read(appSettingsProvider).value?.baseCurrency ?? 'NIO';
+
+    double effectiveAmount = amount;
+    if (loanCurrency != paymentCurrency && rate != null && rate > 0) {
+      final amountMinor = (amount * 100).round();
+      final convertedMinor = FxService.convertMinor(
+        amountMinor: amountMinor,
+        rate: rate,
+        fromCurrency: paymentCurrency,
+        toCurrency: loanCurrency,
+        baseCurrency: baseCurrency,
+      );
+      effectiveAmount = convertedMinor / 100.0;
+    }
+
     // Call CENTRALIZED Service
     // This returns a PaymentDistribution object with exact amounts
     final distribution = InterestCalculationService.instance
         .calculatePaymentAllocation(
           loan: _selectedLoan!,
-          paymentAmount: amount,
+          paymentAmount: effectiveAmount,
           pendingCycles: _pendingCycles,
           paymentType: _declaredType,
           dailyAccrualEnabled: _dailyAccrualEnabled,
@@ -959,6 +984,10 @@ class _PaymentFormScreenState extends ConsumerState<PaymentFormScreen> {
 
   Future<void> _submitPayment() async {
     if (!_formKey.currentState!.validate()) return;
+
+    // Ensure allocations are up to date with current rate inputs
+    _calculateAllocation();
+
     if (_selectedLoan == null) {
       ScaffoldMessenger.of(
         context,
@@ -1076,21 +1105,40 @@ class _PaymentFormScreenState extends ConsumerState<PaymentFormScreen> {
       try {
         final now = DateTime.now();
         final paymentId = const Uuid().v4();
+        final idempotencyKey = const Uuid().v4();
+        final amountMinor = (amount * 100).round();
+        final baseCurrency =
+            ref.read(appSettingsProvider).value?.baseCurrency ?? 'NIO';
+        final loanCurrency = _selectedLoan!.currencyCode;
+        final payCurrency = _paymentCurrency ?? loanCurrency;
 
         final payment = Payment(
           paymentId: paymentId,
           loanId: _selectedLoan!.loanId,
-          customerId: _selectedCustomer!.customerId,
-          paymentDate: _paymentDate,
-          amount: amount,
-          declaredType: 'RECOVERY', // Explicit type
-          receiptNumber: 'PENDING',
+          amountPaymentMinor: amountMinor,
+          amountBaseMinor: amountMinor,
+          amountLoanMinor: amountMinor,
+          paymentCurrency: payCurrency,
+          loanCurrency: loanCurrency,
+          baseCurrency: baseCurrency,
+          idempotencyKey: idempotencyKey,
+          payloadHash: IdempotencyService.computePayloadHash(
+            loanId: _selectedLoan!.loanId,
+            isoDate: now.toIso8601String().split('T')[0],
+            paymentCurrency: payCurrency,
+            amountPaymentMinor: amountMinor,
+            rateType: null,
+            rateValue: null,
+          ),
           status: 'VALID',
+          createdAt: now,
+          updatedAt: now,
+          customerId: _selectedCustomer!.customerId,
+          receiptNumber: 'PENDING',
+          declaredType: 'RECOVERY',
           notes: reasonController.text.isNotEmpty
               ? reasonController.text
               : 'Recuperación de Capital',
-          createdAt: now,
-          updatedAt: now,
         );
 
         // Single allocation to Principal
@@ -1100,7 +1148,7 @@ class _PaymentFormScreenState extends ConsumerState<PaymentFormScreen> {
             paymentId: paymentId,
             loanId: _selectedLoan!.loanId,
             allocationType: 'PRINCIPAL',
-            amount: amount,
+            amountLoanMinor: amountMinor,
             createdAt: now,
           ),
         ];
@@ -1165,6 +1213,12 @@ class _PaymentFormScreenState extends ConsumerState<PaymentFormScreen> {
     }
 
     // Confirm payment
+    final paymentSymbol =
+        FiatCurrency.maybeFromCode(
+          _paymentCurrency ?? _selectedLoan!.currencyCode,
+        )?.symbol ??
+        'C\$';
+
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -1173,12 +1227,15 @@ class _PaymentFormScreenState extends ConsumerState<PaymentFormScreen> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('${S.of(context).paymentAmount}: C\$ ${_formatMoney(amount)}'),
+            Text(
+              '${S.of(context).paymentAmount}: $paymentSymbol ${_formatMoney(amount)}',
+            ),
             const SizedBox(height: 8),
             Text(
               '${S.of(context).customer}: ${_selectedCustomer!.alias ?? _selectedCustomer!.fullName}',
             ),
             const SizedBox(height: 8),
+            // Show converted values for clarity is implicit in the breakdown below
             if (_toOverdueInterest > 0)
               Text(
                 '• ${S.of(context).toOverdueInterest}: C\$ ${_formatMoney(_toOverdueInterest)}',
@@ -1214,47 +1271,88 @@ class _PaymentFormScreenState extends ConsumerState<PaymentFormScreen> {
       // Create payment (Receipt number will be assigned by Repository)
       final now = DateTime.now();
       final paymentId = const Uuid().v4();
+      final idempotencyKey = const Uuid().v4();
+      final amountMinor = (amount * 100).round();
+      final baseCurrency =
+          ref.read(appSettingsProvider).value?.baseCurrency ?? 'NIO';
+      final loanCurrency = _selectedLoan!.currencyCode;
+      final payCurrency = _paymentCurrency ?? loanCurrency;
+
+      final appliedRate =
+          (_paymentCurrency != null && _paymentCurrency != loanCurrency)
+          // Fix: Handle comma as decimal separator
+          ? double.tryParse(_exchangeRateController.text.replaceAll(',', '.'))
+          : null;
+
+      // Calculate amounts in different currencies using CONSOLIDATED LOGIC
+      // This ensures Payment record and Allocations use exact same values
+      int amountLoanMinor = amountMinor;
+      int amountBaseMinor = amountMinor;
+      int fxProfitMinor = 0;
+      double remainingInLoanCurrency = amount; // Default if no conversion
+
+      if (appliedRate != null &&
+          appliedRate > 0 &&
+          payCurrency != loanCurrency) {
+        // Convert payment amount to loan currency using FxService
+        amountLoanMinor = FxService.convertMinor(
+          amountMinor: amountMinor,
+          rate: appliedRate,
+          fromCurrency: payCurrency,
+          toCurrency: loanCurrency,
+          baseCurrency: baseCurrency,
+        );
+        amountBaseMinor = amountLoanMinor; // Assuming base = loan for now
+
+        // Correctly set remaining amount for allocations loop
+        remainingInLoanCurrency = amountLoanMinor / 100.0;
+
+        // Calculate FX profit
+        if (_officialSellRate != null && _officialSellRate! > 0) {
+          final received = amount * appliedRate;
+          final cost = amount * _officialSellRate!;
+          fxProfitMinor = ((received - cost) * 100).round();
+        }
+      }
+
       final payment = Payment(
         paymentId: paymentId,
         loanId: _selectedLoan!.loanId,
-        customerId: _selectedCustomer!.customerId,
-        paymentDate: _paymentDate,
-        amount: amount,
-        declaredType: _declaredType,
-        receiptNumber: 'PENDING', // Will be assigned by repository
+        amountPaymentMinor: amountMinor,
+        amountBaseMinor: amountBaseMinor,
+        amountLoanMinor: amountLoanMinor,
+        paymentCurrency: payCurrency,
+        loanCurrency: loanCurrency,
+        baseCurrency: baseCurrency,
+        rateTypeUsed: appliedRate != null ? 'MANUAL' : null,
+        rateValueUsed: appliedRate,
+        fxProfitBaseMinor: fxProfitMinor,
+        fxStatus: appliedRate != null ? 'APPLIED' : 'NONE',
+        idempotencyKey: idempotencyKey,
+        payloadHash: IdempotencyService.computePayloadHash(
+          loanId: _selectedLoan!.loanId,
+          isoDate: now.toIso8601String().split('T')[0],
+          paymentCurrency: payCurrency,
+          amountPaymentMinor: amountMinor,
+          rateType: appliedRate != null ? 'MANUAL' : null,
+          rateValue: appliedRate,
+        ),
         status: 'VALID',
-        notes: _notesController.text.isNotEmpty ? _notesController.text : null,
         createdAt: now,
         updatedAt: now,
-        paymentCurrency: _paymentCurrency ?? _selectedLoan!.currencyCode,
-        exchangeRateApplied:
-            (_paymentCurrency != null &&
-                _paymentCurrency != _selectedLoan!.currencyCode)
-            ? double.tryParse(_exchangeRateController.text)
-            : null,
-        exchangeProfit: () {
-          if (_paymentCurrency == null ||
-              _paymentCurrency == _selectedLoan!.currencyCode)
-            return 0.0;
-          // Profit = (Amount * AppliedRate) - (Amount * OfficialSellRate)
-          // (Received NIO) - (Cost of USD in NIO)
-
-          final appliedRate =
-              double.tryParse(_exchangeRateController.text) ?? 0;
-          if (appliedRate <= 0 || _officialSellRate == null) return 0.0;
-
-          final received = amount * appliedRate;
-          final cost = amount * _officialSellRate!;
-
-          return received - cost;
-        }(),
+        customerId: _selectedCustomer!.customerId,
+        receiptNumber: 'PENDING',
+        declaredType: _declaredType,
+        notes: _notesController.text.isNotEmpty ? _notesController.text : null,
       );
 
-      // Create allocations
+      // Create allocations using the PRE-CALCULATED remainingInLoanCurrency
+      // This guarantees consistency with the Payment record
       final allocations = <PaymentAllocation>[];
-      double remaining = amount;
+      double remaining = remainingInLoanCurrency;
 
-      // Allocate to overdue cycles first
+      // Calculate total owed based on declaredType to cap allocations
+      // This prevents FX conversion excess from being applied to future debt
       final today = DateTime(now.year, now.month, now.day);
       final overdueCycles = _pendingCycles
           .where((c) => c.dueDate.isBefore(today))
@@ -1263,19 +1361,65 @@ class _PaymentFormScreenState extends ConsumerState<PaymentFormScreen> {
           .where((c) => !c.dueDate.isBefore(today))
           .toList();
 
+      double totalOwed = 0.0;
+      if (_declaredType == 'INTEREST') {
+        // For INTEREST-only, only pay overdue cycles
+        // Do NOT include current/pending cycles - FX excess should NOT apply to them
+        totalOwed = overdueCycles.fold(
+          0.0,
+          (sum, c) => sum + c.interestPending,
+        );
+        // NOTE: We intentionally exclude currentCycles here
+        // Any FX conversion excess will be stored in unapplied_minor
+      } else if (_declaredType == 'CANCEL') {
+        // For CANCEL, include all interest + principal
+        totalOwed = overdueCycles.fold(
+          0.0,
+          (sum, c) => sum + c.interestPending,
+        );
+        if (_dailyAccrualEnabled && _calculatedPartialInterest > 0) {
+          totalOwed += _calculatedPartialInterest;
+        } else {
+          totalOwed += currentCycles.fold(
+            0.0,
+            (sum, c) => sum + c.interestPending,
+          );
+        }
+        totalOwed += _selectedLoan!.principalBalance;
+      } else {
+        // MIXED: all interest + principal
+        totalOwed = overdueCycles.fold(
+          0.0,
+          (sum, c) => sum + c.interestPending,
+        );
+        totalOwed += currentCycles.fold(
+          0.0,
+          (sum, c) => sum + c.interestPending,
+        );
+        totalOwed += _selectedLoan!.principalBalance;
+      }
+
+      // Cap allocation to total owed - any excess is FX profit, not debt reduction
+      final effectiveRemaining = remaining > totalOwed ? totalOwed : remaining;
+      final fxExcess = remaining > totalOwed ? remaining - totalOwed : 0.0;
+      remaining = effectiveRemaining;
+
+      // Allocate to overdue cycles first
       for (final cycle in overdueCycles) {
         if (remaining <= 0) break;
         final toApply = remaining >= cycle.interestPending
             ? cycle.interestPending
             : remaining;
-        if (toApply > 0) {
+
+        // Ensure toApply is significant enough to be represented in 2 decimals
+        if (toApply >= 0.01) {
           allocations.add(
             PaymentAllocation(
               allocationId: const Uuid().v4(),
               paymentId: paymentId,
               loanId: _selectedLoan!.loanId,
               allocationType: 'INTEREST',
-              amount: toApply,
+              amountLoanMinor: (toApply * 100).round(),
               billingCycleId: cycle.billingCycleId,
               createdAt: now,
             ),
@@ -1292,14 +1436,15 @@ class _PaymentFormScreenState extends ConsumerState<PaymentFormScreen> {
           final toApply = remaining >= cycle.interestPending
               ? cycle.interestPending
               : remaining;
-          if (toApply > 0) {
+
+          if (toApply >= 0.01) {
             allocations.add(
               PaymentAllocation(
                 allocationId: const Uuid().v4(),
                 paymentId: paymentId,
                 loanId: _selectedLoan!.loanId,
                 allocationType: 'INTEREST',
-                amount: toApply,
+                amountLoanMinor: (toApply * 100).round(),
                 billingCycleId: cycle.billingCycleId,
                 createdAt: now,
               ),
@@ -1317,15 +1462,15 @@ class _PaymentFormScreenState extends ConsumerState<PaymentFormScreen> {
         final partialToApply = remaining >= _calculatedPartialInterest
             ? _calculatedPartialInterest
             : remaining;
-        if (partialToApply > 0) {
+        if (partialToApply >= 0.01) {
           allocations.add(
             PaymentAllocation(
               allocationId: const Uuid().v4(),
               paymentId: paymentId,
               loanId: _selectedLoan!.loanId,
-              allocationType: 'INTEREST', // Counted as interest for earnings
-              amount: partialToApply,
-              billingCycleId: null, // No associated cycle for partial
+              allocationType: 'INTEREST',
+              amountLoanMinor: (partialToApply * 100).round(),
+              billingCycleId: null,
               createdAt: now,
             ),
           );
@@ -1334,28 +1479,33 @@ class _PaymentFormScreenState extends ConsumerState<PaymentFormScreen> {
       }
 
       // Allocate to principal if allowed
-      if (_declaredType != 'INTEREST' && remaining > 0) {
+      if (_declaredType != 'INTEREST' && remaining >= 0.01) {
         final toPrincipal = remaining > _selectedLoan!.principalBalance
             ? _selectedLoan!.principalBalance
             : remaining;
-        if (toPrincipal > 0) {
+        if (toPrincipal >= 0.01) {
           allocations.add(
             PaymentAllocation(
               allocationId: const Uuid().v4(),
               paymentId: paymentId,
               loanId: _selectedLoan!.loanId,
               allocationType: 'PRINCIPAL',
-              amount: toPrincipal,
+              amountLoanMinor: (toPrincipal * 100).round(),
               createdAt: now,
             ),
           );
         }
       }
 
+      // Update payment with FX excess stored as unapplied_minor
+      final paymentWithUnapplied = fxExcess > 0
+          ? payment.copyWith(unappliedMinor: (fxExcess * 100).round())
+          : payment;
+
       // Save payment with allocations
       final createdPayment = await ref
           .read(paymentsProvider.notifier)
-          .registerPayment(payment, allocations);
+          .registerPayment(paymentWithUnapplied, allocations);
 
       await _handleSuccessAndRefresh(createdPayment, allocations: allocations);
     } catch (e) {
@@ -1444,17 +1594,25 @@ class _PaymentFormScreenState extends ConsumerState<PaymentFormScreen> {
       }
 
       if (mounted) {
+        // Show success snackbar first
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(
-              createdPayment != null
-                  ? 'Pago registrado - Recibo #${createdPayment.receiptNumber}'
-                  : 'Recuperación registrada con éxito',
-            ),
+            content: Text(S.of(context).paymentSuccess),
             backgroundColor: AppColors.success,
           ),
         );
-        context.pop();
+
+        // Check if loan is paid off (balance = 0) and show rating dialog
+        final updatedLoan = await ref.read(
+          loanByIdProvider(_selectedLoan!.loanId).future,
+        );
+        if (updatedLoan != null && updatedLoan.principalBalance <= 0) {
+          await _showRatingDialog();
+        }
+
+        if (mounted) {
+          context.pop();
+        }
       }
     }
   }
@@ -1464,6 +1622,95 @@ class _PaymentFormScreenState extends ConsumerState<PaymentFormScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error: $e'), backgroundColor: AppColors.danger),
       );
+    }
+  }
+
+  /// Show dialog to rate customer after loan payoff
+  Future<void> _showRatingDialog() async {
+    if (_selectedCustomer == null) return;
+
+    final categories = await ref.read(customerCategoriesProvider.future);
+    if (categories.isEmpty || !mounted) return;
+
+    String? selectedCategoryId;
+
+    final result = await showDialog<String>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
+          title: Text(S.of(context).rateThisCustomer),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(S.of(context).rateCustomerPrompt),
+              const SizedBox(height: 16),
+              DropdownButtonFormField<String?>(
+                value: selectedCategoryId,
+                decoration: InputDecoration(
+                  labelText: S.of(context).customerCategory,
+                  border: const OutlineInputBorder(),
+                ),
+                items: categories
+                    .map(
+                      (cat) => DropdownMenuItem<String?>(
+                        value: cat.categoryId,
+                        child: Text(cat.name),
+                      ),
+                    )
+                    .toList(),
+                onChanged: (value) {
+                  setDialogState(() => selectedCategoryId = value);
+                },
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, 'cancel'),
+              child: Text(S.of(context).cancel),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, 'not_now'),
+              child: Text(S.of(context).notNow),
+            ),
+            FilledButton(
+              onPressed: () {
+                if (selectedCategoryId == null) {
+                  ScaffoldMessenger.of(ctx).showSnackBar(
+                    SnackBar(content: Text(S.of(context).mustSelectCategory)),
+                  );
+                  return;
+                }
+                Navigator.pop(ctx, selectedCategoryId);
+              },
+              child: Text(S.of(context).rateCustomer),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    // Handle result
+    if (result != null && result != 'cancel' && result != 'not_now') {
+      // Update customer category
+      final repo = ref.read(customerRepositoryProvider);
+      final updatedCustomer = _selectedCustomer!.copyWith(
+        categoryId: result,
+        updatedAt: DateTime.now(),
+      );
+      await repo.updateCustomer(updatedCustomer);
+      ref.invalidate(customersProvider);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(S.of(context).customerRated),
+            backgroundColor: AppColors.success,
+          ),
+        );
+      }
     }
   }
 
@@ -1598,9 +1845,11 @@ class _PaymentFormScreenState extends ConsumerState<PaymentFormScreen> {
     if (amount <= 0 || rate <= 0) return const SizedBox.shrink();
 
     final equivalent = amount * rate;
+    // Use LOAN currency symbol since 'equivalent' is in loan currency after conversion
+    final loanCurrencyCode = _selectedLoan?.currencyCode ?? 'NIO';
     final symbol =
-        FiatCurrency.maybeFromCode(_paymentCurrency!)?.symbol ??
-        _paymentCurrency!;
+        FiatCurrency.maybeFromCode(loanCurrencyCode)?.symbol ??
+        loanCurrencyCode;
 
     return Container(
       padding: const EdgeInsets.all(12),

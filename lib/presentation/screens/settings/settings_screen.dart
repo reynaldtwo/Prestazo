@@ -179,7 +179,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 const SizedBox(height: 16),
                 _buildCompanyCard(),
                 const SizedBox(height: 24),
-                Text('Gestión Monetaria', style: AppTypography.titleLarge),
+                Text(S.of(context).catalog, style: AppTypography.titleLarge),
+                const SizedBox(height: 16),
+                _buildCatalogCard(),
+                const SizedBox(height: 24),
+                Text(
+                  S.of(context).monetaryManagement,
+                  style: AppTypography.titleLarge,
+                ),
                 const SizedBox(height: 16),
                 _buildMonetaryCard(),
                 const SizedBox(height: 24),
@@ -298,6 +305,44 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 ),
               ),
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCatalogCard() {
+    return AppCard(
+      child: Column(
+        children: [
+          ListTile(
+            leading: const Icon(Icons.category, color: AppColors.primary),
+            title: Text(S.of(context).categorizeCustomerAs),
+            subtitle: Text(S.of(context).categorizeCustomerAsDesc),
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                InkWell(
+                  onTap: () {
+                    showAppInfoDialog(
+                      context,
+                      title: S.of(context).catalogInfoTitle,
+                      info: S.of(context).catalogInfoDescription,
+                    );
+                  },
+                  borderRadius: BorderRadius.circular(12),
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Icon(
+                      Icons.info_outline_rounded,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                  ),
+                ),
+                const Icon(Icons.chevron_right),
+              ],
+            ),
+            onTap: () => context.push('/settings/customer-categories'),
           ),
         ],
       ),

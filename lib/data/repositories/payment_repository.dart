@@ -1,7 +1,9 @@
 import 'package:sqflite/sqflite.dart';
+import 'package:uuid/uuid.dart';
 import '../database/database_helper.dart';
 import '../models/payment.dart';
 import '../models/payment_allocation.dart';
+import '../models/client_credit_ledger.dart';
 import '../../core/utils/string_utils.dart';
 import '../../services/backup_service.dart';
 
@@ -12,6 +14,9 @@ class PaymentRepository {
   PaymentRepository({DatabaseHelper? databaseHelper})
     : _databaseHelper = databaseHelper ?? DatabaseHelper();
 
+  /// Expose database for complex report queries
+  Future<Database> get database => _databaseHelper.database;
+
   /// Get all payments
   Future<List<Payment>> getAllPayments() async {
     final db = await _databaseHelper.database;
@@ -19,7 +24,7 @@ class PaymentRepository {
       'payments',
       where: 'status = ?',
       whereArgs: ['VALID'],
-      orderBy: 'payment_date DESC, created_at DESC',
+      orderBy: 'created_at DESC', // V25: payment_date -> created_at
     );
     return maps.map((map) => Payment.fromMap(map)).toList();
   }
@@ -44,7 +49,7 @@ class PaymentRepository {
       'payments',
       where: 'loan_id = ? AND status = ?',
       whereArgs: [loanId, 'VALID'],
-      orderBy: 'payment_date DESC',
+      orderBy: 'created_at DESC', // V25
     );
     return maps.map((map) => Payment.fromMap(map)).toList();
   }
@@ -56,7 +61,7 @@ class PaymentRepository {
       'payments',
       where: 'customer_id = ? AND status = ?',
       whereArgs: [customerId, 'VALID'],
-      orderBy: 'payment_date DESC',
+      orderBy: 'created_at DESC', // V25
     );
     return maps.map((map) => Payment.fromMap(map)).toList();
   }
@@ -71,8 +76,8 @@ class PaymentRepository {
     final maps = await db.rawQuery(
       '''
       SELECT * FROM payments 
-      WHERE date(payment_date) >= date(?) AND date(payment_date) <= date(?) AND status = ?
-      ORDER BY payment_date DESC
+      WHERE date(created_at) >= date(?) AND date(created_at) <= date(?) AND status = ?
+      ORDER BY created_at DESC
       ''',
       [
         startDate.toIso8601String().split('T')[0],
@@ -108,9 +113,9 @@ class PaymentRepository {
         l.principal_original,
         l.principal_balance,
         l.currency_code,
-        (SELECT COALESCE(SUM(amount), 0) FROM payment_allocations WHERE payment_id = p.payment_id AND allocation_type = 'INTEREST') as interest_paid,
-        (SELECT COALESCE(SUM(amount), 0) FROM payment_allocations WHERE payment_id = p.payment_id AND allocation_type = 'MORA') as mora_paid,
-        (SELECT COALESCE(SUM(amount), 0) FROM payment_allocations WHERE payment_id = p.payment_id AND allocation_type = 'PRINCIPAL') as principal_paid
+        (SELECT COALESCE(SUM(amount_loan_minor), 0) / 100.0 FROM payment_allocations WHERE payment_id = p.payment_id AND allocation_type = 'INTEREST') as interest_paid,
+        (SELECT COALESCE(SUM(amount_loan_minor), 0) / 100.0 FROM payment_allocations WHERE payment_id = p.payment_id AND allocation_type = 'MORA') as mora_paid,
+        (SELECT COALESCE(SUM(amount_loan_minor), 0) / 100.0 FROM payment_allocations WHERE payment_id = p.payment_id AND allocation_type = 'PRINCIPAL') as principal_paid
       FROM payments p
       INNER JOIN customers c ON p.customer_id = c.customer_id
       INNER JOIN loans l ON p.loan_id = l.loan_id
@@ -130,16 +135,16 @@ class PaymentRepository {
     }
 
     if (fromDate != null) {
-      query += ' AND p.payment_date >= ?';
+      query += ' AND p.created_at >= ?';
       args.add(fromDate.toIso8601String());
     }
 
     if (toDate != null) {
-      query += ' AND p.payment_date <= ?';
+      query += ' AND p.created_at <= ?';
       args.add(toDate.toIso8601String());
     }
 
-    query += ' ORDER BY p.payment_date DESC, p.created_at DESC';
+    query += ' ORDER BY p.created_at DESC';
 
     if (limit != null) {
       query += ' LIMIT ?';
@@ -158,13 +163,13 @@ class PaymentRepository {
         c.full_name as customer_name,
         c.alias as customer_alias,
         l.currency_code as loan_currency_code,
-        COALESCE((SELECT SUM(pa.amount) FROM payment_allocations pa WHERE pa.payment_id = p.payment_id AND allocation_type = 'INTEREST'), 0) as interest_paid,
-        COALESCE((SELECT SUM(pa.amount) FROM payment_allocations pa WHERE pa.payment_id = p.payment_id AND allocation_type = 'PRINCIPAL'), 0) as principal_paid
+        COALESCE((SELECT SUM(pa.amount_loan_minor) FROM payment_allocations pa WHERE pa.payment_id = p.payment_id AND allocation_type = 'INTEREST'), 0) / 100.0 as interest_paid,
+        COALESCE((SELECT SUM(pa.amount_loan_minor) FROM payment_allocations pa WHERE pa.payment_id = p.payment_id AND allocation_type = 'PRINCIPAL'), 0) / 100.0 as principal_paid
       FROM payments p
       INNER JOIN customers c ON p.customer_id = c.customer_id
       INNER JOIN loans l ON p.loan_id = l.loan_id
       WHERE p.status = 'VALID'
-      ORDER BY p.payment_date DESC, p.created_at DESC
+      ORDER BY p.created_at DESC
       LIMIT 100
     ''');
   }
@@ -177,6 +182,18 @@ class PaymentRepository {
     final db = await _databaseHelper.database;
 
     final result = await db.transaction((txn) async {
+      // 0. Idempotency Check - prevent duplicate payments
+      final existingPayment = await txn.query(
+        'payments',
+        where: 'payload_hash = ? AND status = ?',
+        whereArgs: [payment.payloadHash, 'VALID'],
+        limit: 1,
+      );
+      if (existingPayment.isNotEmpty) {
+        // Return existing payment instead of creating duplicate
+        return Payment.fromMap(existingPayment.first);
+      }
+
       // 1. Get next receipt number from settings
       final settingsResult = await txn.query(
         'app_settings',
@@ -328,20 +345,109 @@ class PaymentRepository {
     return result;
   }
 
-  /// Void payment
+  /// Void payment with deep reversal logic
+  /// Reverses allocations and creates credit ledger entry
   Future<int> voidPayment(String paymentId, String reason) async {
     final db = await _databaseHelper.database;
-    return await db.update(
-      'payments',
-      {
-        'status': 'VOIDED',
-        'void_reason': reason,
-        'voided_at': DateTime.now().toIso8601String(),
-        'updated_at': DateTime.now().toIso8601String(),
-      },
-      where: 'payment_id = ?',
-      whereArgs: [paymentId],
-    );
+
+    return await db.transaction((txn) async {
+      // 1. Get the payment details
+      final paymentResult = await txn.query(
+        'payments',
+        where: 'payment_id = ?',
+        whereArgs: [paymentId],
+        limit: 1,
+      );
+      if (paymentResult.isEmpty) return 0;
+
+      final payment = Payment.fromMap(paymentResult.first);
+      if (payment.status == 'VOIDED') return 0; // Already voided
+
+      // 2. Get loan info to find customer
+      final loanResult = await txn.query(
+        'loans',
+        columns: ['customer_id', 'principal_balance'],
+        where: 'loan_id = ?',
+        whereArgs: [payment.loanId],
+        limit: 1,
+      );
+      final customerId = loanResult.isNotEmpty
+          ? loanResult.first['customer_id'] as String
+          : '';
+
+      // 3. Get allocations to reverse
+      final allocations = await txn.query(
+        'payment_allocations',
+        where: 'payment_id = ?',
+        whereArgs: [paymentId],
+      );
+
+      // 4. Reverse principal allocations (add back to loan balance)
+      int principalReversed = 0;
+      for (final alloc in allocations) {
+        if (alloc['allocation_type'] == 'PRINCIPAL') {
+          final amount = alloc['amount_loan_minor'] as int;
+          principalReversed += amount;
+        }
+      }
+
+      if (principalReversed > 0) {
+        await txn.rawUpdate(
+          'UPDATE loans SET principal_balance = principal_balance + ?, updated_at = ? WHERE loan_id = ?',
+          [
+            principalReversed / 100.0,
+            DateTime.now().toIso8601String(),
+            payment.loanId,
+          ],
+        );
+      }
+
+      // 5. Reverse interest allocations (add back to billing cycles)
+      for (final alloc in allocations) {
+        if (alloc['allocation_type'] == 'INTEREST' &&
+            alloc['billing_cycle_id'] != null) {
+          final amount = alloc['amount_loan_minor'] as int;
+          await txn.rawUpdate(
+            'UPDATE billing_cycles SET interest_paid = interest_paid - ?, interest_pending = interest_pending + ?, status = ?, updated_at = ? WHERE billing_cycle_id = ?',
+            [
+              amount / 100.0,
+              amount / 100.0,
+              'PENDING',
+              DateTime.now().toIso8601String(),
+              alloc['billing_cycle_id'],
+            ],
+          );
+        }
+      }
+
+      // 6. Create credit ledger entry for void reversal
+      if (customerId.isNotEmpty) {
+        final ledgerEntry = ClientCreditLedger(
+          entryId: const Uuid().v4(),
+          customerId: customerId,
+          referencePaymentId: paymentId,
+          transactionType: 'VOID_REVERSAL',
+          amountMinor: -payment.amountLoanMinor, // Negative = debit
+          createdAt: DateTime.now(),
+        );
+        await txn.insert('client_credits_ledger', ledgerEntry.toMap());
+      }
+
+      // 7. Mark payment as voided
+      final updateCount = await txn.update(
+        'payments',
+        {
+          'status': 'VOIDED',
+          'void_reason_key': reason,
+          'voided_at': DateTime.now().toIso8601String(),
+          'updated_at': DateTime.now().toIso8601String(),
+        },
+        where: 'payment_id = ?',
+        whereArgs: [paymentId],
+      );
+
+      return updateCount;
+    });
   }
 
   /// Update exchange profit
@@ -382,47 +488,60 @@ class PaymentRepository {
   }
 
   /// Get all allocations for a specific loan (for statement report)
+  /// V25: payment_allocations no longer has loan_id, must JOIN through payments
   Future<List<PaymentAllocation>> getAllAllocationsForLoan(
     String loanId,
   ) async {
     final db = await _databaseHelper.database;
-    final maps = await db.query(
-      'payment_allocations',
-      where: 'loan_id = ?',
-      whereArgs: [loanId],
+    final maps = await db.rawQuery(
+      '''
+      SELECT pa.*
+      FROM payment_allocations pa
+      INNER JOIN payments p ON pa.payment_id = p.payment_id
+      WHERE p.loan_id = ? AND p.status = 'VALID'
+      ORDER BY pa.created_at ASC
+    ''',
+      [loanId],
     );
     return maps.map((map) => PaymentAllocation.fromMap(map)).toList();
   }
 
   /// Get total collected today
+  /// Returns the sum of amounts applied to loans (in loan currency)
+  /// This excludes any unapplied FX differential
   Future<double> getTotalCollectedToday() async {
     final db = await _databaseHelper.database;
     final today = DateTime.now().toIso8601String().split('T')[0];
     final result = await db.rawQuery(
-      'SELECT SUM(amount) as total FROM payments WHERE payment_date = ? AND status = ?',
+      '''
+      SELECT SUM(amount_loan_minor - COALESCE(unapplied_minor, 0)) / 100.0 as total 
+      FROM payments 
+      WHERE date(created_at) = date(?) AND status = ?
+      ''',
       [today, 'VALID'],
     );
     return (result.first['total'] as num?)?.toDouble() ?? 0.0;
   }
 
-  /// Get total collected today grouped by currency
+  /// Get total collected today grouped by currency (loan currency)
+  /// Returns amounts applied to loans, excluding FX differential
   Future<Map<String, double>> getTotalCollectedTodayByCurrency() async {
     final db = await _databaseHelper.database;
     final today = DateTime.now().toIso8601String().split('T')[0];
     final result = await db.rawQuery(
       '''
-      SELECT l.currency_code, COALESCE(SUM(p.amount), 0) as total
+      SELECT p.loan_currency, 
+             COALESCE(SUM(p.amount_loan_minor - COALESCE(p.unapplied_minor, 0)), 0) / 100.0 as total
       FROM payments p
-      INNER JOIN loans l ON p.loan_id = l.loan_id
-      WHERE date(p.payment_date) = date(?) AND p.status = 'VALID'
-      GROUP BY l.currency_code
+      WHERE date(p.created_at) = date(?) AND p.status = 'VALID'
+      GROUP BY p.loan_currency
     ''',
       [today],
     );
 
     final Map<String, double> totals = {};
     for (final row in result) {
-      final currency = row['currency_code'] as String? ?? 'NIO';
+      final currency = row['loan_currency'] as String? ?? 'NIO';
       final total = (row['total'] as num?)?.toDouble() ?? 0.0;
       totals[currency] = total;
     }
@@ -435,10 +554,10 @@ class PaymentRepository {
     final today = DateTime.now().toIso8601String().split('T')[0];
     final result = await db.rawQuery(
       '''
-      SELECT COALESCE(SUM(pa.amount), 0) as total
+      SELECT COALESCE(SUM(pa.amount_loan_minor), 0) / 100.0 as total
       FROM payment_allocations pa
       INNER JOIN payments p ON pa.payment_id = p.payment_id
-      WHERE date(p.payment_date) = date(?) AND p.status = 'VALID' AND pa.allocation_type = 'PRINCIPAL'
+      WHERE date(p.created_at) = date(?) AND p.status = 'VALID' AND pa.allocation_type = 'PRINCIPAL'
     ''',
       [today],
     );
@@ -451,11 +570,11 @@ class PaymentRepository {
     final today = DateTime.now().toIso8601String().split('T')[0];
     final result = await db.rawQuery(
       '''
-      SELECT l.currency_code, COALESCE(SUM(pa.amount), 0) as total
+      SELECT l.currency_code, COALESCE(SUM(pa.amount_loan_minor), 0) / 100.0 as total
       FROM payment_allocations pa
       INNER JOIN payments p ON pa.payment_id = p.payment_id
       INNER JOIN loans l ON p.loan_id = l.loan_id
-      WHERE date(p.payment_date) = date(?) AND p.status = 'VALID' AND pa.allocation_type = 'PRINCIPAL'
+      WHERE date(p.created_at) = date(?) AND p.status = 'VALID' AND pa.allocation_type = 'PRINCIPAL'
       GROUP BY l.currency_code
     ''',
       [today],
@@ -477,7 +596,7 @@ class PaymentRepository {
   ) async {
     final db = await _databaseHelper.database;
     final result = await db.rawQuery(
-      'SELECT SUM(amount) as total FROM payments WHERE date(payment_date) >= date(?) AND date(payment_date) <= date(?) AND status = ?',
+      'SELECT SUM(amount_payment_minor) / 100.0 as total FROM payments WHERE date(created_at) >= date(?) AND date(created_at) <= date(?) AND status = ?',
       [
         startDate.toIso8601String().split('T')[0],
         endDate.toIso8601String().split('T')[0],
@@ -508,10 +627,10 @@ class PaymentRepository {
     // Use date() function to compare only date parts, ignoring time
     final result = await db.rawQuery(
       '''
-      SELECT COALESCE(SUM(pa.amount), 0) as total
+      SELECT COALESCE(SUM(pa.amount_loan_minor), 0) / 100.0 as total
       FROM payment_allocations pa
       INNER JOIN payments p ON pa.payment_id = p.payment_id
-      WHERE p.payment_date >= ? AND p.payment_date <= ? 
+      WHERE p.created_at >= ? AND p.created_at <= ? 
         AND p.status = 'VALID' 
         AND pa.allocation_type IN ('INTEREST', 'MORA', 'FEES')
     ''',
@@ -528,11 +647,11 @@ class PaymentRepository {
     final db = await _databaseHelper.database;
     final result = await db.rawQuery(
       '''
-      SELECT l.currency_code, COALESCE(SUM(pa.amount), 0) as total
+      SELECT l.currency_code, COALESCE(SUM(pa.amount_loan_minor), 0) / 100.0 as total
       FROM payment_allocations pa
       INNER JOIN payments p ON pa.payment_id = p.payment_id
       INNER JOIN loans l ON p.loan_id = l.loan_id
-      WHERE p.payment_date >= ? AND p.payment_date <= ? 
+      WHERE p.created_at >= ? AND p.created_at <= ? 
         AND p.status = 'VALID' 
         AND pa.allocation_type IN ('INTEREST', 'MORA', 'FEES')
       GROUP BY l.currency_code

@@ -83,8 +83,8 @@ class _PaymentCard extends StatelessWidget {
         (payment['principal_paid'] as num?)?.toDouble() ?? 0.0;
     final customerName =
         payment['customer_name'] as String? ?? S.of(context).customer;
-    final paymentDate = payment['payment_date'] != null
-        ? DateTime.tryParse(payment['payment_date'] as String)
+    final paymentDate = payment['created_at'] != null
+        ? DateTime.tryParse(payment['created_at'] as String)
         : null;
     final notes = payment['notes'] as String?;
     final paymentCurrency = payment['payment_currency'] as String?;

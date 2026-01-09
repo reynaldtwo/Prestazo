@@ -62,7 +62,7 @@ class PaymentService {
     required Loan loan,
   }) async {
     // Validate payment amount
-    if (payment.amount <= 0) {
+    if (payment.amountPaymentMinor <= 0) {
       throw PaymentValidationException('El monto del pago debe ser mayor a 0');
     }
 
@@ -137,7 +137,7 @@ class PaymentService {
               paymentId: paymentId,
               loanId: loan.loanId,
               allocationType: 'INTEREST',
-              amount: interestToAllocate,
+              amountLoanMinor: (interestToAllocate * 100).round(),
               billingCycleId: cycle.billingCycleId,
               createdAt: DateTime.now(),
             ),
@@ -165,7 +165,7 @@ class PaymentService {
               paymentId: paymentId,
               loanId: loan.loanId,
               allocationType: 'INTEREST',
-              amount: interestToAllocate,
+              amountLoanMinor: (interestToAllocate * 100).round(),
               billingCycleId: currentCycle.first.billingCycleId,
               createdAt: DateTime.now(),
             ),
@@ -185,7 +185,7 @@ class PaymentService {
             paymentId: paymentId,
             loanId: loan.loanId,
             allocationType: 'PRINCIPAL',
-            amount: principalToAllocate,
+            amountLoanMinor: (principalToAllocate * 100).round(),
             createdAt: DateTime.now(),
           ),
         );

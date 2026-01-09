@@ -1966,7 +1966,7 @@ abstract class S {
   /// No description provided for @loanLabel.
   ///
   /// In es, this message translates to:
-  /// **'Préstamo #:'**
+  /// **'Préstamo'**
   String get loanLabel;
 
   /// No description provided for @clientLabel.
@@ -2260,7 +2260,7 @@ abstract class S {
   /// No description provided for @paymentAmountLabel.
   ///
   /// In es, this message translates to:
-  /// **'Monto del Pago *'**
+  /// **'Monto Pago'**
   String get paymentAmountLabel;
 
   /// No description provided for @invalidAmountMsg.
@@ -3944,6 +3944,426 @@ abstract class S {
   /// In es, this message translates to:
   /// **'Ver ingresos esperados por intereses'**
   String get viewProjectedEarnings;
+
+  /// No description provided for @fxDifferentialReport.
+  ///
+  /// In es, this message translates to:
+  /// **'Ganancias por Diferencial Cambiario'**
+  String get fxDifferentialReport;
+
+  /// No description provided for @fxDifferentialReportTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Reporte de Diferencial Cambiario'**
+  String get fxDifferentialReportTitle;
+
+  /// No description provided for @periodLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Período'**
+  String get periodLabel;
+
+  /// No description provided for @periodFromTo.
+  ///
+  /// In es, this message translates to:
+  /// **'Período: {startDate} al {endDate}'**
+  String periodFromTo(String startDate, String endDate);
+
+  /// No description provided for @periodSummary.
+  ///
+  /// In es, this message translates to:
+  /// **'Resumen del período'**
+  String get periodSummary;
+
+  /// No description provided for @totalFxPayments.
+  ///
+  /// In es, this message translates to:
+  /// **'Total pagos en moneda extranjera'**
+  String get totalFxPayments;
+
+  /// No description provided for @totalFxDifferential.
+  ///
+  /// In es, this message translates to:
+  /// **'Total diferencial cambiario ganado'**
+  String get totalFxDifferential;
+
+  /// No description provided for @foreignCurrencyUsed.
+  ///
+  /// In es, this message translates to:
+  /// **'Moneda extranjera utilizada'**
+  String get foreignCurrencyUsed;
+
+  /// No description provided for @operationsDetail.
+  ///
+  /// In es, this message translates to:
+  /// **'Detalle de operaciones'**
+  String get operationsDetail;
+
+  /// No description provided for @indicator.
+  ///
+  /// In es, this message translates to:
+  /// **'Indicador'**
+  String get indicator;
+
+  /// No description provided for @value.
+  ///
+  /// In es, this message translates to:
+  /// **'Valor'**
+  String get value;
+
+  /// No description provided for @totalEquivalentConverted.
+  ///
+  /// In es, this message translates to:
+  /// **'Total equivalente convertido'**
+  String get totalEquivalentConverted;
+
+  /// No description provided for @totalAppliedToDebt.
+  ///
+  /// In es, this message translates to:
+  /// **'Total aplicado a deuda'**
+  String get totalAppliedToDebt;
+
+  /// No description provided for @differentialProfit.
+  ///
+  /// In es, this message translates to:
+  /// **'Ganancia por diferencial'**
+  String get differentialProfit;
+
+  /// No description provided for @date.
+  ///
+  /// In es, this message translates to:
+  /// **'Fecha'**
+  String get date;
+
+  /// No description provided for @client.
+  ///
+  /// In es, this message translates to:
+  /// **'Cliente'**
+  String get client;
+
+  /// No description provided for @receiptNo.
+  ///
+  /// In es, this message translates to:
+  /// **'No. Recibo'**
+  String get receiptNo;
+
+  /// No description provided for @paymentCurrency.
+  ///
+  /// In es, this message translates to:
+  /// **'Moneda Pago'**
+  String get paymentCurrency;
+
+  /// No description provided for @appliedRate.
+  ///
+  /// In es, this message translates to:
+  /// **'Tasa Aplicada'**
+  String get appliedRate;
+
+  /// No description provided for @equivalentCalculated.
+  ///
+  /// In es, this message translates to:
+  /// **'Equivalente Calculado'**
+  String get equivalentCalculated;
+
+  /// No description provided for @amountAppliedToDebt.
+  ///
+  /// In es, this message translates to:
+  /// **'Monto Aplicado a Deuda'**
+  String get amountAppliedToDebt;
+
+  /// No description provided for @fxDifferential.
+  ///
+  /// In es, this message translates to:
+  /// **'Diferencial Cambiario'**
+  String get fxDifferential;
+
+  /// No description provided for @sharePdf.
+  ///
+  /// In es, this message translates to:
+  /// **'Compartir PDF'**
+  String get sharePdf;
+
+  /// No description provided for @refresh.
+  ///
+  /// In es, this message translates to:
+  /// **'Refrescar'**
+  String get refresh;
+
+  /// No description provided for @noFxOperations.
+  ///
+  /// In es, this message translates to:
+  /// **'Sin operaciones cambiarias'**
+  String get noFxOperations;
+
+  /// No description provided for @noFxPaymentsInPeriod.
+  ///
+  /// In es, this message translates to:
+  /// **'No hay pagos en moneda diferente\nen el período seleccionado'**
+  String get noFxPaymentsInPeriod;
+
+  /// No description provided for @fxPayments.
+  ///
+  /// In es, this message translates to:
+  /// **'Pagos FX'**
+  String get fxPayments;
+
+  /// No description provided for @applied.
+  ///
+  /// In es, this message translates to:
+  /// **'Aplicado'**
+  String get applied;
+
+  /// No description provided for @differentialProfit2.
+  ///
+  /// In es, this message translates to:
+  /// **'Ganancia por Diferencial'**
+  String get differentialProfit2;
+
+  /// No description provided for @pdfGenerationError.
+  ///
+  /// In es, this message translates to:
+  /// **'Error al generar PDF: {error}'**
+  String pdfGenerationError(String error);
+
+  /// No description provided for @shareReportText.
+  ///
+  /// In es, this message translates to:
+  /// **'Reporte Diferencial Cambiario'**
+  String get shareReportText;
+
+  /// No description provided for @catalog.
+  ///
+  /// In es, this message translates to:
+  /// **'Catálogo'**
+  String get catalog;
+
+  /// No description provided for @catalogDescription.
+  ///
+  /// In es, this message translates to:
+  /// **'Gestionar listas y categorías'**
+  String get catalogDescription;
+
+  /// No description provided for @categorizeCustomerAs.
+  ///
+  /// In es, this message translates to:
+  /// **'Categorías de Cliente'**
+  String get categorizeCustomerAs;
+
+  /// No description provided for @categorizeCustomerAsDesc.
+  ///
+  /// In es, this message translates to:
+  /// **'Define categorías para clasificar a tus clientes'**
+  String get categorizeCustomerAsDesc;
+
+  /// No description provided for @customerCategories.
+  ///
+  /// In es, this message translates to:
+  /// **'Categorías de Cliente'**
+  String get customerCategories;
+
+  /// No description provided for @addCategory.
+  ///
+  /// In es, this message translates to:
+  /// **'Agregar Categoría'**
+  String get addCategory;
+
+  /// No description provided for @editCategory.
+  ///
+  /// In es, this message translates to:
+  /// **'Editar Categoría'**
+  String get editCategory;
+
+  /// No description provided for @deleteCategory.
+  ///
+  /// In es, this message translates to:
+  /// **'Eliminar Categoría'**
+  String get deleteCategory;
+
+  /// No description provided for @categoryName.
+  ///
+  /// In es, this message translates to:
+  /// **'Nombre de Categoría'**
+  String get categoryName;
+
+  /// No description provided for @categoryColor.
+  ///
+  /// In es, this message translates to:
+  /// **'Color'**
+  String get categoryColor;
+
+  /// No description provided for @categoryRequired.
+  ///
+  /// In es, this message translates to:
+  /// **'El nombre de categoría es requerido'**
+  String get categoryRequired;
+
+  /// No description provided for @categoryCreated.
+  ///
+  /// In es, this message translates to:
+  /// **'Categoría creada'**
+  String get categoryCreated;
+
+  /// No description provided for @categoryUpdated.
+  ///
+  /// In es, this message translates to:
+  /// **'Categoría actualizada'**
+  String get categoryUpdated;
+
+  /// No description provided for @categoryDeleted.
+  ///
+  /// In es, this message translates to:
+  /// **'Categoría eliminada'**
+  String get categoryDeleted;
+
+  /// No description provided for @categoryInUse.
+  ///
+  /// In es, this message translates to:
+  /// **'Categoría en uso'**
+  String get categoryInUse;
+
+  /// No description provided for @categoryInUseByOne.
+  ///
+  /// In es, this message translates to:
+  /// **'Esta categoría está asignada a {customerName}. Quítala del cliente antes de eliminarla.'**
+  String categoryInUseByOne(String customerName);
+
+  /// No description provided for @categoryInUseByMany.
+  ///
+  /// In es, this message translates to:
+  /// **'Esta categoría está asignada a {count} clientes. Quítala de todos los clientes antes de eliminarla.'**
+  String categoryInUseByMany(int count);
+
+  /// No description provided for @noCategories.
+  ///
+  /// In es, this message translates to:
+  /// **'Sin categorías'**
+  String get noCategories;
+
+  /// No description provided for @noCategoriesHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Agrega categorías para clasificar a tus clientes'**
+  String get noCategoriesHint;
+
+  /// No description provided for @customerCategory.
+  ///
+  /// In es, this message translates to:
+  /// **'Categoría'**
+  String get customerCategory;
+
+  /// No description provided for @selectCategory.
+  ///
+  /// In es, this message translates to:
+  /// **'Selecciona una categoría'**
+  String get selectCategory;
+
+  /// No description provided for @optional.
+  ///
+  /// In es, this message translates to:
+  /// **'Opcional'**
+  String get optional;
+
+  /// No description provided for @rateThisCustomer.
+  ///
+  /// In es, this message translates to:
+  /// **'Calificar a este cliente'**
+  String get rateThisCustomer;
+
+  /// No description provided for @rateCustomerPrompt.
+  ///
+  /// In es, this message translates to:
+  /// **'¿Desea calificar a este cliente como?'**
+  String get rateCustomerPrompt;
+
+  /// No description provided for @notNow.
+  ///
+  /// In es, this message translates to:
+  /// **'Ahora no'**
+  String get notNow;
+
+  /// No description provided for @rateCustomer.
+  ///
+  /// In es, this message translates to:
+  /// **'Calificar'**
+  String get rateCustomer;
+
+  /// No description provided for @mustSelectCategory.
+  ///
+  /// In es, this message translates to:
+  /// **'Debe seleccionar una categoría'**
+  String get mustSelectCategory;
+
+  /// No description provided for @customerRated.
+  ///
+  /// In es, this message translates to:
+  /// **'Cliente calificado exitosamente'**
+  String get customerRated;
+
+  /// No description provided for @good.
+  ///
+  /// In es, this message translates to:
+  /// **'Bueno'**
+  String get good;
+
+  /// No description provided for @veryGood.
+  ///
+  /// In es, this message translates to:
+  /// **'Muy bueno'**
+  String get veryGood;
+
+  /// No description provided for @regular.
+  ///
+  /// In es, this message translates to:
+  /// **'Regular'**
+  String get regular;
+
+  /// No description provided for @doNotLend.
+  ///
+  /// In es, this message translates to:
+  /// **'No prestar'**
+  String get doNotLend;
+
+  /// No description provided for @bad.
+  ///
+  /// In es, this message translates to:
+  /// **'Malo'**
+  String get bad;
+
+  /// No description provided for @paymentSuccess.
+  ///
+  /// In es, this message translates to:
+  /// **'Pago registrado exitosamente'**
+  String get paymentSuccess;
+
+  /// No description provided for @catalogInfoTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'¿Qué es el Catálogo?'**
+  String get catalogInfoTitle;
+
+  /// No description provided for @catalogInfoDescription.
+  ///
+  /// In es, this message translates to:
+  /// **'El catálogo permite crear categorías personalizadas para clasificar a tus clientes (ej. Bueno, Regular, No Prestar).\n\nCon las categorías asignadas a los clientes, podrás:\n• Identificar rápidamente el tipo de cada cliente\n• Generar reportes filtrados por categoría\n• Tomar mejores decisiones de crédito basadas en el historial'**
+  String get catalogInfoDescription;
+
+  /// No description provided for @colorSelector.
+  ///
+  /// In es, this message translates to:
+  /// **'Color'**
+  String get colorSelector;
+
+  /// No description provided for @selectColor.
+  ///
+  /// In es, this message translates to:
+  /// **'Seleccionar color'**
+  String get selectColor;
+
+  /// No description provided for @customColor.
+  ///
+  /// In es, this message translates to:
+  /// **'Color personalizado'**
+  String get customColor;
 }
 
 class _SDelegate extends LocalizationsDelegate<S> {

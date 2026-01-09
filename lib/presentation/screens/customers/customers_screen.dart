@@ -7,6 +7,7 @@ import '../../../core/theme/app_typography.dart';
 import '../../../core/widgets/widgets.dart';
 import '../../../data/models/customer.dart';
 import '../../../data/providers/providers.dart';
+import '../../../data/providers/customer_category_provider.dart';
 import '../../../core/constants/app_status.dart';
 import '../../../core/localization/locale_provider.dart';
 
@@ -290,97 +291,161 @@ class _CustomerListItem extends ConsumerWidget {
       }
     });
 
+    // Get category color and calculate contrast
+    Color? categoryColor;
+    Color? contrastTextColor;
+    if (customer.categoryId != null) {
+      final categoriesAsync = ref.watch(customerCategoriesProvider);
+      categoriesAsync.whenData((categories) {
+        final category = categories
+            .where((c) => c.categoryId == customer.categoryId)
+            .firstOrNull;
+        if (category?.colorHex != null) {
+          try {
+            final hex = category!.colorHex!.replaceFirst('#', '');
+            categoryColor = Color(int.parse('FF$hex', radix: 16));
+            // Calculate luminance to determine text color
+            // Dark colors (low luminance) need light text
+            // Light colors (high luminance) need dark text
+            final luminance = categoryColor!.computeLuminance();
+            contrastTextColor = luminance < 0.5
+                ? const Color(
+                    0xFFF5F5F5,
+                  ) // Light smoke white for dark backgrounds
+                : const Color(0xFF212121); // Dark gray for light backgrounds
+          } catch (_) {}
+        }
+      });
+    }
+
+    // Text styles with contrasting color if category is set
+    final nameStyle = contrastTextColor != null
+        ? AppTypography.titleMedium.copyWith(color: contrastTextColor)
+        : AppTypography.titleMedium;
+
+    final subtitleStyle = contrastTextColor != null
+        ? AppTypography.bodySmall.copyWith(
+            color: contrastTextColor!.withValues(alpha: 0.85),
+          )
+        : AppTypography.bodySmall;
+
+    final iconColor =
+        contrastTextColor ?? Theme.of(context).colorScheme.outline;
+
     return AppCard(
       onTap: onTap,
-      padding: const EdgeInsets.all(12),
-      child: Row(
-        children: [
-          // Avatar
-          Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              color: isActive
-                  ? (isDark
-                        ? AppColors.info.withValues(alpha: 0.2)
-                        : AppColors.primary.withValues(alpha: 0.1))
-                  : Theme.of(
-                      context,
-                    ).colorScheme.outline.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Center(
-              child: Text(
-                avatarText,
-                style: AppTypography.headlineSmall.copyWith(
-                  color: isActive
-                      ? (isDark ? AppColors.info : AppColors.primary)
-                      : Theme.of(context).colorScheme.outline,
-                  fontWeight: FontWeight.bold,
-                  fontSize: avatarText.length > 2
-                      ? 14
-                      : 18, // Smaller font for longer symbols
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 12),
-
-          // Info
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        displayName,
-                        style: AppTypography.titleMedium,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    _FrequencyBadge(isQuincenal: isQuincenal),
+      padding: EdgeInsets.zero,
+      child: Container(
+        decoration: categoryColor != null
+            ? BoxDecoration(
+                borderRadius: BorderRadius.circular(12),
+                gradient: LinearGradient(
+                  begin: Alignment.centerLeft,
+                  end: Alignment.centerRight,
+                  colors: [
+                    categoryColor!.withValues(alpha: 0.85),
+                    categoryColor!.withValues(alpha: 0.4),
                   ],
                 ),
-                if (customer.alias != null)
-                  Text(customer.fullName, style: AppTypography.bodySmall),
-                if (customer.phone != null)
-                  Text(
-                    customer.phone!,
-                    style: AppTypography.bodySmall.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
+              )
+            : null,
+        padding: const EdgeInsets.all(12),
+        child: Row(
+          children: [
+            // Avatar
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: contrastTextColor != null
+                    ? contrastTextColor!.withValues(alpha: 0.15)
+                    : isActive
+                    ? (isDark
+                          ? AppColors.info.withValues(alpha: 0.2)
+                          : AppColors.primary.withValues(alpha: 0.1))
+                    : Theme.of(
+                        context,
+                      ).colorScheme.outline.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Center(
+                child: Text(
+                  avatarText,
+                  style: AppTypography.headlineSmall.copyWith(
+                    color:
+                        contrastTextColor ??
+                        (isActive
+                            ? (isDark ? AppColors.info : AppColors.primary)
+                            : Theme.of(context).colorScheme.outline),
+                    fontWeight: FontWeight.bold,
+                    fontSize: avatarText.length > 2
+                        ? 14
+                        : 18, // Smaller font for longer symbols
                   ),
-              ],
+                ),
+              ),
             ),
-          ),
+            const SizedBox(width: 12),
 
-          // Edit Action
-          IconButton(
-            icon: const Icon(Icons.edit, size: 20),
-            onPressed: () =>
-                context.push('/customer/${customer.customerId}/edit'),
-            tooltip: 'Editar cliente',
-            color: Theme.of(context).colorScheme.primary,
-          ),
-
-          // Status indicator
-          if (!isActive)
-            Padding(
-              padding: const EdgeInsets.only(left: 8),
-              child: StatusBadge(
-                status: AppStatus.customerInactive,
-                isCompact: true,
+            // Info
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          displayName,
+                          style: nameStyle,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      _FrequencyBadge(
+                        isQuincenal: isQuincenal,
+                        textColor: contrastTextColor,
+                      ),
+                    ],
+                  ),
+                  if (customer.alias != null)
+                    Text(customer.fullName, style: subtitleStyle),
+                  if (customer.phone != null)
+                    Text(
+                      customer.phone!,
+                      style: contrastTextColor != null
+                          ? subtitleStyle
+                          : AppTypography.bodySmall.copyWith(
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.onSurfaceVariant,
+                            ),
+                    ),
+                ],
               ),
             ),
 
-          Icon(
-            Icons.chevron_right,
-            color: Theme.of(context).colorScheme.outline,
-          ),
-        ],
+            // Edit Action
+            IconButton(
+              icon: Icon(Icons.edit, size: 20, color: iconColor),
+              onPressed: () =>
+                  context.push('/customer/${customer.customerId}/edit'),
+              tooltip: S.of(context).editCustomer,
+            ),
+
+            // Status indicator
+            if (!isActive)
+              Padding(
+                padding: const EdgeInsets.only(left: 8),
+                child: StatusBadge(
+                  status: AppStatus.customerInactive,
+                  isCompact: true,
+                ),
+              ),
+
+            Icon(Icons.chevron_right, color: iconColor),
+          ],
+        ),
       ),
     );
   }
@@ -388,18 +453,26 @@ class _CustomerListItem extends ConsumerWidget {
 
 class _FrequencyBadge extends StatelessWidget {
   final bool isQuincenal;
+  final Color? textColor;
 
-  const _FrequencyBadge({required this.isQuincenal});
+  const _FrequencyBadge({required this.isQuincenal, this.textColor});
 
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+        color: textColor != null
+            ? textColor!.withValues(alpha: 0.15)
+            : Theme.of(context).colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(4),
       ),
-      child: Text(isQuincenal ? '15d' : '30d', style: AppTypography.labelSmall),
+      child: Text(
+        isQuincenal ? '15d' : '30d',
+        style: textColor != null
+            ? AppTypography.labelSmall.copyWith(color: textColor)
+            : AppTypography.labelSmall,
+      ),
     );
   }
 }

@@ -72,6 +72,8 @@ dependencies:
   sealed_currencies: ^2.5.0
   mask_text_input_formatter: ^2.9.0
   country_picker: ^2.0.27
+  crypto: ^3.0.7
+  flex_color_picker: ^3.8.0
 
 dev_dependencies:
   flutter_test:

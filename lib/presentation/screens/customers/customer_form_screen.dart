@@ -9,6 +9,7 @@ import '../../../core/localization/locale_provider.dart';
 import '../../../core/widgets/widgets.dart';
 import '../../../data/models/customer.dart';
 import '../../../data/providers/providers.dart';
+import '../../../data/providers/customer_category_provider.dart';
 
 /// Customer form screen for create/edit with Riverpod integration
 class CustomerFormScreen extends ConsumerStatefulWidget {
@@ -37,6 +38,7 @@ class _CustomerFormScreenState extends ConsumerState<CustomerFormScreen> {
   bool _isRestricted = false;
   bool _isLoading = false;
   Customer? _existingCustomer;
+  String? _selectedCategoryId;
 
   bool get isEditing => widget.customerId != null && widget.customerId != 'new';
 
@@ -69,6 +71,7 @@ class _CustomerFormScreenState extends ConsumerState<CustomerFormScreen> {
         if (_preferredPayDay != null) {
           _payDayController.text = _preferredPayDay.toString();
         }
+        _selectedCategoryId = customer.categoryId;
         setState(() {});
       }
     } catch (e) {
@@ -119,6 +122,10 @@ class _CustomerFormScreenState extends ConsumerState<CustomerFormScreen> {
               child: ListView(
                 padding: const EdgeInsets.all(16),
                 children: [
+                  // Category dropdown (first field per requirement)
+                  _buildCategoryDropdown(),
+                  const SizedBox(height: 16),
+
                   // Name field
                   AppTextField(
                     label: 'Nombre completo *',
@@ -370,6 +377,48 @@ class _CustomerFormScreenState extends ConsumerState<CustomerFormScreen> {
     );
   }
 
+  Widget _buildCategoryDropdown() {
+    final categoriesAsync = ref.watch(customerCategoriesProvider);
+
+    return categoriesAsync.when(
+      loading: () => const SizedBox.shrink(),
+      error: (_, __) => const SizedBox.shrink(),
+      data: (categories) {
+        if (categories.isEmpty) return const SizedBox.shrink();
+
+        return DropdownButtonFormField<String?>(
+          value: _selectedCategoryId,
+          decoration: InputDecoration(
+            labelText:
+                '${S.of(context).customerCategory} (${S.of(context).optional})',
+            prefixIcon: const Icon(Icons.category),
+            border: const OutlineInputBorder(),
+          ),
+          items: [
+            DropdownMenuItem<String?>(
+              value: null,
+              child: Text(
+                S.of(context).selectCategory,
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ),
+            ...categories.map(
+              (cat) => DropdownMenuItem<String?>(
+                value: cat.categoryId,
+                child: Text(cat.name),
+              ),
+            ),
+          ],
+          onChanged: (value) {
+            setState(() => _selectedCategoryId = value);
+          },
+        );
+      },
+    );
+  }
+
   void _showManualValidationError(String message) {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
@@ -486,6 +535,7 @@ class _CustomerFormScreenState extends ConsumerState<CustomerFormScreen> {
                   _restrictionReasonController.text.trim().isEmpty
                   ? null
                   : _restrictionReasonController.text.trim(),
+              categoryId: _selectedCategoryId,
               updatedAt: now,
             )
           : Customer(
@@ -508,6 +558,7 @@ class _CustomerFormScreenState extends ConsumerState<CustomerFormScreen> {
                   _restrictionReasonController.text.trim().isEmpty
                   ? null
                   : _restrictionReasonController.text.trim(),
+              categoryId: _selectedCategoryId,
               createdAt: now,
               updatedAt: now,
             );

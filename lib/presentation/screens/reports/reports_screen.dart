@@ -11,6 +11,7 @@ import '../../../core/providers/currency_provider.dart';
 import 'package:sealed_currencies/sealed_currencies.dart';
 import '../../../data/models/app_settings.dart';
 import '../../../services/currency_service.dart';
+import 'fx_differential_report_screen.dart';
 
 class ReportsScreen extends ConsumerStatefulWidget {
   final int initialTab;
@@ -145,25 +146,16 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
           tooltip: 'Menú de reportes',
           onPressed: () => _arcSideBarKey.currentState?.toggle(),
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.share),
-            tooltip: 'Compartir Reporte (PDF)',
-            onPressed: _shareReport,
-          ),
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: () {
-              _loadRealizedEarnings();
-              _loadProjectedEarnings();
-            },
-          ),
-        ],
+        // Buttons moved to individual report tabs
       ),
       body: Stack(
         children: [
           // Main content
-          _selectedTab == 0 ? _buildRealizedTab() : _buildProjectedTab(),
+          _selectedTab == 0
+              ? _buildRealizedTab()
+              : _selectedTab == 1
+              ? _buildProjectedTab()
+              : const FxDifferentialReportScreen(),
           // Arc Sidebar custom widget
           ArcSideBar(
             key: _arcSideBarKey,
@@ -195,6 +187,15 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                 onTap: () {
                   if (_selectedTab != 1) {
                     setState(() => _selectedTab = 1);
+                  }
+                },
+              ),
+              ArcSideBarItem(
+                icon: Icons.currency_exchange,
+                title: 'Diferencial Cambiario',
+                onTap: () {
+                  if (_selectedTab != 2) {
+                    setState(() => _selectedTab = 2);
                   }
                 },
               ),
@@ -230,6 +231,30 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
       padding: const EdgeInsets.all(16),
       child: Column(
         children: [
+          // Report Header with title and actions
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  S.of(context).realizedEarnings,
+                  style: AppTypography.headlineSmall.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              IconButton(
+                icon: const Icon(Icons.share),
+                tooltip: 'Compartir PDF',
+                onPressed: _shareReport,
+              ),
+              IconButton(
+                icon: const Icon(Icons.refresh),
+                tooltip: 'Refrescar',
+                onPressed: _loadRealizedEarnings,
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
           // Filter Card
           AppCard(
             child: Column(
@@ -332,10 +357,10 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
 
   Widget _buildPaymentDetailCard(Map<String, dynamic> payment) {
     final settings = ref.read(appSettingsProvider).value;
-    final date = DateTime.parse(payment['payment_date'] as String);
+    final date = DateTime.parse(payment['created_at'] as String);
 
     // Get raw amounts (NO conversion - show in loan's original currency)
-    final amount = (payment['amount'] as num).toDouble();
+    final amount = (payment['amount'] as num?)?.toDouble() ?? 0.0;
     final interestPaid = (payment['interest_paid'] as num?)?.toDouble() ?? 0;
 
     // Use the LOAN'S currency, not the report currency
@@ -427,6 +452,30 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          // Report Header with title and actions
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  S.of(context).projectedEarnings,
+                  style: AppTypography.headlineSmall.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              IconButton(
+                icon: const Icon(Icons.share),
+                tooltip: 'Compartir PDF',
+                onPressed: _shareReport,
+              ),
+              IconButton(
+                icon: const Icon(Icons.refresh),
+                tooltip: 'Refrescar',
+                onPressed: _loadProjectedEarnings,
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
           AppCard(
             backgroundColor: AppColors.info.withValues(alpha: 0.1),
             child: Column(

@@ -348,6 +348,23 @@ class DatabaseHelper {
         debugPrint('Error checking/adding ${col['name']} to loans: $e');
       }
     }
+    // V25 Schema Repair: Ensure payments table has _minor columns
+    try {
+      final paymentsInfo = await db.rawQuery(
+        "SELECT COUNT(*) as cnt FROM pragma_table_info('payments') WHERE name='amount_payment_minor'",
+      );
+      final hasMinorColumn = (paymentsInfo.first['cnt'] as int) > 0;
+
+      if (!hasMinorColumn) {
+        debugPrint(
+          'CRITICAL: V25 Schema missing in payments table. Triggering Repair.',
+        );
+        // We will attempt to run the migration logic manually
+        await _performV25Migration(db);
+      }
+    } catch (e) {
+      debugPrint('Error repairing V25 schema: $e');
+    }
   }
 
   /// Configure database (enable foreign keys, WAL mode, busy timeout)
@@ -434,6 +451,18 @@ class DatabaseHelper {
       )
     ''');
 
+    // Customer Categories table
+    await db.execute('''
+      CREATE TABLE customer_categories (
+        category_id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        color_hex TEXT,
+        sort_order INTEGER NOT NULL DEFAULT 0,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL
+      )
+    ''');
+
     // Customer table
     await db.execute('''
       CREATE TABLE customers (
@@ -450,8 +479,10 @@ class DatabaseHelper {
         coords TEXT,
         is_restricted INTEGER DEFAULT 0,
         restriction_reason TEXT,
+        category_id TEXT,
         created_at TEXT NOT NULL,
-        updated_at TEXT NOT NULL
+        updated_at TEXT NOT NULL,
+        FOREIGN KEY (category_id) REFERENCES customer_categories(category_id) ON DELETE SET NULL
       )
     ''');
 
@@ -503,43 +534,121 @@ class DatabaseHelper {
       )
     ''');
 
-    // Payment table
+    // Payments table (V25 Schema)
     await db.execute('''
       CREATE TABLE payments (
         payment_id TEXT PRIMARY KEY,
         loan_id TEXT NOT NULL,
         customer_id TEXT NOT NULL,
-        payment_date TEXT NOT NULL,
-        amount REAL NOT NULL,
-        payment_currency TEXT,
-        exchange_rate_applied REAL,
-        exchange_profit REAL,
-        declared_type TEXT NOT NULL DEFAULT 'MIXED',
-        receipt_number INTEGER NOT NULL,
-        status TEXT NOT NULL DEFAULT 'VALID',
-        void_reason TEXT,
+        
+        amount_payment_minor INTEGER DEFAULT 0,
+        amount_base_minor INTEGER DEFAULT 0,
+        amount_loan_minor INTEGER DEFAULT 0,
+        
+        payment_currency TEXT DEFAULT 'NIO',
+        loan_currency TEXT DEFAULT 'NIO',
+        base_currency TEXT DEFAULT 'NIO',
+        
+        rate_id TEXT,
+        rate_type_used TEXT,
+        rate_value_used REAL,
+        rate_date_used TEXT,
+        reference_rate_value REAL,
+        
+        fx_profit_base_minor INTEGER DEFAULT 0,
+        fx_status TEXT DEFAULT 'NONE',
+        
+        status TEXT DEFAULT 'VALID',
+        void_reason_key TEXT,
         voided_at TEXT,
+        
+        idempotency_key TEXT DEFAULT '',
+        payload_hash TEXT DEFAULT '',
+        
+        declared_type TEXT DEFAULT 'MIXED',
+        receipt_number INTEGER NOT NULL,
         notes TEXT,
+        
+        legacy_migrated_at TEXT,
+        legacy_ambiguous INTEGER DEFAULT 0,
+        unapplied_minor INTEGER DEFAULT 0,
+        
         created_at TEXT NOT NULL,
         updated_at TEXT NOT NULL,
+        
         FOREIGN KEY (loan_id) REFERENCES loans(loan_id) ON DELETE RESTRICT,
         FOREIGN KEY (customer_id) REFERENCES customers(customer_id) ON DELETE RESTRICT
       )
     ''');
 
-    // PaymentAllocation table
+    // PaymentAllocation table (V25 Schema)
     await db.execute('''
       CREATE TABLE payment_allocations (
         allocation_id TEXT PRIMARY KEY,
         payment_id TEXT NOT NULL,
-        loan_id TEXT NOT NULL,
-        allocation_type TEXT NOT NULL,
-        amount REAL NOT NULL,
+        amount_loan_minor INTEGER DEFAULT 0,
+        allocation_type TEXT DEFAULT 'INTEREST',
         billing_cycle_id TEXT,
         created_at TEXT NOT NULL,
+        
         FOREIGN KEY (payment_id) REFERENCES payments(payment_id) ON DELETE CASCADE,
-        FOREIGN KEY (loan_id) REFERENCES loans(loan_id) ON DELETE RESTRICT,
         FOREIGN KEY (billing_cycle_id) REFERENCES billing_cycles(billing_cycle_id) ON DELETE RESTRICT
+      )
+    ''');
+
+    // NEW V25 Tables
+
+    // Currencies
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS currencies (
+        currency_code TEXT PRIMARY KEY,
+        fraction_digits INTEGER NOT NULL DEFAULT 2,
+        symbol TEXT,
+        name_key TEXT DEFAULT '',
+        is_active INTEGER DEFAULT 1,
+        created_at TEXT,
+        updated_at TEXT
+      )
+    ''');
+    // Insert default currencies
+    final now = DateTime.now().toIso8601String();
+    await db.execute(
+      "INSERT OR IGNORE INTO currencies VALUES ('NIO', 2, 'C\$', 'currency_nio', 1, '$now', '$now')",
+    );
+    await db.execute(
+      "INSERT OR IGNORE INTO currencies VALUES ('USD', 2, '\$', 'currency_usd', 1, '$now', '$now')",
+    );
+
+    // Client Credit Ledger
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS client_credits_ledger (
+        entry_id TEXT PRIMARY KEY,
+        customer_id TEXT NOT NULL,
+        reference_payment_id TEXT,
+        transaction_type TEXT,
+        amount_minor INTEGER,
+        created_at TEXT
+      )
+    ''');
+
+    // Payment FX Legs
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS payment_fx_legs (
+        leg_id TEXT PRIMARY KEY,
+        payment_id TEXT NOT NULL,
+        step_order INTEGER DEFAULT 1,
+        base_currency TEXT DEFAULT 'NIO',
+        from_currency TEXT DEFAULT 'NIO',
+        to_currency TEXT DEFAULT 'NIO',
+        rate_type_used TEXT DEFAULT 'MANUAL',
+        rate_value_used REAL DEFAULT 1.0,
+        reference_rate_type TEXT,
+        reference_rate_value REAL,
+        amount_from_minor INTEGER DEFAULT 0,
+        amount_to_customer_minor INTEGER DEFAULT 0,
+        amount_to_reference_minor INTEGER,
+        fx_profit_base_minor INTEGER,
+        created_at TEXT
       )
     ''');
 
@@ -620,12 +729,12 @@ class DatabaseHelper {
       'CREATE INDEX idx_billing_cycle_due_status ON billing_cycles(due_date, status)',
     );
 
-    // Payment indexes
+    // Payment indexes (V25: payment_date -> created_at)
     await db.execute(
-      'CREATE INDEX idx_payment_loan_date ON payments(loan_id, payment_date)',
+      'CREATE INDEX idx_payment_loan_date ON payments(loan_id, created_at)',
     );
     await db.execute(
-      'CREATE INDEX idx_payment_customer_date ON payments(customer_id, payment_date)',
+      'CREATE INDEX idx_payment_customer_date ON payments(customer_id, created_at)',
     );
     await db.execute(
       'CREATE UNIQUE INDEX uq_payment_receipt ON payments(receipt_number)',
@@ -638,9 +747,7 @@ class DatabaseHelper {
     await db.execute(
       'CREATE INDEX idx_allocation_cycle ON payment_allocations(billing_cycle_id)',
     );
-    await db.execute(
-      'CREATE INDEX idx_allocation_loan ON payment_allocations(loan_id)',
-    );
+    // idx_allocation_loan removed as loan_id is no longer in allocations table
 
     // LoanEvent indexes
     await db.execute(
@@ -985,8 +1092,292 @@ class DatabaseHelper {
         );
       } catch (_) {}
     }
+
+    // Migration v25: Multi-Currency Refactor (Strict Mode)
+    if (oldVersion < 25) {
+      await _performV25UpgradeTables(db);
+    }
+
+    // Migration v26: Customer Categories
+    if (oldVersion < 26) {
+      // Create customer_categories table
+      try {
+        await db.execute('''
+          CREATE TABLE IF NOT EXISTS customer_categories (
+            category_id TEXT PRIMARY KEY,
+            name TEXT NOT NULL,
+            color_hex TEXT,
+            sort_order INTEGER NOT NULL DEFAULT 0,
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL
+          )
+        ''');
+      } catch (_) {}
+
+      // Add category_id column to customers
+      try {
+        await db.execute('ALTER TABLE customers ADD COLUMN category_id TEXT');
+      } catch (_) {}
+    }
+
     // Run data fix on upgrade
     await fixInterestCalculations();
+  }
+
+  /// Perform V25 Migration for Multi-Currency Refactor
+  /// Follows the transaction pattern from the example database_helper.dart
+  Future<void> _performV25UpgradeTables(Database db) async {
+    debugPrint('Starting V25 Migration...');
+    final now = DateTime.now().toIso8601String();
+
+    // 1. Create currencies table (safe - IF NOT EXISTS)
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS currencies (
+        currency_code TEXT PRIMARY KEY,
+        fraction_digits INTEGER NOT NULL DEFAULT 2,
+        symbol TEXT,
+        name_key TEXT DEFAULT '',
+        is_active INTEGER DEFAULT 1,
+        created_at TEXT,
+        updated_at TEXT
+      )
+    ''');
+
+    // Insert default currencies
+    await db.execute(
+      "INSERT OR IGNORE INTO currencies VALUES ('NIO', 2, 'C\$', 'currency_nio', 1, '$now', '$now')",
+    );
+    await db.execute(
+      "INSERT OR IGNORE INTO currencies VALUES ('USD', 2, '\$', 'currency_usd', 1, '$now', '$now')",
+    );
+    await db.execute(
+      "INSERT OR IGNORE INTO currencies VALUES ('EUR', 2, '€', 'currency_eur', 1, '$now', '$now')",
+    );
+    debugPrint('V25: Currencies table ready');
+
+    // 2. Create client_credits_ledger (safe - IF NOT EXISTS)
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS client_credits_ledger (
+        entry_id TEXT PRIMARY KEY,
+        customer_id TEXT NOT NULL,
+        reference_payment_id TEXT,
+        transaction_type TEXT,
+        amount_minor INTEGER,
+        created_at TEXT
+      )
+    ''');
+    debugPrint('V25: Credits ledger table ready');
+
+    // 3. Create payment_fx_legs (safe - IF NOT EXISTS)
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS payment_fx_legs (
+        leg_id TEXT PRIMARY KEY,
+        payment_id TEXT NOT NULL,
+        step_order INTEGER DEFAULT 1,
+        base_currency TEXT DEFAULT 'NIO',
+        from_currency TEXT DEFAULT 'NIO',
+        to_currency TEXT DEFAULT 'NIO',
+        rate_type_used TEXT DEFAULT 'MANUAL',
+        rate_value_used REAL DEFAULT 1.0,
+        reference_rate_type TEXT,
+        reference_rate_value REAL,
+        amount_from_minor INTEGER DEFAULT 0,
+        amount_to_customer_minor INTEGER DEFAULT 0,
+        amount_to_reference_minor INTEGER,
+        fx_profit_base_minor INTEGER,
+        created_at TEXT
+      )
+    ''');
+    debugPrint('V25: FX Legs table ready');
+
+    // 4. Perform V25 Payments Migration (Extracted Method)
+    await _performV25Migration(db);
+  }
+
+  /// Helper method to perform V25 migration (backfill payments/allocations)
+  /// Can be called from upgrades or schema repair
+  Future<void> _performV25Migration(Database db) async {
+    debugPrint('Checking V25 Migration status...');
+
+    // Check if payments table needs migration
+    final paymentsColumns = await db.rawQuery('PRAGMA table_info(payments)');
+    final hasAmountColumn = paymentsColumns.any((c) => c['name'] == 'amount');
+    final hasMinorColumn = paymentsColumns.any(
+      (c) => c['name'] == 'amount_payment_minor',
+    );
+
+    if (!hasAmountColumn && hasMinorColumn) {
+      debugPrint('V25: Payments already migrated, skipping');
+      return;
+    }
+
+    if (!hasAmountColumn) {
+      debugPrint(
+        'V25: No amount column found, skipping migration (Wait for correct state)',
+      );
+      // If table is empty or just created, we might not need to do anything,
+      // but if it's missing amount and missing minor, it's a broken state.
+      // However, if it's a fresh install, _onCreate handles it.
+      // If it's a legacy DB without 'amount', something is weird.
+      if (!hasMinorColumn) {
+        // Force Create if neither exists? No, that's dangerous.
+        // But for now, let's assume if 'amount' is missing, it's either new or very old.
+        return;
+      }
+      return;
+    }
+
+    // Check if void_reason column exists
+    final hasVoidReason = paymentsColumns.any(
+      (c) => c['name'] == 'void_reason',
+    );
+
+    // CRITICAL FIX: Ensure loans table has currency_code for backfill usage
+    try {
+      await db.execute(
+        "ALTER TABLE loans ADD COLUMN currency_code TEXT DEFAULT 'NIO'",
+      );
+      debugPrint('V25: Added missing currency_code to loans table');
+    } catch (e) {
+      // Column likely already exists, ignore
+      debugPrint('V25: currency_code column check/add: $e');
+    }
+
+    // 5. Migrate payments table using transaction
+    debugPrint('V25: Migrating payments table...');
+
+    final now = DateTime.now().toIso8601String();
+
+    await db.transaction((txn) async {
+      // Rename old tables
+      await txn.execute('ALTER TABLE payments RENAME TO payments_old');
+      await txn.execute(
+        'ALTER TABLE payment_allocations RENAME TO payment_allocations_old',
+      );
+
+      // Create NEW Payments Table
+      await txn.execute('''
+        CREATE TABLE payments (
+          payment_id TEXT PRIMARY KEY,
+          loan_id TEXT NOT NULL,
+          customer_id TEXT NOT NULL,
+          amount_payment_minor INTEGER DEFAULT 0,
+          amount_base_minor INTEGER DEFAULT 0,
+          amount_loan_minor INTEGER DEFAULT 0,
+          payment_currency TEXT DEFAULT 'NIO',
+          loan_currency TEXT DEFAULT 'NIO',
+          base_currency TEXT DEFAULT 'NIO',
+          rate_id TEXT,
+          rate_type_used TEXT,
+          rate_value_used REAL,
+          rate_date_used TEXT,
+          reference_rate_value REAL,
+          fx_profit_base_minor INTEGER DEFAULT 0,
+          fx_status TEXT DEFAULT 'NONE',
+          status TEXT DEFAULT 'VALID',
+          void_reason_key TEXT,
+          voided_at TEXT,
+          idempotency_key TEXT DEFAULT '',
+          payload_hash TEXT DEFAULT '',
+          declared_type TEXT DEFAULT 'MIXED',
+          receipt_number INTEGER NOT NULL,
+          notes TEXT,
+          legacy_migrated_at TEXT,
+          legacy_ambiguous INTEGER DEFAULT 0,
+          unapplied_minor INTEGER DEFAULT 0,
+          created_at TEXT NOT NULL,
+          updated_at TEXT NOT NULL,
+          FOREIGN KEY (loan_id) REFERENCES loans(loan_id) ON DELETE RESTRICT,
+          FOREIGN KEY (customer_id) REFERENCES customers(customer_id) ON DELETE RESTRICT
+        )
+      ''');
+
+      // Create NEW Allocations Table
+      await txn.execute('''
+        CREATE TABLE payment_allocations (
+          allocation_id TEXT PRIMARY KEY,
+          payment_id TEXT NOT NULL,
+          amount_loan_minor INTEGER DEFAULT 0,
+          allocation_type TEXT DEFAULT 'INTEREST',
+          billing_cycle_id TEXT,
+          created_at TEXT NOT NULL,
+          FOREIGN KEY (payment_id) REFERENCES payments(payment_id) ON DELETE CASCADE,
+          FOREIGN KEY (billing_cycle_id) REFERENCES billing_cycles(billing_cycle_id) ON DELETE RESTRICT
+        )
+      ''');
+
+      // DATA BACKFILL - Payments
+      debugPrint('V25: Backfilling Payments...');
+      if (hasVoidReason) {
+        await txn.execute('''
+          INSERT INTO payments (
+            payment_id, loan_id, customer_id,
+            amount_payment_minor, amount_base_minor, amount_loan_minor,
+            payment_currency, loan_currency, base_currency,
+            status, void_reason_key, voided_at,
+            created_at, updated_at,
+            idempotency_key, payload_hash, legacy_migrated_at, legacy_ambiguous,
+            receipt_number
+          )
+          SELECT
+            p.payment_id, p.loan_id, l.customer_id,
+            CAST(ROUND(COALESCE(p.amount, 0) * 100) AS INTEGER),
+            CAST(ROUND(COALESCE(p.amount, 0) * 100) AS INTEGER),
+            CAST(ROUND(COALESCE(p.amount, 0) * 100) AS INTEGER),
+            COALESCE(l.currency_code, 'NIO'), COALESCE(l.currency_code, 'NIO'), 'NIO',
+            COALESCE(p.status, 'VALID'),
+            p.void_reason,
+            p.voided_at,
+            p.created_at, p.created_at,
+            'LEGACY_' || p.payment_id, 'LEGACY|' || p.payment_id, '$now', 1,
+            0
+          FROM payments_old p
+          LEFT JOIN loans l ON p.loan_id = l.loan_id
+        ''');
+      } else {
+        await txn.execute('''
+          INSERT INTO payments (
+            payment_id, loan_id, customer_id,
+            amount_payment_minor, amount_base_minor, amount_loan_minor,
+            payment_currency, loan_currency, base_currency,
+            status,
+            created_at, updated_at,
+            idempotency_key, payload_hash, legacy_migrated_at, legacy_ambiguous,
+            receipt_number
+          )
+          SELECT
+            p.payment_id, p.loan_id, l.customer_id,
+            CAST(ROUND(COALESCE(p.amount, 0) * 100) AS INTEGER),
+            CAST(ROUND(COALESCE(p.amount, 0) * 100) AS INTEGER),
+            CAST(ROUND(COALESCE(p.amount, 0) * 100) AS INTEGER),
+            COALESCE(l.currency_code, 'NIO'), COALESCE(l.currency_code, 'NIO'), 'NIO',
+            COALESCE(p.status, 'VALID'),
+            p.created_at, p.created_at,
+            'LEGACY_' || p.payment_id, 'LEGACY|' || p.payment_id, '$now', 1,
+            0
+          FROM payments_old p
+          LEFT JOIN loans l ON p.loan_id = l.loan_id
+        ''');
+      }
+
+      // DATA BACKFILL - Allocations
+      debugPrint('V25: Backfilling Allocations...');
+      await txn.execute('''
+        INSERT INTO payment_allocations (allocation_id, payment_id, billing_cycle_id, allocation_type, amount_loan_minor, created_at)
+        SELECT
+          pa.allocation_id, pa.payment_id, pa.billing_cycle_id,
+          UPPER(COALESCE(pa.allocation_type, 'INTEREST')),
+          CAST(ROUND(COALESCE(pa.amount, 0) * 100) AS INTEGER),
+          pa.created_at
+        FROM payment_allocations_old pa
+      ''');
+
+      // Drop old tables
+      await txn.execute('DROP TABLE payments_old');
+      await txn.execute('DROP TABLE payment_allocations_old');
+    });
+
+    debugPrint('V25 Migration Complete!');
   }
 
   /// Fix billing cycles with incorrectly calculated interest (100x too high)

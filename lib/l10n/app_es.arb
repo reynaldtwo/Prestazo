@@ -813,5 +813,99 @@
   "languageSystem": "Predeterminado del sistema",
   "selectReportType": "Selecciona un tipo de reporte",
   "viewRealizedEarnings": "Ver ganancias cobradas en el período",
-  "viewProjectedEarnings": "Ver ingresos esperados por intereses"
+  "viewProjectedEarnings": "Ver ingresos esperados por intereses",
+  "fxDifferentialReport": "Ganancias por Diferencial Cambiario",
+  "fxDifferentialReportTitle": "Reporte de Diferencial Cambiario",
+  "periodLabel": "Período",
+  "periodFromTo": "Período: {startDate} al {endDate}",
+  "@periodFromTo": {
+    "placeholders": {
+      "startDate": {"type": "String"},
+      "endDate": {"type": "String"}
+    }
+  },
+  "periodSummary": "Resumen del período",
+  "totalFxPayments": "Total pagos en moneda extranjera",
+  "totalFxDifferential": "Total diferencial cambiario ganado",
+  "foreignCurrencyUsed": "Moneda extranjera utilizada",
+  "operationsDetail": "Detalle de operaciones",
+  "indicator": "Indicador",
+  "value": "Valor",
+  "totalEquivalentConverted": "Total equivalente convertido",
+  "totalAppliedToDebt": "Total aplicado a deuda",
+  "differentialProfit": "Ganancia por diferencial",
+  "date": "Fecha",
+  "client": "Cliente",
+  "loanLabel": "Préstamo",
+  "receiptNo": "No. Recibo",
+  "paymentCurrency": "Moneda Pago",
+  "paymentAmountLabel": "Monto Pago",
+  "appliedRate": "Tasa Aplicada",
+  "equivalentCalculated": "Equivalente Calculado",
+  "amountAppliedToDebt": "Monto Aplicado a Deuda",
+  "fxDifferential": "Diferencial Cambiario",
+  "sharePdf": "Compartir PDF",
+  "refresh": "Refrescar",
+  "noFxOperations": "Sin operaciones cambiarias",
+  "noFxPaymentsInPeriod": "No hay pagos en moneda diferente\nen el período seleccionado",
+  "fxPayments": "Pagos FX",
+  "applied": "Aplicado",
+  "differentialProfit2": "Ganancia por Diferencial",
+  "pdfGenerationError": "Error al generar PDF: {error}",
+  "@pdfGenerationError": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  },
+  "shareReportText": "Reporte Diferencial Cambiario",
+  "catalog": "Catálogo",
+  "catalogDescription": "Gestionar listas y categorías",
+  "categorizeCustomerAs": "Categorías de Cliente",
+  "categorizeCustomerAsDesc": "Define categorías para clasificar a tus clientes",
+  "customerCategories": "Categorías de Cliente",
+  "addCategory": "Agregar Categoría",
+  "editCategory": "Editar Categoría",
+  "deleteCategory": "Eliminar Categoría",
+  "categoryName": "Nombre de Categoría",
+  "categoryColor": "Color",
+  "categoryRequired": "El nombre de categoría es requerido",
+  "categoryCreated": "Categoría creada",
+  "categoryUpdated": "Categoría actualizada",
+  "categoryDeleted": "Categoría eliminada",
+  "categoryInUse": "Categoría en uso",
+  "categoryInUseByOne": "Esta categoría está asignada a {customerName}. Quítala del cliente antes de eliminarla.",
+  "@categoryInUseByOne": {
+    "placeholders": {
+      "customerName": {"type": "String"}
+    }
+  },
+  "categoryInUseByMany": "Esta categoría está asignada a {count} clientes. Quítala de todos los clientes antes de eliminarla.",
+  "@categoryInUseByMany": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "noCategories": "Sin categorías",
+  "noCategoriesHint": "Agrega categorías para clasificar a tus clientes",
+  "customerCategory": "Categoría",
+  "selectCategory": "Selecciona una categoría",
+  "optional": "Opcional",
+  "rateThisCustomer": "Calificar a este cliente",
+  "rateCustomerPrompt": "¿Desea calificar a este cliente como?",
+  "notNow": "Ahora no",
+  "rateCustomer": "Calificar",
+  "mustSelectCategory": "Debe seleccionar una categoría",
+  "customerRated": "Cliente calificado exitosamente",
+  "good": "Bueno",
+  "veryGood": "Muy bueno",
+  "regular": "Regular",
+  "doNotLend": "No prestar",
+  "bad": "Malo",
+  "paymentSuccess": "Pago registrado exitosamente",
+  "monetaryManagement": "Gestión Monetaria",
+  "catalogInfoTitle": "¿Qué es el Catálogo?",
+  "catalogInfoDescription": "El catálogo permite crear categorías personalizadas para clasificar a tus clientes (ej. Bueno, Regular, No Prestar).\n\nCon las categorías asignadas a los clientes, podrás:\n• Identificar rápidamente el tipo de cada cliente\n• Generar reportes filtrados por categoría\n• Tomar mejores decisiones de crédito basadas en el historial",
+  "colorSelector": "Color",
+  "selectColor": "Seleccionar color",
+  "customColor": "Color personalizado"
 }

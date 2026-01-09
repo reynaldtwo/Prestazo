@@ -982,7 +982,7 @@ class SEs extends S {
   String get capitalLabel => 'Capital:';
 
   @override
-  String get loanLabel => 'Préstamo #:';
+  String get loanLabel => 'Préstamo';
 
   @override
   String get clientLabel => 'Cliente:';
@@ -1136,7 +1136,7 @@ class SEs extends S {
   String get createCustomer => 'Crear Cliente';
 
   @override
-  String get paymentAmountLabel => 'Monto del Pago *';
+  String get paymentAmountLabel => 'Monto Pago';
 
   @override
   String get invalidAmountMsg => 'Ingrese un monto válido';
@@ -2083,4 +2083,226 @@ class SEs extends S {
 
   @override
   String get viewProjectedEarnings => 'Ver ingresos esperados por intereses';
+
+  @override
+  String get fxDifferentialReport => 'Ganancias por Diferencial Cambiario';
+
+  @override
+  String get fxDifferentialReportTitle => 'Reporte de Diferencial Cambiario';
+
+  @override
+  String get periodLabel => 'Período';
+
+  @override
+  String periodFromTo(String startDate, String endDate) {
+    return 'Período: $startDate al $endDate';
+  }
+
+  @override
+  String get periodSummary => 'Resumen del período';
+
+  @override
+  String get totalFxPayments => 'Total pagos en moneda extranjera';
+
+  @override
+  String get totalFxDifferential => 'Total diferencial cambiario ganado';
+
+  @override
+  String get foreignCurrencyUsed => 'Moneda extranjera utilizada';
+
+  @override
+  String get operationsDetail => 'Detalle de operaciones';
+
+  @override
+  String get indicator => 'Indicador';
+
+  @override
+  String get value => 'Valor';
+
+  @override
+  String get totalEquivalentConverted => 'Total equivalente convertido';
+
+  @override
+  String get totalAppliedToDebt => 'Total aplicado a deuda';
+
+  @override
+  String get differentialProfit => 'Ganancia por diferencial';
+
+  @override
+  String get date => 'Fecha';
+
+  @override
+  String get client => 'Cliente';
+
+  @override
+  String get receiptNo => 'No. Recibo';
+
+  @override
+  String get paymentCurrency => 'Moneda Pago';
+
+  @override
+  String get appliedRate => 'Tasa Aplicada';
+
+  @override
+  String get equivalentCalculated => 'Equivalente Calculado';
+
+  @override
+  String get amountAppliedToDebt => 'Monto Aplicado a Deuda';
+
+  @override
+  String get fxDifferential => 'Diferencial Cambiario';
+
+  @override
+  String get sharePdf => 'Compartir PDF';
+
+  @override
+  String get refresh => 'Refrescar';
+
+  @override
+  String get noFxOperations => 'Sin operaciones cambiarias';
+
+  @override
+  String get noFxPaymentsInPeriod =>
+      'No hay pagos en moneda diferente\nen el período seleccionado';
+
+  @override
+  String get fxPayments => 'Pagos FX';
+
+  @override
+  String get applied => 'Aplicado';
+
+  @override
+  String get differentialProfit2 => 'Ganancia por Diferencial';
+
+  @override
+  String pdfGenerationError(String error) {
+    return 'Error al generar PDF: $error';
+  }
+
+  @override
+  String get shareReportText => 'Reporte Diferencial Cambiario';
+
+  @override
+  String get catalog => 'Catálogo';
+
+  @override
+  String get catalogDescription => 'Gestionar listas y categorías';
+
+  @override
+  String get categorizeCustomerAs => 'Categorías de Cliente';
+
+  @override
+  String get categorizeCustomerAsDesc =>
+      'Define categorías para clasificar a tus clientes';
+
+  @override
+  String get customerCategories => 'Categorías de Cliente';
+
+  @override
+  String get addCategory => 'Agregar Categoría';
+
+  @override
+  String get editCategory => 'Editar Categoría';
+
+  @override
+  String get deleteCategory => 'Eliminar Categoría';
+
+  @override
+  String get categoryName => 'Nombre de Categoría';
+
+  @override
+  String get categoryColor => 'Color';
+
+  @override
+  String get categoryRequired => 'El nombre de categoría es requerido';
+
+  @override
+  String get categoryCreated => 'Categoría creada';
+
+  @override
+  String get categoryUpdated => 'Categoría actualizada';
+
+  @override
+  String get categoryDeleted => 'Categoría eliminada';
+
+  @override
+  String get categoryInUse => 'Categoría en uso';
+
+  @override
+  String categoryInUseByOne(String customerName) {
+    return 'Esta categoría está asignada a $customerName. Quítala del cliente antes de eliminarla.';
+  }
+
+  @override
+  String categoryInUseByMany(int count) {
+    return 'Esta categoría está asignada a $count clientes. Quítala de todos los clientes antes de eliminarla.';
+  }
+
+  @override
+  String get noCategories => 'Sin categorías';
+
+  @override
+  String get noCategoriesHint =>
+      'Agrega categorías para clasificar a tus clientes';
+
+  @override
+  String get customerCategory => 'Categoría';
+
+  @override
+  String get selectCategory => 'Selecciona una categoría';
+
+  @override
+  String get optional => 'Opcional';
+
+  @override
+  String get rateThisCustomer => 'Calificar a este cliente';
+
+  @override
+  String get rateCustomerPrompt => '¿Desea calificar a este cliente como?';
+
+  @override
+  String get notNow => 'Ahora no';
+
+  @override
+  String get rateCustomer => 'Calificar';
+
+  @override
+  String get mustSelectCategory => 'Debe seleccionar una categoría';
+
+  @override
+  String get customerRated => 'Cliente calificado exitosamente';
+
+  @override
+  String get good => 'Bueno';
+
+  @override
+  String get veryGood => 'Muy bueno';
+
+  @override
+  String get regular => 'Regular';
+
+  @override
+  String get doNotLend => 'No prestar';
+
+  @override
+  String get bad => 'Malo';
+
+  @override
+  String get paymentSuccess => 'Pago registrado exitosamente';
+
+  @override
+  String get catalogInfoTitle => '¿Qué es el Catálogo?';
+
+  @override
+  String get catalogInfoDescription =>
+      'El catálogo permite crear categorías personalizadas para clasificar a tus clientes (ej. Bueno, Regular, No Prestar).\n\nCon las categorías asignadas a los clientes, podrás:\n• Identificar rápidamente el tipo de cada cliente\n• Generar reportes filtrados por categoría\n• Tomar mejores decisiones de crédito basadas en el historial';
+
+  @override
+  String get colorSelector => 'Color';
+
+  @override
+  String get selectColor => 'Seleccionar color';
+
+  @override
+  String get customColor => 'Color personalizado';
 }

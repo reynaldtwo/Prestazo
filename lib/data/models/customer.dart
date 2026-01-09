@@ -16,6 +16,7 @@ class Customer extends Equatable {
   final String? coords;
   final bool isRestricted;
   final String? restrictionReason;
+  final String? categoryId;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -33,6 +34,7 @@ class Customer extends Equatable {
     this.coords,
     this.isRestricted = false,
     this.restrictionReason,
+    this.categoryId,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -59,6 +61,7 @@ class Customer extends Equatable {
       coords: map['coords'] as String?,
       isRestricted: (map['is_restricted'] as int?) == 1,
       restrictionReason: map['restriction_reason'] as String?,
+      categoryId: map['category_id'] as String?,
       createdAt: DateTime.parse(map['created_at'] as String),
       updatedAt: DateTime.parse(map['updated_at'] as String),
     );
@@ -80,6 +83,7 @@ class Customer extends Equatable {
       'coords': coords,
       'is_restricted': isRestricted ? 1 : 0,
       'restriction_reason': restrictionReason,
+      'category_id': categoryId,
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
     };
@@ -99,6 +103,7 @@ class Customer extends Equatable {
     String? coords,
     bool? isRestricted,
     String? restrictionReason,
+    String? categoryId,
     DateTime? updatedAt,
   }) {
     return Customer(
@@ -115,6 +120,7 @@ class Customer extends Equatable {
       coords: coords ?? this.coords,
       isRestricted: isRestricted ?? this.isRestricted,
       restrictionReason: restrictionReason ?? this.restrictionReason,
+      categoryId: categoryId ?? this.categoryId,
       createdAt: createdAt,
       updatedAt: updatedAt ?? DateTime.now(),
     );
@@ -133,6 +139,9 @@ class Customer extends Equatable {
     preferredPayDay,
     dni,
     coords,
+    isRestricted,
+    restrictionReason,
+    categoryId,
     createdAt,
     updatedAt,
   ];

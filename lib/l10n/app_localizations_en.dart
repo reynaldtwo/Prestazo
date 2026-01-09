@@ -976,7 +976,7 @@ class SEn extends S {
   String get capitalLabel => 'Principal:';
 
   @override
-  String get loanLabel => 'Loan #:';
+  String get loanLabel => 'Loan';
 
   @override
   String get clientLabel => 'Customer:';
@@ -1130,7 +1130,7 @@ class SEn extends S {
   String get createCustomer => 'Create Customer';
 
   @override
-  String get paymentAmountLabel => 'Payment Amount *';
+  String get paymentAmountLabel => 'Payment Amount';
 
   @override
   String get invalidAmountMsg => 'Enter a valid amount';
@@ -2075,4 +2075,225 @@ class SEn extends S {
 
   @override
   String get viewProjectedEarnings => 'View expected interest income';
+
+  @override
+  String get fxDifferentialReport => 'FX Differential Earnings';
+
+  @override
+  String get fxDifferentialReportTitle => 'FX Differential Report';
+
+  @override
+  String get periodLabel => 'Period';
+
+  @override
+  String periodFromTo(String startDate, String endDate) {
+    return 'Period: $startDate to $endDate';
+  }
+
+  @override
+  String get periodSummary => 'Period Summary';
+
+  @override
+  String get totalFxPayments => 'Total payments in foreign currency';
+
+  @override
+  String get totalFxDifferential => 'Total FX differential earned';
+
+  @override
+  String get foreignCurrencyUsed => 'Foreign currency used';
+
+  @override
+  String get operationsDetail => 'Operations Detail';
+
+  @override
+  String get indicator => 'Indicator';
+
+  @override
+  String get value => 'Value';
+
+  @override
+  String get totalEquivalentConverted => 'Total equivalent converted';
+
+  @override
+  String get totalAppliedToDebt => 'Total applied to debt';
+
+  @override
+  String get differentialProfit => 'Differential profit';
+
+  @override
+  String get date => 'Date';
+
+  @override
+  String get client => 'Client';
+
+  @override
+  String get receiptNo => 'Receipt No.';
+
+  @override
+  String get paymentCurrency => 'Payment Currency';
+
+  @override
+  String get appliedRate => 'Applied Rate';
+
+  @override
+  String get equivalentCalculated => 'Equivalent Calculated';
+
+  @override
+  String get amountAppliedToDebt => 'Amount Applied to Debt';
+
+  @override
+  String get fxDifferential => 'FX Differential';
+
+  @override
+  String get sharePdf => 'Share PDF';
+
+  @override
+  String get refresh => 'Refresh';
+
+  @override
+  String get noFxOperations => 'No FX operations';
+
+  @override
+  String get noFxPaymentsInPeriod =>
+      'No payments in foreign currency\nin the selected period';
+
+  @override
+  String get fxPayments => 'FX Payments';
+
+  @override
+  String get applied => 'Applied';
+
+  @override
+  String get differentialProfit2 => 'Differential Profit';
+
+  @override
+  String pdfGenerationError(String error) {
+    return 'Error generating PDF: $error';
+  }
+
+  @override
+  String get shareReportText => 'FX Differential Report';
+
+  @override
+  String get catalog => 'Catalog';
+
+  @override
+  String get catalogDescription => 'Manage lists and categories';
+
+  @override
+  String get categorizeCustomerAs => 'Customer Categories';
+
+  @override
+  String get categorizeCustomerAsDesc =>
+      'Define categories to classify your customers';
+
+  @override
+  String get customerCategories => 'Customer Categories';
+
+  @override
+  String get addCategory => 'Add Category';
+
+  @override
+  String get editCategory => 'Edit Category';
+
+  @override
+  String get deleteCategory => 'Delete Category';
+
+  @override
+  String get categoryName => 'Category Name';
+
+  @override
+  String get categoryColor => 'Color';
+
+  @override
+  String get categoryRequired => 'Category name is required';
+
+  @override
+  String get categoryCreated => 'Category created';
+
+  @override
+  String get categoryUpdated => 'Category updated';
+
+  @override
+  String get categoryDeleted => 'Category deleted';
+
+  @override
+  String get categoryInUse => 'Category in use';
+
+  @override
+  String categoryInUseByOne(String customerName) {
+    return 'This category is assigned to $customerName. Remove it from the customer before deleting.';
+  }
+
+  @override
+  String categoryInUseByMany(int count) {
+    return 'This category is assigned to $count customers. Remove it from all customers before deleting.';
+  }
+
+  @override
+  String get noCategories => 'No categories';
+
+  @override
+  String get noCategoriesHint => 'Add categories to classify your customers';
+
+  @override
+  String get customerCategory => 'Category';
+
+  @override
+  String get selectCategory => 'Select a category';
+
+  @override
+  String get optional => 'Optional';
+
+  @override
+  String get rateThisCustomer => 'Rate this customer';
+
+  @override
+  String get rateCustomerPrompt => 'Would you like to rate this customer?';
+
+  @override
+  String get notNow => 'Not now';
+
+  @override
+  String get rateCustomer => 'Rate';
+
+  @override
+  String get mustSelectCategory => 'You must select a category';
+
+  @override
+  String get customerRated => 'Customer rated successfully';
+
+  @override
+  String get good => 'Good';
+
+  @override
+  String get veryGood => 'Very good';
+
+  @override
+  String get regular => 'Regular';
+
+  @override
+  String get doNotLend => 'Do not lend';
+
+  @override
+  String get bad => 'Bad';
+
+  @override
+  String get paymentSuccess => 'Payment registered successfully';
+
+  @override
+  String get catalogInfoTitle => 'What is the Catalog?';
+
+  @override
+  String get catalogInfoDescription =>
+      'The catalog allows you to create custom categories to classify your customers (e.g., Good, Regular, Do Not Lend).\n\nWith categories assigned to customers, you can:\n• Quickly identify the type of each customer\n• Generate reports filtered by category\n• Make better credit decisions based on history';
+
+  @override
+  String get colorSelector => 'Color';
+
+  @override
+  String get selectColor => 'Select color';
+
+  @override
+  String get customColor => 'Custom color';
 }

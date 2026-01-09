@@ -761,5 +761,100 @@
   "languageSystem": "System Default",
   "selectReportType": "Select a report type",
   "viewRealizedEarnings": "View collected earnings in the period",
-  "viewProjectedEarnings": "View expected interest income"
+  "viewProjectedEarnings": "View expected interest income",
+  "fxDifferentialReport": "FX Differential Earnings",
+  "fxDifferentialReportTitle": "FX Differential Report",
+  "periodLabel": "Period",
+  "periodFromTo": "Period: {startDate} to {endDate}",
+  "@periodFromTo": {
+    "placeholders": {
+      "startDate": {"type": "String"},
+      "endDate": {"type": "String"}
+    }
+  },
+  "baseCurrency": "Base Currency",
+  "periodSummary": "Period Summary",
+  "totalFxPayments": "Total payments in foreign currency",
+  "totalFxDifferential": "Total FX differential earned",
+  "foreignCurrencyUsed": "Foreign currency used",
+  "operationsDetail": "Operations Detail",
+  "indicator": "Indicator",
+  "value": "Value",
+  "totalEquivalentConverted": "Total equivalent converted",
+  "totalAppliedToDebt": "Total applied to debt",
+  "differentialProfit": "Differential profit",
+  "date": "Date",
+  "client": "Client",
+  "loanLabel": "Loan",
+  "receiptNo": "Receipt No.",
+  "paymentCurrency": "Payment Currency",
+  "paymentAmountLabel": "Payment Amount",
+  "appliedRate": "Applied Rate",
+  "equivalentCalculated": "Equivalent Calculated",
+  "amountAppliedToDebt": "Amount Applied to Debt",
+  "fxDifferential": "FX Differential",
+  "sharePdf": "Share PDF",
+  "refresh": "Refresh",
+  "noFxOperations": "No FX operations",
+  "noFxPaymentsInPeriod": "No payments in foreign currency\nin the selected period",
+  "fxPayments": "FX Payments",
+  "applied": "Applied",
+  "differentialProfit2": "Differential Profit",
+  "pdfGenerationError": "Error generating PDF: {error}",
+  "@pdfGenerationError": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  },
+  "shareReportText": "FX Differential Report",
+  "catalog": "Catalog",
+  "catalogDescription": "Manage lists and categories",
+  "categorizeCustomerAs": "Customer Categories",
+  "categorizeCustomerAsDesc": "Define categories to classify your customers",
+  "customerCategories": "Customer Categories",
+  "addCategory": "Add Category",
+  "editCategory": "Edit Category",
+  "deleteCategory": "Delete Category",
+  "categoryName": "Category Name",
+  "categoryColor": "Color",
+  "categoryRequired": "Category name is required",
+  "categoryCreated": "Category created",
+  "categoryUpdated": "Category updated",
+  "categoryDeleted": "Category deleted",
+  "categoryInUse": "Category in use",
+  "categoryInUseByOne": "This category is assigned to {customerName}. Remove it from the customer before deleting.",
+  "@categoryInUseByOne": {
+    "placeholders": {
+      "customerName": {"type": "String"}
+    }
+  },
+  "categoryInUseByMany": "This category is assigned to {count} customers. Remove it from all customers before deleting.",
+  "@categoryInUseByMany": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "noCategories": "No categories",
+  "noCategoriesHint": "Add categories to classify your customers",
+  "customerCategory": "Category",
+  "selectCategory": "Select a category",
+  "optional": "Optional",
+  "rateThisCustomer": "Rate this customer",
+  "rateCustomerPrompt": "Would you like to rate this customer?",
+  "notNow": "Not now",
+  "rateCustomer": "Rate",
+  "mustSelectCategory": "You must select a category",
+  "customerRated": "Customer rated successfully",
+  "good": "Good",
+  "veryGood": "Very good",
+  "regular": "Regular",
+  "doNotLend": "Do not lend",
+  "bad": "Bad",
+  "paymentSuccess": "Payment registered successfully",
+  "monetaryManagement": "Monetary Management",
+  "catalogInfoTitle": "What is the Catalog?",
+  "catalogInfoDescription": "The catalog allows you to create custom categories to classify your customers (e.g., Good, Regular, Do Not Lend).\n\nWith categories assigned to customers, you can:\n• Quickly identify the type of each customer\n• Generate reports filtered by category\n• Make better credit decisions based on history",
+  "colorSelector": "Color",
+  "selectColor": "Select color",
+  "customColor": "Custom color"
 }

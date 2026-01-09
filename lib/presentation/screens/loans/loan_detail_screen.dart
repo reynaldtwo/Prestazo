@@ -307,7 +307,7 @@ Future<void> _shareReceipt(
     if (loan == null) throw Exception(s.loanNotFound);
 
     final customer = await ref.read(
-      customerByIdProvider(payment.customerId).future,
+      customerByIdProvider(loan.customerId).future,
     );
     if (customer == null) throw Exception(s.customerNotFound);
 
@@ -927,9 +927,9 @@ class _PaymentCard extends ConsumerWidget {
                 amount: payment.amount,
                 size: MoneyDisplaySize.medium,
                 color: AppColors.accent,
-                currencySymbol: payment.paymentCurrency != null
-                    ? CurrencyUtils.getCurrencySymbol(payment.paymentCurrency!)
-                    : null,
+                currencySymbol: CurrencyUtils.getCurrencySymbol(
+                  payment.paymentCurrency,
+                ),
               ),
               IconButton(
                 icon: Icon(
