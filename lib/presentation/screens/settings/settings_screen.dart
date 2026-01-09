@@ -344,6 +344,36 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             ),
             onTap: () => context.push('/settings/customer-categories'),
           ),
+          const Divider(height: 1),
+          ListTile(
+            leading: const Icon(Icons.calendar_today, color: AppColors.primary),
+            title: Text(S.of(context).paymentFrequencies),
+            subtitle: Text(S.of(context).paymentFrequenciesSubtitle),
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                InkWell(
+                  onTap: () {
+                    showAppInfoDialog(
+                      context,
+                      title: S.of(context).paymentFrequenciesInfoTitle,
+                      info: S.of(context).paymentFrequenciesInfoDescription,
+                    );
+                  },
+                  borderRadius: BorderRadius.circular(12),
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Icon(
+                      Icons.info_outline_rounded,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                  ),
+                ),
+                const Icon(Icons.chevron_right),
+              ],
+            ),
+            onTap: () => context.push('/settings/payment-frequencies'),
+          ),
         ],
       ),
     );

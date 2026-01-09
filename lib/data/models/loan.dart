@@ -20,6 +20,7 @@ class Loan extends Equatable {
   final double? appliedExchangeRate; // Exchange rate snapshot at disbursement
   final DateTime createdAt;
   final DateTime updatedAt;
+  final int? paymentFrequencyDays; // Added in V28
 
   const Loan({
     required this.loanId,
@@ -39,6 +40,7 @@ class Loan extends Equatable {
     this.appliedExchangeRate,
     required this.createdAt,
     required this.updatedAt,
+    this.paymentFrequencyDays,
   });
 
   /// Check if loan is active (includes IN_MORA)
@@ -109,6 +111,7 @@ class Loan extends Equatable {
       appliedExchangeRate: (map['applied_exchange_rate'] as num?)?.toDouble(),
       createdAt: DateTime.parse(map['created_at'] as String),
       updatedAt: DateTime.parse(map['updated_at'] as String),
+      paymentFrequencyDays: map['payment_frequency_days'] as int?,
     );
   }
 
@@ -132,6 +135,7 @@ class Loan extends Equatable {
       'applied_exchange_rate': appliedExchangeRate,
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
+      'payment_frequency_days': paymentFrequencyDays,
     };
   }
 
@@ -150,6 +154,7 @@ class Loan extends Equatable {
     String? currencyCode,
     double? appliedExchangeRate,
     DateTime? updatedAt,
+    int? paymentFrequencyDays,
   }) {
     return Loan(
       loanId: loanId,
@@ -169,6 +174,7 @@ class Loan extends Equatable {
       appliedExchangeRate: appliedExchangeRate ?? this.appliedExchangeRate,
       createdAt: createdAt,
       updatedAt: updatedAt ?? DateTime.now(),
+      paymentFrequencyDays: paymentFrequencyDays ?? this.paymentFrequencyDays,
     );
   }
 
@@ -191,5 +197,6 @@ class Loan extends Equatable {
     appliedExchangeRate,
     createdAt,
     updatedAt,
+    paymentFrequencyDays,
   ];
 }

@@ -11,8 +11,10 @@ import '../../../data/models/loan.dart';
 import '../../../data/providers/providers.dart';
 
 import '../../../core/localization/locale_provider.dart';
+import '../../../data/models/payment_frequency.dart';
+import '../../../data/providers/payment_frequency_provider.dart';
 import '../../../services/whatsapp_service.dart';
-import '../../../services/currency_service.dart';
+
 import '../../../data/models/currency_context.dart';
 import 'package:sealed_currencies/sealed_currencies.dart';
 
@@ -32,7 +34,7 @@ class _LoanFormScreenState extends ConsumerState<LoanFormScreen> {
   final _notesController = TextEditingController();
   DateTime _disbursementDate = DateTime.now();
   DateTime? _endDate; // Optional informational end date
-  String _billingFrequency = 'MONTHLY'; // 'MONTHLY' or 'BIWEEKLY'
+  PaymentFrequency? _selectedFrequency;
   String _selectedCurrencyCode = 'NIO'; // Default currency
   double? _appliedExchangeRate; // Exchange Rate State
   bool _isLoadingRate = false;
@@ -389,23 +391,17 @@ class _LoanFormScreenState extends ConsumerState<LoanFormScreen> {
     final principal =
         double.tryParse(_principalController.text.replaceAll(',', '')) ?? 0;
     final rate = double.tryParse(_rateController.text) ?? 0;
-    final monthlyInterest = principal * (rate / 100);
 
-    if (principal <= 0 || rate <= 0) return const SizedBox.shrink();
+    if (principal <= 0 || rate <= 0 || _selectedFrequency == null)
+      return const SizedBox.shrink();
 
-    final periodInterest = switch (_billingFrequency) {
-      'WEEKLY' => monthlyInterest / 4,
-      'DAILY' => monthlyInterest / 30,
-      'BIWEEKLY' => monthlyInterest / 2,
-      _ => monthlyInterest,
-    };
+    // Calculate interest for the selected frequency interval
+    // Monthly Rate (20%) -> Daily Rate (20% / 30) -> Frequency Rate (Daily * Interval)
+    // Formula: Principal * (MonthlyRate / 100 / 30 * Interval)
+    final dailyInterest = principal * (rate / 100) / 30;
+    final periodInterest = dailyInterest * _selectedFrequency!.daysInterval;
 
-    final frequencyLabel = switch (_billingFrequency) {
-      'WEEKLY' => S.of(context).weekly.toLowerCase(),
-      'DAILY' => S.of(context).daily.toLowerCase(),
-      'BIWEEKLY' => S.of(context).biweekly.toLowerCase(),
-      _ => S.of(context).monthly.toLowerCase(),
-    };
+    final frequencyLabel = _selectedFrequency!.name;
 
     return Container(
       padding: const EdgeInsets.all(12),
@@ -621,67 +617,63 @@ class _LoanFormScreenState extends ConsumerState<LoanFormScreen> {
   }
 
   Widget _buildFrequencySelector() {
+    final frequenciesAsync = ref.watch(activePaymentFrequenciesProvider);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(S.of(context).billingFrequency, style: AppTypography.labelMedium),
         const SizedBox(height: 8),
-        LayoutBuilder(
-          builder: (context, constraints) {
-            final double itemWidth = (constraints.maxWidth - 8) / 2;
-            return Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                SizedBox(
-                  width: itemWidth,
-                  child: _FrequencyOption(
-                    label: S.of(context).daily,
-                    subtitle:
-                        '1 ${S.of(context).today.toLowerCase().substring(0, 3)}',
-                    icon: Icons.calendar_view_day,
-                    isSelected: _billingFrequency == 'DAILY',
-                    onTap: () => setState(() => _billingFrequency = 'DAILY'),
-                    isCompact: true,
-                  ),
-                ),
-                SizedBox(
-                  width: itemWidth,
-                  child: _FrequencyOption(
-                    label: S.of(context).weekly,
-                    subtitle:
-                        '7 ${S.of(context).today.toLowerCase().substring(0, 3)}',
-                    icon: Icons.calendar_view_week,
-                    isSelected: _billingFrequency == 'WEEKLY',
-                    onTap: () => setState(() => _billingFrequency = 'WEEKLY'),
-                    isCompact: true,
-                  ),
-                ),
-                SizedBox(
-                  width: itemWidth,
-                  child: _FrequencyOption(
-                    label: S.of(context).biweekly,
-                    subtitle:
-                        '15 ${S.of(context).today.toLowerCase().substring(0, 3)}',
-                    icon: Icons.calendar_view_month,
-                    isSelected: _billingFrequency == 'BIWEEKLY',
-                    onTap: () => setState(() => _billingFrequency = 'BIWEEKLY'),
-                    isCompact: true,
-                  ),
-                ),
-                SizedBox(
-                  width: itemWidth,
-                  child: _FrequencyOption(
-                    label: S.of(context).monthly,
-                    subtitle:
-                        '30 ${S.of(context).today.toLowerCase().substring(0, 3)}',
-                    icon: Icons.calendar_month,
-                    isSelected: _billingFrequency == 'MONTHLY',
-                    onTap: () => setState(() => _billingFrequency = 'MONTHLY'),
-                    isCompact: true,
-                  ),
-                ),
-              ],
+        frequenciesAsync.when(
+          loading: () => const SizedBox(
+            height: 50,
+            child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
+          ),
+          error: (err, _) => Text(
+            'Error: $err',
+            style: const TextStyle(color: AppColors.danger),
+          ),
+          data: (frequencies) {
+            if (frequencies.isEmpty) return const Text('No active frequencies');
+
+            // Auto-select MONTHLY if nothing selected
+            if (_selectedFrequency == null && frequencies.isNotEmpty) {
+              // Try to find Monthly or default to first
+              final monthly = frequencies
+                  .where((f) => f.id == 'MONTHLY')
+                  .firstOrNull;
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (mounted) {
+                  setState(
+                    () => _selectedFrequency = monthly ?? frequencies.first,
+                  );
+                }
+              });
+            }
+
+            return LayoutBuilder(
+              builder: (context, constraints) {
+                final double itemWidth = (constraints.maxWidth - 8) / 2;
+                return Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: frequencies.map((freq) {
+                    return SizedBox(
+                      width: itemWidth,
+                      child: _FrequencyOption(
+                        label: freq.name,
+                        subtitle:
+                            '${freq.daysInterval} ${S.of(context).daysInterval.toLowerCase()}',
+                        icon: Icons
+                            .calendar_today, // Generic icon or custom mapping
+                        isSelected: _selectedFrequency?.id == freq.id,
+                        onTap: () => setState(() => _selectedFrequency = freq),
+                        isCompact: true,
+                      ),
+                    );
+                  }).toList(),
+                );
+              },
             );
           },
         ),
@@ -851,6 +843,16 @@ class _LoanFormScreenState extends ConsumerState<LoanFormScreen> {
       return;
     }
 
+    if (_selectedFrequency == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Por favor seleccione una frecuencia de pago'),
+          backgroundColor: AppColors.warning,
+        ),
+      );
+      return;
+    }
+
     final principal = double.parse(
       _principalController.text.replaceAll(',', ''),
     );
@@ -967,7 +969,8 @@ class _LoanFormScreenState extends ConsumerState<LoanFormScreen> {
         principalOriginal: principal,
         principalBalance: principal,
         monthlyInterestRate: rate,
-        billingFrequency: _billingFrequency,
+        billingFrequency: _selectedFrequency?.id ?? 'MONTHLY',
+        paymentFrequencyDays: _selectedFrequency?.daysInterval,
         disbursementDate: _disbursementDate,
         endDate: _endDate,
         notes: _notesController.text.trim().isEmpty

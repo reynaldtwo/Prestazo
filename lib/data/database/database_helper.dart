@@ -463,6 +463,62 @@ class DatabaseHelper {
       )
     ''');
 
+    // Payment Frequencies table (V27)
+    await db.execute('''
+      CREATE TABLE payment_frequencies (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        days_interval INTEGER NOT NULL,
+        is_default INTEGER NOT NULL DEFAULT 0,
+        is_active INTEGER NOT NULL DEFAULT 1,
+        created_at TEXT NOT NULL
+      )
+    ''');
+
+    // V28: Add payment_frequency_days to loans table
+    try {
+      final result = await db.rawQuery(
+        "SELECT COUNT(*) as cnt FROM pragma_table_info('loans') WHERE name='payment_frequency_days'",
+      );
+      final hasColumn = (result.first['cnt'] as int) > 0;
+      if (!hasColumn) {
+        await db.execute(
+          'ALTER TABLE loans ADD COLUMN payment_frequency_days INTEGER',
+        );
+      }
+    } catch (e) {
+      debugPrint('Error adding payment_frequency_days to loans: $e');
+    }
+
+    // Seed default frequencies logic is effectively handled by migration logic on upgrade,
+    // but for fresh installs we should insert them here too.
+    final now = DateTime.now().toIso8601String();
+    final defaults = [
+      {'id': 'DAILY', 'name': 'Diario', 'days_interval': 1, 'is_default': 1},
+      {'id': 'WEEKLY', 'name': 'Semanal', 'days_interval': 7, 'is_default': 1},
+      {
+        'id': 'BIWEEKLY',
+        'name': 'Quincenal',
+        'days_interval': 15,
+        'is_default': 1,
+      },
+      {
+        'id': 'MONTHLY',
+        'name': 'Mensual',
+        'days_interval': 30,
+        'is_default': 1,
+      },
+      {'id': 'ANNUAL', 'name': 'Anual', 'days_interval': 365, 'is_default': 1},
+    ];
+
+    for (final freq in defaults) {
+      await db.insert('payment_frequencies', {
+        ...freq,
+        'is_active': 1,
+        'created_at': now,
+      });
+    }
+
     // Customer table
     await db.execute('''
       CREATE TABLE customers (
@@ -611,7 +667,8 @@ class DatabaseHelper {
       )
     ''');
     // Insert default currencies
-    final now = DateTime.now().toIso8601String();
+    // now is already defined above
+
     await db.execute(
       "INSERT OR IGNORE INTO currencies VALUES ('NIO', 2, 'C\$', 'currency_nio', 1, '$now', '$now')",
     );
@@ -1118,6 +1175,66 @@ class DatabaseHelper {
       try {
         await db.execute('ALTER TABLE customers ADD COLUMN category_id TEXT');
       } catch (_) {}
+    }
+    // Migration from v26 to v27: Add payment_frequencies table
+    if (oldVersion < 27) {
+      // Create payment_frequencies table
+      try {
+        await db.execute('''
+          CREATE TABLE IF NOT EXISTS payment_frequencies (
+            id TEXT PRIMARY KEY,
+            name TEXT NOT NULL,
+            days_interval INTEGER NOT NULL,
+            is_default INTEGER NOT NULL DEFAULT 0,
+            is_active INTEGER NOT NULL DEFAULT 1,
+            created_at TEXT NOT NULL
+          )
+        ''');
+      } catch (e) {
+        debugPrint('Error creating payment_frequencies table: $e');
+      }
+
+      // Seed default frequencies
+      final now = DateTime.now().toIso8601String();
+      final defaults = [
+        {'id': 'DAILY', 'name': 'Diario', 'days_interval': 1, 'is_default': 1},
+        {
+          'id': 'WEEKLY',
+          'name': 'Semanal',
+          'days_interval': 7,
+          'is_default': 1,
+        },
+        {
+          'id': 'BIWEEKLY',
+          'name': 'Quincenal',
+          'days_interval': 15,
+          'is_default': 1,
+        },
+        {
+          'id': 'MONTHLY',
+          'name': 'Mensual',
+          'days_interval': 30,
+          'is_default': 1,
+        },
+        {
+          'id': 'ANNUAL',
+          'name': 'Anual',
+          'days_interval': 365,
+          'is_default': 1,
+        },
+      ];
+
+      for (final freq in defaults) {
+        try {
+          await db.insert('payment_frequencies', {
+            ...freq,
+            'is_active': 1,
+            'created_at': now,
+          });
+        } catch (e) {
+          debugPrint('Error seeding default frequency ${freq['id']}: $e');
+        }
+      }
     }
 
     // Run data fix on upgrade

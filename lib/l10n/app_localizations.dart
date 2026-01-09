@@ -4098,14 +4098,134 @@ abstract class S {
   /// No description provided for @noFxPaymentsInPeriod.
   ///
   /// In es, this message translates to:
-  /// **'No hay pagos en moneda diferente\nen el período seleccionado'**
+  /// **'No hay pagos en moneda extranjera\nen el período seleccionado'**
   String get noFxPaymentsInPeriod;
 
   /// No description provided for @fxPayments.
   ///
   /// In es, this message translates to:
-  /// **'Pagos FX'**
+  /// **'Pagos en Divisas'**
   String get fxPayments;
+
+  /// No description provided for @paymentFrequencies.
+  ///
+  /// In es, this message translates to:
+  /// **'Frecuencias de Pago'**
+  String get paymentFrequencies;
+
+  /// No description provided for @paymentFrequenciesSubtitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Gestionar frecuencias de cobro (Diario, Semanal, etc)'**
+  String get paymentFrequenciesSubtitle;
+
+  /// No description provided for @newFrequency.
+  ///
+  /// In es, this message translates to:
+  /// **'Nueva Frecuencia'**
+  String get newFrequency;
+
+  /// No description provided for @editFrequency.
+  ///
+  /// In es, this message translates to:
+  /// **'Editar Frecuencia'**
+  String get editFrequency;
+
+  /// No description provided for @frequencyName.
+  ///
+  /// In es, this message translates to:
+  /// **'Nombre'**
+  String get frequencyName;
+
+  /// No description provided for @frequencyNameHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Ej: Mensual, Quincenal'**
+  String get frequencyNameHint;
+
+  /// No description provided for @daysInterval.
+  ///
+  /// In es, this message translates to:
+  /// **'Intervalo (Días)'**
+  String get daysInterval;
+
+  /// No description provided for @daysIntervalHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Ej: 30'**
+  String get daysIntervalHint;
+
+  /// No description provided for @isDefaultFrequency.
+  ///
+  /// In es, this message translates to:
+  /// **'Frecuencia por defecto'**
+  String get isDefaultFrequency;
+
+  /// No description provided for @validationFrequencyInUse.
+  ///
+  /// In es, this message translates to:
+  /// **'Esta frecuencia está en uso por préstamos activos y no puede ser modificada/eliminada'**
+  String get validationFrequencyInUse;
+
+  /// No description provided for @deleteFrequencyConfirm.
+  ///
+  /// In es, this message translates to:
+  /// **'¿Eliminar esta frecuencia?'**
+  String get deleteFrequencyConfirm;
+
+  /// No description provided for @deactivateFrequencyConfirm.
+  ///
+  /// In es, this message translates to:
+  /// **'¿Desactivar esta frecuencia?'**
+  String get deactivateFrequencyConfirm;
+
+  /// No description provided for @activeFrequency.
+  ///
+  /// In es, this message translates to:
+  /// **'Activa'**
+  String get activeFrequency;
+
+  /// No description provided for @inactiveFrequency.
+  ///
+  /// In es, this message translates to:
+  /// **'Inactiva'**
+  String get inactiveFrequency;
+
+  /// No description provided for @frequencyCreated.
+  ///
+  /// In es, this message translates to:
+  /// **'Frecuencia creada'**
+  String get frequencyCreated;
+
+  /// No description provided for @frequencyUpdated.
+  ///
+  /// In es, this message translates to:
+  /// **'Frecuencia actualizada'**
+  String get frequencyUpdated;
+
+  /// No description provided for @frequencyDeleted.
+  ///
+  /// In es, this message translates to:
+  /// **'Frecuencia eliminada'**
+  String get frequencyDeleted;
+
+  /// No description provided for @cantDeleteDefault.
+  ///
+  /// In es, this message translates to:
+  /// **'No se pueden eliminar las frecuencias predeterminadas'**
+  String get cantDeleteDefault;
+
+  /// No description provided for @cantEditDefaultInterval.
+  ///
+  /// In es, this message translates to:
+  /// **'No se puede editar el intervalo de frecuencias predeterminadas'**
+  String get cantEditDefaultInterval;
+
+  /// No description provided for @selectFrequency.
+  ///
+  /// In es, this message translates to:
+  /// **'Seleccione una frecuencia'**
+  String get selectFrequency;
 
   /// No description provided for @applied.
   ///
@@ -4364,6 +4484,18 @@ abstract class S {
   /// In es, this message translates to:
   /// **'Color personalizado'**
   String get customColor;
+
+  /// No description provided for @paymentFrequenciesInfoTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'¿Qué son las Frecuencias?'**
+  String get paymentFrequenciesInfoTitle;
+
+  /// No description provided for @paymentFrequenciesInfoDescription.
+  ///
+  /// In es, this message translates to:
+  /// **'Define los periodos de tiempo para los cobros (ej. diario, quincenal, 20 días).\nPuedes crear frecuencias personalizadas con intervalos de días específicos para adaptarse a tus préstamos.'**
+  String get paymentFrequenciesInfoDescription;
 }
 
 class _SDelegate extends LocalizationsDelegate<S> {

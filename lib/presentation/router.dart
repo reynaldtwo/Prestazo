@@ -23,6 +23,7 @@ import 'screens/reports/currency_differential_report_screen.dart';
 import 'screens/settings/exchange_rate_screen.dart';
 import 'screens/settings/exchange_rate_form_screen.dart';
 import 'screens/settings/customer_categories_screen.dart';
+import 'screens/settings/payment_frequencies_screen.dart';
 import 'shell_screen.dart';
 
 /// App router configuration
@@ -126,6 +127,11 @@ final appRouter = GoRouter(
               path: 'customer-categories',
               name: 'customer-categories',
               builder: (context, state) => const CustomerCategoriesScreen(),
+            ),
+            GoRoute(
+              path: 'payment-frequencies',
+              name: 'payment-frequencies',
+              builder: (context, state) => const PaymentFrequenciesScreen(),
             ),
           ],
         ),

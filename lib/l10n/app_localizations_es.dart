@@ -2163,10 +2163,74 @@ class SEs extends S {
 
   @override
   String get noFxPaymentsInPeriod =>
-      'No hay pagos en moneda diferente\nen el período seleccionado';
+      'No hay pagos en moneda extranjera\nen el período seleccionado';
 
   @override
-  String get fxPayments => 'Pagos FX';
+  String get fxPayments => 'Pagos en Divisas';
+
+  @override
+  String get paymentFrequencies => 'Frecuencias de Pago';
+
+  @override
+  String get paymentFrequenciesSubtitle =>
+      'Gestionar frecuencias de cobro (Diario, Semanal, etc)';
+
+  @override
+  String get newFrequency => 'Nueva Frecuencia';
+
+  @override
+  String get editFrequency => 'Editar Frecuencia';
+
+  @override
+  String get frequencyName => 'Nombre';
+
+  @override
+  String get frequencyNameHint => 'Ej: Mensual, Quincenal';
+
+  @override
+  String get daysInterval => 'Intervalo (Días)';
+
+  @override
+  String get daysIntervalHint => 'Ej: 30';
+
+  @override
+  String get isDefaultFrequency => 'Frecuencia por defecto';
+
+  @override
+  String get validationFrequencyInUse =>
+      'Esta frecuencia está en uso por préstamos activos y no puede ser modificada/eliminada';
+
+  @override
+  String get deleteFrequencyConfirm => '¿Eliminar esta frecuencia?';
+
+  @override
+  String get deactivateFrequencyConfirm => '¿Desactivar esta frecuencia?';
+
+  @override
+  String get activeFrequency => 'Activa';
+
+  @override
+  String get inactiveFrequency => 'Inactiva';
+
+  @override
+  String get frequencyCreated => 'Frecuencia creada';
+
+  @override
+  String get frequencyUpdated => 'Frecuencia actualizada';
+
+  @override
+  String get frequencyDeleted => 'Frecuencia eliminada';
+
+  @override
+  String get cantDeleteDefault =>
+      'No se pueden eliminar las frecuencias predeterminadas';
+
+  @override
+  String get cantEditDefaultInterval =>
+      'No se puede editar el intervalo de frecuencias predeterminadas';
+
+  @override
+  String get selectFrequency => 'Seleccione una frecuencia';
 
   @override
   String get applied => 'Aplicado';
@@ -2305,4 +2369,11 @@ class SEs extends S {
 
   @override
   String get customColor => 'Color personalizado';
+
+  @override
+  String get paymentFrequenciesInfoTitle => '¿Qué son las Frecuencias?';
+
+  @override
+  String get paymentFrequenciesInfoDescription =>
+      'Define los periodos de tiempo para los cobros (ej. diario, quincenal, 20 días).\nPuedes crear frecuencias personalizadas con intervalos de días específicos para adaptarse a tus préstamos.';
 }

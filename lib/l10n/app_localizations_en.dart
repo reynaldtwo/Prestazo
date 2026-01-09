@@ -2161,6 +2161,69 @@ class SEn extends S {
   String get fxPayments => 'FX Payments';
 
   @override
+  String get paymentFrequencies => 'Payment Frequencies';
+
+  @override
+  String get paymentFrequenciesSubtitle =>
+      'Manage payment frequencies (Daily, Weekly, etc)';
+
+  @override
+  String get newFrequency => 'New Frequency';
+
+  @override
+  String get editFrequency => 'Edit Frequency';
+
+  @override
+  String get frequencyName => 'Name';
+
+  @override
+  String get frequencyNameHint => 'Ex: Monthly, Biweekly';
+
+  @override
+  String get daysInterval => 'Interval (Days)';
+
+  @override
+  String get daysIntervalHint => 'Ex: 30';
+
+  @override
+  String get isDefaultFrequency => 'Default Frequency';
+
+  @override
+  String get validationFrequencyInUse =>
+      'This frequency is in use by active loans and cannot be modified/deleted';
+
+  @override
+  String get deleteFrequencyConfirm => 'Delete this frequency?';
+
+  @override
+  String get deactivateFrequencyConfirm => 'Deactivate this frequency?';
+
+  @override
+  String get activeFrequency => 'Active';
+
+  @override
+  String get inactiveFrequency => 'Inactive';
+
+  @override
+  String get frequencyCreated => 'Frequency created';
+
+  @override
+  String get frequencyUpdated => 'Frequency updated';
+
+  @override
+  String get frequencyDeleted => 'Frequency deleted';
+
+  @override
+  String get cantDeleteDefault => 'Default frequencies cannot be deleted';
+
+  @override
+  String get cantEditDefaultInterval =>
+      'Cannot edit interval of default frequencies';
+
+  @override
+  String get selectFrequency => 'Select a frequency';
+
+  @override
   String get applied => 'Applied';
 
   @override
@@ -2296,4 +2359,11 @@ class SEn extends S {
 
   @override
   String get customColor => 'Custom color';
+
+  @override
+  String get paymentFrequenciesInfoTitle => 'What are Frequencies?';
+
+  @override
+  String get paymentFrequenciesInfoDescription =>
+      'Define time periods for payments (e.g., daily, biweekly, 20 days).\nYou can create custom frequencies with specific day intervals to suit your loans.';
 }

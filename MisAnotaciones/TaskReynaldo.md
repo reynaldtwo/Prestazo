@@ -443,7 +443,7 @@ Mejoras:
  que no puede pasar:
  1. si el color de tarjeta es negro , el color de texto no puede ser negro o un color uscuro. 
  Lo correcto: si el color de la tarjeta es negro, el color de texto debe ser blanco ahumado o un color claro.
-
+**Listo**
 
 
 
@@ -469,21 +469,92 @@ Tómate un tiempo para analizar la siguiente mejora y haz el desarrollo consider
 
 CASO 1:
 
-En Ajustes, crea un nuevo apartado que se llame: "Catálogo". Este apartado tendrá varias opciones, pero ahorita solo agrega una que se llame: "Categorizar cliente como". Esta nueva opción debe mandar a una pantalla dedicada en donde el usuario podrá crear la categoría con opciones de Nuevo, Modificar y Eliminar.
+En ajustes -> Catalogos
+Crea una nueva pantalla dedicada para crear Frecuencias de pagos personalizadas.
 
-Validaciones:
-Al eliminar una categoría se debe validar que la categoría no la tenga ningún cliente asociada. Si la tiene un cliente, mostrar un diálogo con la advertencia y datos relevantes del cliente que la posee y si son varios clientes, solo indicar que hay varios clientes con esa categoría y que antes se debe quitársela a los clientes para poder ser eliminada y no permitir eliminarla.
+Ejemplo:
+1. Diario
+2. Semana
+3. Quincenal
+4. Mensual
+5. Anual   
 
-Ejemplo de las categorías que podrían guardar los prestamistas o financieras:
+La pantalla debe tener opciones de Nuevo, Editar y Eliminar, Desactivar y Activar.
 
-1. Bueno
-2. Muy bueno
-3. Regular
-4. No prestas
-5. Malo
+Validaciones a tener en cuenta:
+1. No se puede eliminar un ciclo que este siendo usado por un prestamo en estado Activo.
+2. No se puede desactivar un ciclo que este siendo usado por un prestamo en estado Activo.
 
-En Clientes (entidad) agregar el nuevo campo que permita categorizar al cliente. Este campo debe permitir seleccionar una categoría desde el catálogo en Ajustes y debe ser opcional.
+Datos de inicio:
+En la entodad(tabla) en la base deja registrado los siguientes frecuencias de pagos por defecto, para que el usuario decidir si mantenerlas o editarlas o eliminarlas. 
 
-Ubicación del nuevo campo en la pantalla de Nuevo Cliente: debe ser el primer campo, es decir, antes del nombre del cliente.
+1. Diario
+2. Semana
+3. Quincenal
+4. Mensual
+5. Anual
 
-Posterior, actualiza la versión de la BD y haz bien la migración de la base de datos, asegurándote de que los nuevos campos sean agregados a la base de datos.
+Advertencias a considerar en el desarrollo:
+1. No dejar nada harcodeado, como por ejemplo: los colores, ni texto, ansolutamente nada.
+2. Hacer pruebas del flujo completo para asegurse de que todo funcione correctamente.
+3. Considerar afectaciones en el flujo existente y hacer los ajustes necesarios.
+4. Reconstruir el APK, para yo probarlo.
+
+
+
+
+
+Pregunta muy importante.
+Para contestar a esta pregunta analiza bien el proyecto
+
+1. ¿cómo calculás las fechas de vencimiento?
+
+Lo haces en Intervalo fijo (quincenal = cada 15 días; semanal = cada 7; mensual = cada 30 o “+1 mes”), o
+
+Calendario real (quincenal = 15 y 30/31, o 1 y 15; semanal = un día específico como lunes; mensual = día X del mes).
+
+dame un resumen claro de como se hace actualmente y mostrame los archicos que contienen la logica implementada.
+**Listo**
+
+
+
+
+
+**Siguiente mejora**
+/* 09 enero 2026 */
+
+Tómate un tiempo para analizar la siguiente mejora y haz el desarrollo considerando las reglas descritas en el archivo .antigravityrules.md y apóyate del MCP de Flutter para resolver los errores que aparezcan, así como para investigar sobre las buenas prácticas a la hora de escribir código.
+
+CASO 1:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CASO 2:
+
+
+
+Nombre del ciclo: Rápidito
+Periodo: mensual (ciclo de pago)
+Va desde: 0 – 3
+Aplicar tasa: 13.33%
+Monto mínimo: C$ 200
+Moneda base: NIO (con opción de cambiar)
+Monto máximo: C$ 2,000
+
+☑ Distribuir intereses + capital en las cuotas
+☑ Periodo inicia al desembolsar
+▶ Aplica a los clientes con categoría
+
+
+
