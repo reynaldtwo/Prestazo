@@ -1573,9 +1573,20 @@ class _PaymentFormScreenState extends ConsumerState<PaymentFormScreen> {
             } catch (_) {
               loanCurrency = FiatCurrency.fromCode('NIO');
             }
+
+            // FETCH FRESH LOAN OBJECT to ensure PDF has updated balance
+            Loan? updatedLoan;
+            try {
+              updatedLoan = await ref.read(
+                loanByIdProvider(_selectedLoan!.loanId).future,
+              );
+            } catch (e) {
+              debugPrint('Error fetching updated loan for receipt: $e');
+            }
+
             await WhatsAppService.sharePaymentReceipt(
               payment: createdPayment,
-              loan: _selectedLoan!,
+              loan: updatedLoan ?? _selectedLoan!, // Use fresh or fallback
               customer: customer,
               allocations: allocations,
               settings: settings,

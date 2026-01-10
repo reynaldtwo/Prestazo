@@ -576,6 +576,9 @@ Advertencias a considerar en el desarrollo:
 5. Asegurate de que lo nuevo que hagas, funcione para multiIdiomas.
 6. Reconstruir el APK, para yo probarlo.
 
+
+
+
 **Error**
 
 /* 09 enero 2026 */
@@ -585,7 +588,8 @@ Tómate un tiempo para analizar la siguiente mejora y haz el desarrollo consider
 en las pruebas al crear un prestamo y darle crear prestamo dio este error:
 
 
-Error: DatabaseException(table loans has no column named payment_frequency_days (code 1 SQLITE_ERROR[1]): , while compiling: INSERT OR REPLACE INTO loans (loan_id, customer_id, principal_original, principal_balance, monthly_interest_rate, rate_unit, billing_frequency, disbursement_date, end_date, status, closed_at, notes, loan_number, currency_code, applied_exchange_rate, created_at, updated_at, payment_frequency_days) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, NULL, ?, ?, NULL, ?, ?, ?)) sql 'INSERT OR REPLACE INTO loans (loan_id, customer_id, principal_original, principal_balance, monthly_interest_rate, rate_unit, billing_frequency, disbursement_date, end_date, status, closed_at, notes, loan_number, currency_code, applied_exchange_rate, created_at, updated_at, payment_frequency_days) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, NULL, ?, ?, NULL, ?, ?, ?)' args [854c26eb-486a-454a-9f42-edc09e51a15d, 249771ea-13fc-4a66-8167-50b8aebbab71, 1000.0, 1000.0, 10.0, MONTHLY, DAILY, 2026-01-01, 2027-01-31, ACTIVE, 1, NIO, 2026-01-09T16:55:06.377274, 2026-01-09T16:55:06.379079, 1]
+Error: DatabaseException(table loans has no column named payment_frequency_days (code 1 SQLITE_ERROR[1]): , while compiling: INSERT OR REPLACE INTO loans (loan_id, customer_id, principal_original, principal_balance, monthly_interest_rate, rate_unit, billing_frequency, disbursement_date, end_date, status, closed_at, notes, loan_number, currency_code, applied_exchange_rate, created_at, updated_at, payment_frequency_days) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NULL, ?, NULL, NULL, ?, ?, NULL, ?, ?, ?)) sql 'INSERT OR REPLACE INTO loans (loan_id, customer_id, principal_original, principal_balance, monthly_interest_rate, rate_unit, billing_frequency, disbursement_date, end_date, status, closed_at, notes, loan_number, currency_code, applied_exchange_rate, created_at, updated_at, payment_frequency_days) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NULL, ?, NULL, NULL, ?, ?, NULL, ?, ?, ?)' args [8114c492-3cc2-4def-b2fd-692ee6796826, 6e719c70-4e63-492f-b2d1-d7518a370910, 10000.0, 10000.0, 10.0, MONTHLY, MONTHLY, 2026-01-01, ACTIVE, 1, NIO, 2026-01-09T21:27:20.347074, 2026-01-09T21:27:20.348385, 30]
+
 
 
 
@@ -603,16 +607,164 @@ Revisa bien todo el flujo completo para asegurse de que todo funcione correctame
 
 
 
-**Siguiente mejora**
-**09 enero 2026**
+**Fix encontrado**
+
+/*10  enero 2026 */
 
 Tómate un tiempo para analizar la siguiente mejora y haz el desarrollo considerando las reglas descritas en el archivo .antigravityrules.md y apóyate del MCP de Flutter para resolver los errores que aparezcan, así como para investigar sobre las buenas prácticas a la hora de escribir código.
 
-CASO 1: Implementar “Planes de Pago” (Planes de Préstamo) para creación rápida de préstamos
+CASO 1:
+
+Escenario en flujo del prestamo:
+Caso: Monto de la cuotas vencidas y pendientes, no estan siendo bien calculadas.
+
+Datos del prestamo:
+
+1. Prestamo por 10,000 en moneda NIO.
+2. fecha de desembolso 01-12-2025
+3. El app genero 2 ciclos vencidos y 1 corriendo.(esto esta correcto)
+4. fecha actual 08-01-2026
+5. Interes=10%
+6. Frecuencia=Quincenal
+7. valor de cada cuota vencida 500 NIO
+
+
+
+¿Que ocurre?
+Sucede que el sistema en vez de mostrar los 500 NIO , que corresponde a cada una de las cuotas, esta mostrando un valor de 499.95 en todas las cuotas, tanto las vencidas como las pendiente.
+
+Esto estaba bien, pero ahorita con el últomo cambio que hisistes, que consiste en leer las frecuencias de pago(cobro) desde la base de datos, desde ahi esta sucediento esto.
+
+Revisa bien las causas de este caso y aplica las mejoras de la mejor forma correcta.
+
+¿que no debes hacer?
+
+Advertencias a considerar en el desarrollo:
+1. No dejar nada harcodeado, como por ejemplo: los colores, ni texto, dias, frecuencias de cobros(pagos), ansolutamente nada.
+2. No cuadrar o hacer que este escenario salga correcto(harcodeado).
+3. Hacer pruebas del flujo completo para asegurse de que todo funcione correctamente.
+4. Considerar afectaciones en el flujo existente y hacer los ajustes necesarios.
+5. Asegurate de que lo nuevo que hagas, funcione para multiIdiomas.
+6. Reconstruir el APK, para yo probarlo.
+
+
+
+
+
+
+
+
+
+**Fix encontrado**
+
+/*10  enero 2026 */
+
+Tómate un tiempo para analizar la siguiente mejora y haz el desarrollo considerando las reglas descritas en el archivo .antigravityrules.md y apóyate del MCP de Flutter para resolver los errores que aparezcan, así como para investigar sobre las buenas prácticas a la hora de escribir código.
+
+CASO 1:
+
+Escenario en flujo del prestamo:
+Caso: Recibos no actualiza el saldo restante, cuando se cancela el crédito.
+
+Datos del prestamo:
+
+1. Prestamo por 200 en moneda USD.
+2. fecha de desembolso 01-12-2025
+3. El app genero 1 ciclos vencidos y 1 corriendo.(esto esta correcto)
+4. fecha actual 10-01-2026
+5. Interes=10%
+6. Frecuencia=Mensual
+7. valor de cada cuota vencida 20 USD
+
+
+
+¿Que ocurre?
+Se realizo 2 abonos 10 USD cada UNO, y fueron aplicados correctamente , los recibos segui diciendo que quedaba un saldo de 200 USD de capital. Despues se procedio a cencelar el prestamo con 207.33, que fue el monto propuesto por el sistema ya que la segundo cliclo es proporcional. y se procedio a cencelar, y en el recibo la distribucion se hace correctamente dice: 7.33 de intereses y 200 de capital, pero en texto que dice : Saldo Restante, sigue disiendo 200 USD. eso esta mal, por que ese dato debe irse actualizando cada vez que se haga un pago, siempre y cuando haya existido un abono al capital.
+
+
+
+Advertencias a considerar en el desarrollo:
+1. No dejar nada harcodeado, como por ejemplo: los colores, ni texto, dias, frecuencias de cobros(pagos), ansolutamente nada.
+2. No cuadrar o hacer que este escenario salga correcto(harcodeado).
+3. Hacer pruebas del flujo completo para asegurse de que todo funcione correctamente.
+4. Considerar afectaciones en el flujo existente y hacer los ajustes necesarios.
+5. Asegurate de que lo nuevo que hagas, funcione para multiIdiomas.
+6. NO harcodear monedas, ya que el sistema es multimonedas.
+7. Reconstruir el APK, para yo probarlo.
+
+**listo**
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+**Posteriorio**
+
+
+**Siguiente mejora**
+**10 enero 2026**
+
+Tómate un tiempo para analizar la siguiente mejora y haz el desarrollo considerando las reglas descritas en el archivo .antigravityrules.md y apóyate del MCP de Flutter para resolver los errores que aparezcan, así como para investigar sobre las buenas prácticas a la hora de escribir código.
+
+CASO 1: Implementar “Planes de Pago” (Planes de Préstamo) para creación rápida de préstamos.
+
 Objetivo de negocio
 
 Se debe implementar una nueva parametrización llamada “Planes de Pago” (o “Planes de Préstamo”), donde el prestamista pueda definir planes preconfigurados (tasa, plazo, frecuencia, moneda, límites, etc.).
 Cuando el prestamista seleccione un plan al crear un préstamo, lo único que debe ingresar es el monto a prestar (capital).
+
 El sistema debe aplicar automáticamente el resto de valores del plan y generar los ciclos con la lógica existente (lazy), sin romper el flujo actual.
 
 1) Nuevas pantallas en Ajustes
@@ -628,7 +780,7 @@ Eliminar
 
 Activar / Desactivar
 
-Validaciones en Planes
+Validaciones en Planes:
 
 No se puede eliminar un plan si existe al menos un préstamo activo asociado a ese plan.
 
@@ -770,19 +922,36 @@ Generar ciclos hasta hoy, igual que ahora.
 
 Para préstamos con plan, se debe:
 
+Reglas oficiales (blindaje del algoritmo, coherente con el catálogo de frecuencias):
+
+La Frecuencia de pago siempre se define por paymentFrequencyDays (intervalDays) desde el catálogo.
+
+Se debe trabajar con estándar comercial:
+
+1 mes = 30 días
+
+1 año = 365 días
+
+El número de ciclos del plan debe ser calculable y consistente con lo anterior.
+
 Calcular una fecha fin del plan:
 
-endDateCalculated = startDate + (planInstallmentsTotal * paymentFrequencyDays)
+endDateCalculated = startDate + (planInstallmentsTotal * paymentFrequencyDays) - 1 día
+(El “- 1 día” es obligatorio para que la Fecha Fin sea consistente con la lógica actual donde el ciclo termina en start + (cycleDays - 1).)
 
 Cambiar el tope de generación:
 
 tope = min(hoy, endDateCalculated)
 
-Generar ciclos solo hasta ese tope, sin sobrepasarlo.
+Generar ciclos solo hasta ese tope, sin sobrepasarlo (si el último ciclo excede el tope, debe recortarse para terminar exactamente en endDateCalculated).
 
 Distribución capital + interés (solo si el plan lo indica)
 
 Cuando distributeCapitalAndInterest == true:
+
+Regla de negocio del prestamista (interés add-on por plazo):
+
+El interés no se calcula por ciclo; primero se calcula el interés total del plazo y luego se distribuye entre los ciclos.
 
 Calcular el interés total del plazo usando la regla de negocio:
 
@@ -791,16 +960,20 @@ interesTotal = capital * tasaMensual * mesesEquivalentes
 Donde mesesEquivalentes debe ser coherente con intervalos fijos:
 
 mesesEquivalentes = (planInstallmentsTotal * paymentFrequencyDays) / 30
-
 (Usar 30 como estándar comercial, coherente con tu “mensual = 30 días”)
 
 Total a pagar:
 
 total = capital + interesTotal
 
+Cantidad de ciclos:
+
+ciclosTotales = planInstallmentsTotal
+(Se distribuye el total entre esa cantidad de ciclos.)
+
 Monto esperado por ciclo:
 
-esperadoPorCiclo = total / planInstallmentsTotal
+esperadoPorCiclo = total / ciclosTotales
 
 Asegurar que el redondeo no deje diferencias:
 
@@ -810,45 +983,49 @@ Importante:
 
 Esta lógica NO debe afectar préstamos sin plan.
 
+Actualmente los ciclos en el sistema manejan “Esperado/Pendiente” en términos de interés (interestExpected/interestPending).
+Para préstamos con plan y con distribución activa, se debe soportar que el ciclo maneje también el “Esperado/Pendiente” de la cuota total (capital + interés) sin romper el flujo tradicional.
+En otras palabras:
+
+Préstamos SIN plan deben seguir usando los ciclos como hoy (interés por ciclo).
+
+Préstamos CON plan + distribución activa deben permitir ciclos con cuota total por ciclo, manteniendo compatibilidad con el modelo existente (puede requerir nuevos campos en la BD/entidad de ciclos).
+
 Los ciclos “Esperado/Pendiente” deben seguir mostrándose como hoy en el detalle del préstamo.
-
-
-
-
 
 6) Registrar Pago: ajustar comportamiento solo para préstamos con Plan (sin romper el flujo actual)
 
-La pantalla Registrar Pago debe mantenerse igual para préstamos sin plan (flujo actual), conservando exactamente las opciones existentes como :
+La pantalla Registrar Pago debe mantenerse igual para préstamos sin plan (flujo actual), conservando exactamente las opciones existentes como:
 
-1. Mixto
+Mixto
 
-2. Solo Interés
+Solo Interés
 
-3. Solo Capital
+Solo Capital
 
-4. Cancelar
+Cancelar
 
-5. Recuperar
+Recuperar
 
 6.1 Detección del escenario “Plan con cuotas distribuidas”
 
 Al entrar a Registrar Pago, el sistema debe detectar si el préstamo cumple ambas condiciones:
 
-1. Fue creado con Plan de Pago (tiene planId o equivalente).
+Fue creado con Plan de Pago (tiene planId o equivalente).
 
-2. El plan tiene activa la opción “Distribuir capital + interés en las cuotas”.
+El plan tiene activa la opción “Distribuir capital + interés en las cuotas”.
 
 6.2 Comportamiento UI cuando aplica Plan con cuotas distribuidas
 
 Si el préstamo cumple esas dos condiciones:
 
-1. Deshabilitar (enable = false) los botones de tipo de pago que hoy existen como:
+Deshabilitar (enable = false) los botones de tipo de pago que hoy existen como:
 
-1. Mixto
+Mixto
 
-2. Solo Interés
+Solo Interés
 
-3. Solo Capital etc.
+Solo Capital, etc.
 
 (Mantener disponibles Cancelar y Recuperar; si ya tienen validaciones, respetarlas.)
 
@@ -865,6 +1042,11 @@ El campo Monto Pago debe permitir edición manual para soportar:
 Pago parcial: el usuario puede bajar el monto.
 
 Pago de más: el usuario puede aumentar el monto.
+
+Blindaje adicional para que no se rompa la lógica actual:
+
+En este modo “Cuota del Plan”, el pago debe aplicarse internamente reutilizando la lógica existente (equivalente a un pago tipo “Mixto” automático), sin inventar reglas nuevas.
+La diferencia es que el usuario no elige el tipo; el sistema aplica el pago a la cuota correspondiente usando el motor actual.
 
 6.3 Reglas de negocio para “Parcial” y “De más”
 
@@ -892,10 +1074,6 @@ Plan con pago de más (excedente a la siguiente cuota).
 
 Préstamos tradicionales (sin plan) para asegurar que no se rompió nada.
 
-
-
-
-
 Advertencias a considerar en el desarrollo
 
 No dejar nada hardcodeado (textos, etiquetas, colores, reglas, etc.). Todo debe venir de configuración, catálogos o localización.
@@ -909,7 +1087,6 @@ Préstamo con plan (nuevo flujo)
 Pagos (todos los tipos) para ambos casos
 
 Considerar afectaciones en el flujo existente y hacer los ajustes necesarios sin romper funcionalidad.
-
 
 Si es necesario crear nuevos campos/tablas para soportar el plan, puedes hacerlo, siempre y cuando no afecte la funcionalidad existente.
 
