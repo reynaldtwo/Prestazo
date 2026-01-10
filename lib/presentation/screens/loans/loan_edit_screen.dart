@@ -10,6 +10,7 @@ import '../../../data/providers/providers.dart';
 import '../../../services/billing_cycle_service.dart';
 import '../../../core/providers/currency_provider.dart';
 import '../../../core/localization/locale_provider.dart';
+import '../../../data/providers/payment_frequency_provider.dart';
 
 /// Screen for editing an existing loan
 /// Note: Allows editing Capital, Date, Rate, Notes.
@@ -30,6 +31,7 @@ class _LoanEditScreenState extends ConsumerState<LoanEditScreen> {
   DateTime? _disbursementDate;
   DateTime? _endDate;
   String _billingFrequency = 'MONTHLY';
+  int? _paymentFrequencyDays;
 
   Loan? _loan;
   bool _isLoading = false;
@@ -58,6 +60,7 @@ class _LoanEditScreenState extends ConsumerState<LoanEditScreen> {
           _disbursementDate = loan.disbursementDate;
           _endDate = loan.endDate;
           _billingFrequency = loan.billingFrequency;
+          _paymentFrequencyDays = loan.paymentFrequencyDays;
           _isLoaded = true;
           _errorMessage = null;
         });
@@ -350,6 +353,7 @@ class _LoanEditScreenState extends ConsumerState<LoanEditScreen> {
         principalBalance: newBalance,
         monthlyInterestRate: newRate,
         billingFrequency: _billingFrequency,
+        paymentFrequencyDays: _paymentFrequencyDays,
         disbursementDate: _disbursementDate,
         endDate: _endDate,
         notes: notes.isEmpty ? null : notes,
@@ -421,67 +425,50 @@ class _LoanEditScreenState extends ConsumerState<LoanEditScreen> {
   }
 
   Widget _buildFrequencySelector() {
+    final frequenciesAsync = ref.watch(activePaymentFrequenciesProvider);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(S.of(context).billingFrequency, style: AppTypography.labelMedium),
         const SizedBox(height: 8),
-        LayoutBuilder(
-          builder: (context, constraints) {
-            final double itemWidth = (constraints.maxWidth - 8) / 2;
-            return Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                SizedBox(
-                  width: itemWidth,
-                  child: _FrequencyOption(
-                    label: S.of(context).daily,
-                    subtitle:
-                        '1 ${S.of(context).today.toLowerCase().substring(0, 3)}',
-                    icon: Icons.calendar_view_day,
-                    isSelected: _billingFrequency == 'DAILY',
-                    onTap: () => setState(() => _billingFrequency = 'DAILY'),
-                    isCompact: true,
-                  ),
-                ),
-                SizedBox(
-                  width: itemWidth,
-                  child: _FrequencyOption(
-                    label: S.of(context).weekly,
-                    subtitle:
-                        '7 ${S.of(context).today.toLowerCase().substring(0, 3)}',
-                    icon: Icons.calendar_view_week,
-                    isSelected: _billingFrequency == 'WEEKLY',
-                    onTap: () => setState(() => _billingFrequency = 'WEEKLY'),
-                    isCompact: true,
-                  ),
-                ),
-                SizedBox(
-                  width: itemWidth,
-                  child: _FrequencyOption(
-                    label: S.of(context).biweekly,
-                    subtitle:
-                        '15 ${S.of(context).today.toLowerCase().substring(0, 3)}',
-                    icon: Icons.calendar_view_month,
-                    isSelected: _billingFrequency == 'BIWEEKLY',
-                    onTap: () => setState(() => _billingFrequency = 'BIWEEKLY'),
-                    isCompact: true,
-                  ),
-                ),
-                SizedBox(
-                  width: itemWidth,
-                  child: _FrequencyOption(
-                    label: S.of(context).monthly,
-                    subtitle:
-                        '30 ${S.of(context).today.toLowerCase().substring(0, 3)}',
-                    icon: Icons.calendar_month,
-                    isSelected: _billingFrequency == 'MONTHLY',
-                    onTap: () => setState(() => _billingFrequency = 'MONTHLY'),
-                    isCompact: true,
-                  ),
-                ),
-              ],
+        frequenciesAsync.when(
+          loading: () => const SizedBox(
+            height: 50,
+            child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
+          ),
+          error: (err, _) => Text(
+            'Error: $err',
+            style: const TextStyle(color: AppColors.danger),
+          ),
+          data: (frequencies) {
+            return LayoutBuilder(
+              builder: (context, constraints) {
+                final double itemWidth = (constraints.maxWidth - 8) / 2;
+                return Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: frequencies.map((freq) {
+                    final isSelected = _billingFrequency == freq.id;
+                    return SizedBox(
+                      width: itemWidth,
+                      child: _FrequencyOption(
+                        label: freq.name,
+                        subtitle:
+                            '${freq.daysInterval} ${S.of(context).daysInterval.toLowerCase()}',
+                        icon: Icons.calendar_today,
+                        isSelected: isSelected,
+                        onTap: () {
+                          setState(() {
+                            _billingFrequency = freq.id;
+                            _paymentFrequencyDays = freq.daysInterval;
+                          });
+                        },
+                        isCompact: true,
+                      ),
+                    );
+                  }).toList(),
+                );
+              },
             );
           },
         ),

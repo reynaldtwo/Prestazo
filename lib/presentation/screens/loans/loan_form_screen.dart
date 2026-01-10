@@ -17,6 +17,7 @@ import '../../../services/whatsapp_service.dart';
 
 import '../../../data/models/currency_context.dart';
 import 'package:sealed_currencies/sealed_currencies.dart';
+import '../frequencies/payment_frequency_selection_screen.dart';
 
 /// Loan form screen for creating new loans with Riverpod
 class LoanFormScreen extends ConsumerStatefulWidget {
@@ -49,6 +50,24 @@ class _LoanFormScreenState extends ConsumerState<LoanFormScreen> {
     super.initState();
     _initializeCurrency();
     _loadCustomer();
+    _loadDefaultFrequency();
+  }
+
+  Future<void> _loadDefaultFrequency() async {
+    // Optional: Load default frequency (e.g. Monthly)
+    try {
+      final frequencies = await ref.read(
+        activePaymentFrequenciesProvider.future,
+      );
+      if (frequencies.isNotEmpty && mounted) {
+        final monthly = frequencies.where((f) => f.id == 'MONTHLY').firstOrNull;
+        setState(() {
+          _selectedFrequency = monthly ?? frequencies.first;
+        });
+      }
+    } catch (_) {
+      // Ignore error, user will select manually
+    }
   }
 
   void _initializeCurrency() {
@@ -617,65 +636,74 @@ class _LoanFormScreenState extends ConsumerState<LoanFormScreen> {
   }
 
   Widget _buildFrequencySelector() {
-    final frequenciesAsync = ref.watch(activePaymentFrequenciesProvider);
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(S.of(context).billingFrequency, style: AppTypography.labelMedium),
         const SizedBox(height: 8),
-        frequenciesAsync.when(
-          loading: () => const SizedBox(
-            height: 50,
-            child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
-          ),
-          error: (err, _) => Text(
-            'Error: $err',
-            style: const TextStyle(color: AppColors.danger),
-          ),
-          data: (frequencies) {
-            if (frequencies.isEmpty) return const Text('No active frequencies');
+        InkWell(
+          onTap: () async {
+            final result = await Navigator.of(context).push<PaymentFrequency>(
+              MaterialPageRoute(
+                builder: (context) => const PaymentFrequencySelectionScreen(),
+              ),
+            );
 
-            // Auto-select MONTHLY if nothing selected
-            if (_selectedFrequency == null && frequencies.isNotEmpty) {
-              // Try to find Monthly or default to first
-              final monthly = frequencies
-                  .where((f) => f.id == 'MONTHLY')
-                  .firstOrNull;
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                if (mounted) {
-                  setState(
-                    () => _selectedFrequency = monthly ?? frequencies.first,
-                  );
-                }
+            if (result != null && mounted) {
+              setState(() {
+                _selectedFrequency = result;
               });
             }
-
-            return LayoutBuilder(
-              builder: (context, constraints) {
-                final double itemWidth = (constraints.maxWidth - 8) / 2;
-                return Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: frequencies.map((freq) {
-                    return SizedBox(
-                      width: itemWidth,
-                      child: _FrequencyOption(
-                        label: freq.name,
-                        subtitle:
-                            '${freq.daysInterval} ${S.of(context).daysInterval.toLowerCase()}',
-                        icon: Icons
-                            .calendar_today, // Generic icon or custom mapping
-                        isSelected: _selectedFrequency?.id == freq.id,
-                        onTap: () => setState(() => _selectedFrequency = freq),
-                        isCompact: true,
-                      ),
-                    );
-                  }).toList(),
-                );
-              },
-            );
           },
+          borderRadius: BorderRadius.circular(12),
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              border: Border.all(color: Theme.of(context).colorScheme.outline),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.surfaceContainerHighest,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(
+                    Icons.calendar_today,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        _selectedFrequency?.name ??
+                            S.of(context).selectFrequency,
+                        style: AppTypography.bodyLarge.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: _selectedFrequency == null
+                              ? Theme.of(context).colorScheme.onSurfaceVariant
+                              : Theme.of(context).colorScheme.onSurface,
+                        ),
+                      ),
+                      if (_selectedFrequency != null)
+                        Text(
+                          '${_selectedFrequency!.daysInterval} ${S.of(context).daysInterval.toLowerCase()}',
+                          style: AppTypography.bodySmall,
+                        ),
+                    ],
+                  ),
+                ),
+                const Icon(Icons.chevron_right),
+              ],
+            ),
+          ),
         ),
       ],
     );

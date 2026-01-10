@@ -14,6 +14,7 @@ import '../../../services/billing_cycle_service.dart';
 import '../../../core/constants/app_status.dart';
 import '../../../core/localization/locale_provider.dart';
 import '../../../services/whatsapp_service.dart';
+import '../../../data/providers/payment_frequency_provider.dart';
 
 import '../../../core/utils/currency_utils.dart';
 
@@ -270,12 +271,19 @@ Future<void> _shareDisbursementReceipt(
     // Use LOAN currency for client-facing documents, not global settings
     final currencySymbol = CurrencyUtils.getCurrencySymbol(loan.currencyCode);
 
+    // Get frequency name
+    final frequencies = await ref.read(paymentFrequenciesProvider.future);
+    final frequency = frequencies
+        .where((f) => f.id == loan.billingFrequency)
+        .firstOrNull;
+
     await pdfService.generateDisbursementReceipt(
       loan: loan,
       customer: customer,
       settings: settings,
       locale: locale,
       currencySymbol: currencySymbol,
+      frequencyName: frequency?.name,
     );
   } catch (e) {
     if (context.mounted) {

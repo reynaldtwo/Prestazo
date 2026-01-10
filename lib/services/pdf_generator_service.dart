@@ -169,6 +169,7 @@ class PdfGeneratorService {
     required AppSettings settings,
     required Locale locale,
     required String currencySymbol,
+    String? frequencyName,
   }) async {
     final s = lookupS(locale);
     final pdf = pw.Document();
@@ -187,6 +188,7 @@ class PdfGeneratorService {
           settings,
           s,
           currencyFormat,
+          frequencyName: frequencyName,
         ),
       ),
     );
@@ -866,8 +868,9 @@ class PdfGeneratorService {
     Customer customer,
     AppSettings settings,
     S s,
-    NumberFormat currencyFormat,
-  ) {
+    NumberFormat currencyFormat, {
+    String? frequencyName,
+  }) {
     return pw.Column(
       mainAxisSize: pw.MainAxisSize.min,
       crossAxisAlignment: pw.CrossAxisAlignment.center,
@@ -960,7 +963,9 @@ class PdfGeneratorService {
           mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
           children: [
             pw.Text(s.frequencyLabel),
-            pw.Text(_translateFrequency(loan.billingFrequency, s)),
+            pw.Text(
+              _translateFrequency(loan.billingFrequency, s, frequencyName),
+            ),
           ],
         ),
         if (loan.endDate != null)
@@ -1014,7 +1019,13 @@ class PdfGeneratorService {
     );
   }
 
-  String _translateFrequency(String frequency, S s) {
+  String _translateFrequency(String frequency, S s, String? frequencyName) {
+    // If a custom name is provided, use it (assumes it's already relevant/localized if possible)
+    if (frequencyName != null && frequencyName.isNotEmpty) {
+      return frequencyName;
+    }
+
+    // Fallback for standard frequencies if no name provided
     switch (frequency) {
       case 'DAILY':
         return s.freqDaily;
@@ -1024,6 +1035,8 @@ class PdfGeneratorService {
         return s.freqBiweekly;
       case 'MONTHLY':
         return s.freqMonthly;
+      case 'ANNUALLY':
+        return s.freqAnnually;
       default:
         return frequency;
     }

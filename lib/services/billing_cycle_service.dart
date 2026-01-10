@@ -61,12 +61,15 @@ class BillingCycleService {
     final existingCycles = await _cycleRepo.getBillingCyclesByLoan(loan.loanId);
 
     // Determine frequency from LOAN
+    // PRIORITY: Use paymentFrequencyDays from DB
+    // Fallback for legacy: Map standard strings to days
     final cycleDays =
         loan.paymentFrequencyDays ??
         switch (loan.billingFrequency) {
           'WEEKLY' => 7,
           'DAILY' => 1,
           'BIWEEKLY' => 15,
+          'ANNUALLY' => 365,
           _ => 30, // MONTHLY default
         };
 
@@ -108,6 +111,7 @@ class BillingCycleService {
         cycleNumber: nextCycleNumber,
         startDate: nextStart,
         endDate: nextEnd,
+        cycleDurationDays: cycleDays,
       );
 
       await _cycleRepo.insertBillingCycle(cycle);
@@ -191,19 +195,13 @@ class BillingCycleService {
     required int cycleNumber,
     required DateTime startDate,
     required DateTime endDate,
+    required int cycleDurationDays,
   }) {
     final now = DateTime.now();
     final frequency = loan.billingFrequency;
 
-    // Calculate expected interest
-    final interestExpected = loan.paymentFrequencyDays != null
-        ? loan.calculateDailyInterest() * loan.paymentFrequencyDays!
-        : switch (loan.billingFrequency) {
-            'WEEKLY' => loan.calculateWeeklyInterest(),
-            'DAILY' => loan.calculateDailyInterest(),
-            'BIWEEKLY' => loan.calculateBiweeklyInterest(),
-            _ => loan.calculateMonthlyInterest(),
-          };
+    // Calculate expected interest (High Precision)
+    final interestExpected = loan.calculateInterestForDays(cycleDurationDays);
 
     return BillingCycle(
       billingCycleId: '${loan.loanId}_cycle_$cycleNumber',

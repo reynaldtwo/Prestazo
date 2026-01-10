@@ -77,7 +77,16 @@ class Loan extends Equatable {
     return _roundMoney(principalBalance * (weeklyInterestRate / 100));
   }
 
-  /// Calculate interest for one day
+  /// Calculate interest for specific number of days (High Precision)
+  /// Use this for dynamic frequencies to avoid intermediate rounding errors.
+  double calculateInterestForDays(int days) {
+    if (days <= 0) return 0.0;
+    // Calculate full precision, only round at the very end
+    final rawInterest = principalBalance * (dailyInterestRate / 100) * days;
+    return _roundMoney(rawInterest);
+  }
+
+  /// Calculate interest for one day (Rounded)
   double calculateDailyInterest() {
     return _roundMoney(principalBalance * (dailyInterestRate / 100));
   }

@@ -526,6 +526,70 @@ dame un resumen claro de como se hace actualmente y mostrame los archicos que co
 Tómate un tiempo para analizar la siguiente mejora y haz el desarrollo considerando las reglas descritas en el archivo .antigravityrules.md y apóyate del MCP de Flutter para resolver los errores que aparezcan, así como para investigar sobre las buenas prácticas a la hora de escribir código.
 
 CASO 1:
+En la pantalla Nuevo Prestamo, Vas a quitar las frecuencias de cobros que actualmente tenemos harcodeadas y vas a remplazarlas por las que se encuentran en la tabla de la base de datos. Que corresponden a las que se guardan desde ajustes en catalogos --> frecuencias de Pagos. y en el archivo lib/services/billing_cycle_service.dart vas a modificar la logica en:
+
+final cycleDays = loan.paymentFrequencyDays ?? switch (loan.billingFrequency) {
+  'WEEKLY' => 7,
+  'DAILY' => 1,
+  'BIWEEKLY' => 15,
+  _ => 30, // Mensual fijo de 30 días
+};
+// ...
+final nextEnd = nextStart.add(Duration(days: cycleDays - 1));
+
+
+Para que no tenga harcodeado los dias de la frecuencia si no que tome los dias de la frecuencia que se encuentra en la tabla de la base de datos.
+
+Adicional a esto: Vas a analizar el proyecto completo desde principio a fin, en busca de posibles puntos en los que actualmente se este usando estos dias de las frecuencias de cobros. harcodeados y reemplazalos para que leaa y funcione con los dias de las frecuencias de cobros que se encuentran en la tabla de la base de datos.
+
+Revisa bien todo el flujo completo para asegurse de que todo funcione correctamente y que no se vaya a romper nada, con esto nuevo.
+
+
+Advertencias a considerar en el desarrollo:
+1. No dejar nada harcodeado, como por ejemplo: los colores, ni texto, dias, frecuencias de cobros(pagos), ansolutamente nada.
+2. Hacer pruebas del flujo completo para asegurse de que todo funcione correctamente.
+3. Considerar afectaciones en el flujo existente y hacer los ajustes necesarios.
+4. Reconstruir el APK, para yo probarlo.
+5. si es necesario,  crear nuevos campos en la base de datos para que se guarde la informacion de las frecuencias de cobros(pagos) o cualquier otro dato que se necesite para cumplir con lo pedido, puedes hacerlo, siempre y cuando no afecte a la funcionalidad existente.
+6. Asegurate de que lo nuevo que hagas, funcione para multiIdiomas.
+
+
+
+
+
+
+
+**Siguiente mejora**
+/* 09 enero 2026 */
+
+Tómate un tiempo para analizar la siguiente mejora y haz el desarrollo considerando las reglas descritas en el archivo .antigravityrules.md y apóyate del MCP de Flutter para resolver los errores que aparezcan, así como para investigar sobre las buenas prácticas a la hora de escribir código.
+
+CASO 1:
+En pantalla Nuevo prestamo, actualmente estas mapeando las frecuencias de cobros(pagos) que se encuentran en la tabla de la base de datos, entonces vas a reemplazarlo por un campo de seleccion de frecuencia de cobros(pagos) para esto crea una nueva pantalla(vista) que se encargue de mostrar las frecuencias de cobros(pagos) que se encuentran en la tabla de la base de datos y que tenga sistema de busqueda y ordenamiento. 
+
+
+Advertencias a considerar en el desarrollo:
+1. No dejar nada harcodeado, como por ejemplo: los colores, ni texto, dias, frecuencias de cobros(pagos), ansolutamente nada.
+2. Hacer pruebas del flujo completo para asegurse de que todo funcione correctamente.
+3. Considerar afectaciones en el flujo existente y hacer los ajustes necesarios.
+4. si es necesario,  crear nuevos campos en la base de datos para que se guarde la informacion de las frecuencias de cobros(pagos) o cualquier otro dato que se necesite para cumplir con lo pedido, puedes hacerlo, siempre y cuando no afecte a la funcionalidad existente.
+5. Asegurate de que lo nuevo que hagas, funcione para multiIdiomas.
+6. Reconstruir el APK, para yo probarlo.
+
+**Error**
+
+/* 09 enero 2026 */
+
+Tómate un tiempo para analizar la siguiente mejora y haz el desarrollo considerando las reglas descritas en el archivo .antigravityrules.md y apóyate del MCP de Flutter para resolver los errores que aparezcan, así como para investigar sobre las buenas prácticas a la hora de escribir código.
+
+en las pruebas al crear un prestamo y darle crear prestamo dio este error:
+
+
+Error: DatabaseException(table loans has no column named payment_frequency_days (code 1 SQLITE_ERROR[1]): , while compiling: INSERT OR REPLACE INTO loans (loan_id, customer_id, principal_original, principal_balance, monthly_interest_rate, rate_unit, billing_frequency, disbursement_date, end_date, status, closed_at, notes, loan_number, currency_code, applied_exchange_rate, created_at, updated_at, payment_frequency_days) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, NULL, ?, ?, NULL, ?, ?, ?)) sql 'INSERT OR REPLACE INTO loans (loan_id, customer_id, principal_original, principal_balance, monthly_interest_rate, rate_unit, billing_frequency, disbursement_date, end_date, status, closed_at, notes, loan_number, currency_code, applied_exchange_rate, created_at, updated_at, payment_frequency_days) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, NULL, ?, ?, NULL, ?, ?, ?)' args [854c26eb-486a-454a-9f42-edc09e51a15d, 249771ea-13fc-4a66-8167-50b8aebbab71, 1000.0, 1000.0, 10.0, MONTHLY, DAILY, 2026-01-01, 2027-01-31, ACTIVE, 1, NIO, 2026-01-09T16:55:06.377274, 2026-01-09T16:55:06.379079, 1]
+
+
+
+Revisa bien todo el flujo completo para asegurse de que todo funcione correctamente y que no se vaya a romper nada, con esto nuevo. Asegurate de aumentar la version, agregar los nuevos campos en la base de datos.
 
 
 
@@ -539,22 +603,316 @@ CASO 1:
 
 
 
+**Siguiente mejora**
+**09 enero 2026**
 
-CASO 2:
+Tómate un tiempo para analizar la siguiente mejora y haz el desarrollo considerando las reglas descritas en el archivo .antigravityrules.md y apóyate del MCP de Flutter para resolver los errores que aparezcan, así como para investigar sobre las buenas prácticas a la hora de escribir código.
+
+CASO 1: Implementar “Planes de Pago” (Planes de Préstamo) para creación rápida de préstamos
+Objetivo de negocio
+
+Se debe implementar una nueva parametrización llamada “Planes de Pago” (o “Planes de Préstamo”), donde el prestamista pueda definir planes preconfigurados (tasa, plazo, frecuencia, moneda, límites, etc.).
+Cuando el prestamista seleccione un plan al crear un préstamo, lo único que debe ingresar es el monto a prestar (capital).
+El sistema debe aplicar automáticamente el resto de valores del plan y generar los ciclos con la lógica existente (lazy), sin romper el flujo actual.
+
+1) Nuevas pantallas en Ajustes
+1.1) Ajustes → Catálogos → Planes de Pago
+
+Crear una nueva pantalla para administrar planes con opciones:
+
+Nuevo
+
+Editar
+
+Eliminar
+
+Activar / Desactivar
+
+Validaciones en Planes
+
+No se puede eliminar un plan si existe al menos un préstamo activo asociado a ese plan.
+
+No se puede desactivar un plan si existe al menos un préstamo activo asociado a ese plan.
+
+2) Datos que debe tener cada Plan de Pago
+
+Cada plan debe guardar al menos:
+
+Nombre del plan (obligatorio)
+
+Frecuencia de pago por defecto (obligatorio)
+
+Debe referenciar el catálogo existente de Frecuencias de Pago (tabla ya creada) y utilizar sus intervalDays.
+
+Plazo del plan (Cantidad de cuotas) (obligatorio)
+
+Este valor define cuántos ciclos “máximo” debe tener el préstamo cuando se crea con plan.
+
+Tasa de interés mensual (%) (obligatorio)
+
+Moneda base del plan (obligatorio)
+
+Permitir cambiar moneda al crear préstamo (sí/no, obligatorio)
+
+Monto mínimo (obligatorio)
+
+Monto máximo (obligatorio)
+
+Distribuir capital + interés en las cuotas (sí/no, obligatorio)
+
+Esta es la diferencia principal del plan: si está activo, cada cuota debe contemplar capital + interés (según reglas definidas abajo).
+
+Periodo inicia al desembolsar (sí/no, obligatorio)
+
+Si está ACTIVO: al crear un préstamo con plan, la Fecha de Desembolso debe tomarse automáticamente (por defecto la fecha actual), porque el plan “inicia al desembolsar”.
+
+Si está INACTIVO: al crear un préstamo con plan, el sistema debe exigir que el prestamista seleccione manualmente la Fecha de Desembolso (fecha efectiva del préstamo) usando el campo existente en la interfaz. Esta fecha será la base para calcular cuotas y vencimientos.
+
+Aplica a clientes con categoría (opcional)
+
+Si el plan se restringe a categorías específicas, solo debe estar disponible al crear préstamos para clientes que coincidan.
+
+3) Crear Préstamo: integrar Plan de Pago sin romper flujo actual
+3.1) Nuevo campo en “Nuevo Préstamo”
+
+En la pantalla Nuevo Préstamo, agregar arriba un selector:
+
+Plan de Pago (Opcional)
+
+Comportamiento:
+
+Si el usuario NO selecciona plan:
+
+El flujo actual se mantiene exactamente igual (préstamo “abierto”).
+
+El usuario selecciona frecuencia y llena los campos manualmente como siempre.
+
+Si el usuario SÍ selecciona plan:
+
+El sistema debe autocompletar y bloquear (o dejar solo lectura) estos campos:
+
+Frecuencia de cobro (desde plan)
+
+Tasa mensual (desde plan)
+
+Moneda (desde plan, salvo que el plan permita cambiar)
+
+Cualquier regla adicional del plan
+
+El usuario solo ingresa:
+
+Monto del préstamo (Capital)
+
+3.2) Manejo de Fechas en UI cuando hay Plan
+
+El campo Fecha de Desembolso ya existe en la interfaz:
+
+Si el plan tiene “Periodo inicia al desembolsar = Activo”, la fecha debe venir prellenada automáticamente (por defecto “hoy”), ya que el préstamo inicia al desembolsar.
+
+Si el plan tiene “Periodo inicia al desembolsar = Inactivo”, la fecha de desembolso debe ser obligatoria y el usuario debe seleccionarla manualmente.
+
+El campo Fecha Fin (Opcional) que hoy existe como informativo:
+
+Cuando el préstamo se cree con Plan de Pago, esta Fecha Fin debe autocompletarse automáticamente según el plan (plazo + frecuencia + fecha de desembolso efectiva), porque el plan sí tiene un final definido.
+
+Asegurar que el cálculo de Fecha Fin se base en intervalos fijos en días (coherente con el sistema actual).
+
+Validaciones al crear con plan:
+
+El monto debe estar entre monto mínimo y máximo del plan.
+
+Si el plan aplica a categorías, validar que el cliente cumple.
+
+Validar que exista Fecha de Desembolso efectiva según la regla del plan.
+
+4) Base de datos y “snapshot” de parámetros del plan en el préstamo
+4.1) Nueva tabla: Planes de Pago
+
+Crear la entidad/tabla para almacenar los planes con todos los campos del punto 2.
+
+4.2) Modificar la entidad/tabla de Préstamos
+
+Al crear un préstamo con plan, el préstamo debe guardar un “snapshot” de parámetros para no depender de cambios futuros del plan, incluyendo como mínimo:
+
+planId (nullable)
+
+paymentFrequencyId
+
+paymentFrequencyDays (copiado desde la frecuencia seleccionada)
+
+planInstallmentsTotal (cantidad de cuotas del plan)
+
+interestRateMonthly (tasa mensual aplicada)
+
+distributeCapitalAndInterest (sí/no)
+
+startDate (fecha desembolso efectiva)
+
+endDateCalculated (fecha fin calculada del plan, que también se refleja en UI)
+
+moneda aplicada y flags necesarios
+
+5) Generación de ciclos: adaptar billing_cycle_service.dart para soportar préstamos con plan
+
+Actualmente el sistema genera ciclos con lógica lazy en base a:
+
+startDate
+
+cycleDays (intervalos fijos)
+
+“hoy”
+
+Requerimiento nuevo:
+
+Para préstamos sin plan, se mantiene:
+
+Generar ciclos hasta hoy, igual que ahora.
+
+Para préstamos con plan, se debe:
+
+Calcular una fecha fin del plan:
+
+endDateCalculated = startDate + (planInstallmentsTotal * paymentFrequencyDays)
+
+Cambiar el tope de generación:
+
+tope = min(hoy, endDateCalculated)
+
+Generar ciclos solo hasta ese tope, sin sobrepasarlo.
+
+Distribución capital + interés (solo si el plan lo indica)
+
+Cuando distributeCapitalAndInterest == true:
+
+Calcular el interés total del plazo usando la regla de negocio:
+
+interesTotal = capital * tasaMensual * mesesEquivalentes
+
+Donde mesesEquivalentes debe ser coherente con intervalos fijos:
+
+mesesEquivalentes = (planInstallmentsTotal * paymentFrequencyDays) / 30
+
+(Usar 30 como estándar comercial, coherente con tu “mensual = 30 días”)
+
+Total a pagar:
+
+total = capital + interesTotal
+
+Monto esperado por ciclo:
+
+esperadoPorCiclo = total / planInstallmentsTotal
+
+Asegurar que el redondeo no deje diferencias:
+
+Ajustar el último ciclo para que la suma total cierre exacta.
+
+Importante:
+
+Esta lógica NO debe afectar préstamos sin plan.
+
+Los ciclos “Esperado/Pendiente” deben seguir mostrándose como hoy en el detalle del préstamo.
 
 
 
-Nombre del ciclo: Rápidito
-Periodo: mensual (ciclo de pago)
-Va desde: 0 – 3
-Aplicar tasa: 13.33%
-Monto mínimo: C$ 200
-Moneda base: NIO (con opción de cambiar)
-Monto máximo: C$ 2,000
-
-☑ Distribuir intereses + capital en las cuotas
-☑ Periodo inicia al desembolsar
-▶ Aplica a los clientes con categoría
 
 
+6) Registrar Pago: ajustar comportamiento solo para préstamos con Plan (sin romper el flujo actual)
 
+La pantalla Registrar Pago debe mantenerse igual para préstamos sin plan (flujo actual), conservando exactamente las opciones existentes como :
+
+1. Mixto
+
+2. Solo Interés
+
+3. Solo Capital
+
+4. Cancelar
+
+5. Recuperar
+
+6.1 Detección del escenario “Plan con cuotas distribuidas”
+
+Al entrar a Registrar Pago, el sistema debe detectar si el préstamo cumple ambas condiciones:
+
+1. Fue creado con Plan de Pago (tiene planId o equivalente).
+
+2. El plan tiene activa la opción “Distribuir capital + interés en las cuotas”.
+
+6.2 Comportamiento UI cuando aplica Plan con cuotas distribuidas
+
+Si el préstamo cumple esas dos condiciones:
+
+1. Deshabilitar (enable = false) los botones de tipo de pago que hoy existen como:
+
+1. Mixto
+
+2. Solo Interés
+
+3. Solo Capital etc.
+
+(Mantener disponibles Cancelar y Recuperar; si ya tienen validaciones, respetarlas.)
+
+En lugar de seleccionar tipo de pago, el sistema debe entrar en un modo de pago “Cuota del Plan” (automático):
+
+Identificar la cuota/ciclo vigente o el más vencido pendiente.
+
+Tomar el monto esperado de esa cuota (que ya incluye capital + interés por distribución del plan).
+
+Precargar automáticamente el campo Monto Pago con ese valor.
+
+El campo Monto Pago debe permitir edición manual para soportar:
+
+Pago parcial: el usuario puede bajar el monto.
+
+Pago de más: el usuario puede aumentar el monto.
+
+6.3 Reglas de negocio para “Parcial” y “De más”
+
+Para pagos parciales o de más, se debe reutilizar la lógica existente sin inventar nuevas reglas:
+
+Si es parcial:
+Guardar el abono y actualizar los saldos y el estado del ciclo según las reglas actuales (ej. ciclo queda pendiente con saldo restante).
+
+Si es de más:
+Aplicar el excedente a la siguiente cuota/ciclo pendiente, utilizando la misma lógica existente que ya redistribuye el excedente.
+
+6.4 Compatibilidad y no regresión
+
+Si el préstamo no fue creado con plan, o el plan no distribuye capital + interés:
+
+La pantalla debe comportarse exactamente igual que hoy, sin cambios en UI ni en reglas.
+
+Se deben realizar pruebas de:
+
+Plan con cuota completa.
+
+Plan con pago parcial.
+
+Plan con pago de más (excedente a la siguiente cuota).
+
+Préstamos tradicionales (sin plan) para asegurar que no se rompió nada.
+
+
+
+
+
+Advertencias a considerar en el desarrollo
+
+No dejar nada hardcodeado (textos, etiquetas, colores, reglas, etc.). Todo debe venir de configuración, catálogos o localización.
+
+Hacer pruebas del flujo completo:
+
+Préstamo sin plan (flujo actual)
+
+Préstamo con plan (nuevo flujo)
+
+Pagos (todos los tipos) para ambos casos
+
+Considerar afectaciones en el flujo existente y hacer los ajustes necesarios sin romper funcionalidad.
+
+
+Si es necesario crear nuevos campos/tablas para soportar el plan, puedes hacerlo, siempre y cuando no afecte la funcionalidad existente.
+
+Asegurar que todo lo nuevo funcione con multi-idiomas.
+
+Reconstruir el APK para que yo lo pruebe.

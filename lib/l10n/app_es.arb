@@ -943,5 +943,12 @@
   "validationFrequencyInUse": "Esta frecuencia está en uso por préstamos activos y no puede ser modificada/eliminada",
   "deleteFrequencyConfirm": "¿Eliminar esta frecuencia?",
   "paymentFrequenciesInfoTitle": "¿Qué son las Frecuencias?",
-  "paymentFrequenciesInfoDescription": "Define los periodos de tiempo para los cobros (ej. diario, quincenal, 20 días).\nPuedes crear frecuencias personalizadas con intervalos de días específicos para adaptarse a tus préstamos."
+  "paymentFrequenciesInfoDescription": "Define los periodos de tiempo para los cobros (ej. diario, quincenal, 20 días).\nPuedes crear frecuencias personalizadas con intervalos de días específicos para adaptarse a tus préstamos.",
+  "freqAnnually": "Anual",
+  "selectFrequency": "Seleccionar Frecuencia",
+  "searchFrequency": "Buscar frecuencia...",
+  "sortBy": "Ordenar por",
+  "sortByName": "Nombre",
+  "sortByDays": "Días",
+  "noFrequenciesFound": "No se encontraron frecuencias"
 }

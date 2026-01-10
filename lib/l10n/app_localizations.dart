@@ -4224,7 +4224,7 @@ abstract class S {
   /// No description provided for @selectFrequency.
   ///
   /// In es, this message translates to:
-  /// **'Seleccione una frecuencia'**
+  /// **'Seleccionar Frecuencia'**
   String get selectFrequency;
 
   /// No description provided for @applied.
@@ -4496,6 +4496,42 @@ abstract class S {
   /// In es, this message translates to:
   /// **'Define los periodos de tiempo para los cobros (ej. diario, quincenal, 20 días).\nPuedes crear frecuencias personalizadas con intervalos de días específicos para adaptarse a tus préstamos.'**
   String get paymentFrequenciesInfoDescription;
+
+  /// No description provided for @freqAnnually.
+  ///
+  /// In es, this message translates to:
+  /// **'Anual'**
+  String get freqAnnually;
+
+  /// No description provided for @searchFrequency.
+  ///
+  /// In es, this message translates to:
+  /// **'Buscar frecuencia...'**
+  String get searchFrequency;
+
+  /// No description provided for @sortBy.
+  ///
+  /// In es, this message translates to:
+  /// **'Ordenar por'**
+  String get sortBy;
+
+  /// No description provided for @sortByName.
+  ///
+  /// In es, this message translates to:
+  /// **'Nombre'**
+  String get sortByName;
+
+  /// No description provided for @sortByDays.
+  ///
+  /// In es, this message translates to:
+  /// **'Días'**
+  String get sortByDays;
+
+  /// No description provided for @noFrequenciesFound.
+  ///
+  /// In es, this message translates to:
+  /// **'No se encontraron frecuencias'**
+  String get noFrequenciesFound;
 }
 
 class _SDelegate extends LocalizationsDelegate<S> {

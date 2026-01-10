@@ -348,6 +348,24 @@ class DatabaseHelper {
         debugPrint('Error checking/adding ${col['name']} to loans: $e');
       }
     }
+
+    // Safety Check: Ensure payment_frequency_days exists (Critical fix for v28)
+    try {
+      final result = await db.rawQuery(
+        "SELECT COUNT(*) as cnt FROM pragma_table_info('loans') WHERE name='payment_frequency_days'",
+      );
+      final hasColumn = (result.first['cnt'] as int) > 0;
+      if (!hasColumn) {
+        debugPrint(
+          'Adding missing column to loans (Safety Check): payment_frequency_days',
+        );
+        await db.execute(
+          'ALTER TABLE loans ADD COLUMN payment_frequency_days INTEGER',
+        );
+      }
+    } catch (e) {
+      debugPrint('Error checking/adding payment_frequency_days to loans: $e');
+    }
     // V25 Schema Repair: Ensure payments table has _minor columns
     try {
       final paymentsInfo = await db.rawQuery(
@@ -1234,6 +1252,23 @@ class DatabaseHelper {
         } catch (e) {
           debugPrint('Error seeding default frequency ${freq['id']}: $e');
         }
+      }
+    }
+
+    // Migration from v27 to v28: Add payment_frequency_days to loans
+    if (oldVersion < 28) {
+      try {
+        final result = await db.rawQuery(
+          "SELECT COUNT(*) as cnt FROM pragma_table_info('loans') WHERE name='payment_frequency_days'",
+        );
+        final hasColumn = (result.first['cnt'] as int) > 0;
+        if (!hasColumn) {
+          await db.execute(
+            'ALTER TABLE loans ADD COLUMN payment_frequency_days INTEGER',
+          );
+        }
+      } catch (e) {
+        debugPrint('Error adding payment_frequency_days to loans: $e');
       }
     }
 

@@ -2221,7 +2221,7 @@ class SEn extends S {
       'Cannot edit interval of default frequencies';
 
   @override
-  String get selectFrequency => 'Select a frequency';
+  String get selectFrequency => 'Select Frequency';
 
   @override
   String get applied => 'Applied';
@@ -2366,4 +2366,22 @@ class SEn extends S {
   @override
   String get paymentFrequenciesInfoDescription =>
       'Define time periods for payments (e.g., daily, biweekly, 20 days).\nYou can create custom frequencies with specific day intervals to suit your loans.';
+
+  @override
+  String get freqAnnually => 'Annually';
+
+  @override
+  String get searchFrequency => 'Search frequency...';
+
+  @override
+  String get sortBy => 'Sort by';
+
+  @override
+  String get sortByName => 'Name';
+
+  @override
+  String get sortByDays => 'Days';
+
+  @override
+  String get noFrequenciesFound => 'No frequencies found';
 }

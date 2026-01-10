@@ -2230,7 +2230,7 @@ class SEs extends S {
       'No se puede editar el intervalo de frecuencias predeterminadas';
 
   @override
-  String get selectFrequency => 'Seleccione una frecuencia';
+  String get selectFrequency => 'Seleccionar Frecuencia';
 
   @override
   String get applied => 'Aplicado';
@@ -2376,4 +2376,22 @@ class SEs extends S {
   @override
   String get paymentFrequenciesInfoDescription =>
       'Define los periodos de tiempo para los cobros (ej. diario, quincenal, 20 días).\nPuedes crear frecuencias personalizadas con intervalos de días específicos para adaptarse a tus préstamos.';
+
+  @override
+  String get freqAnnually => 'Anual';
+
+  @override
+  String get searchFrequency => 'Buscar frecuencia...';
+
+  @override
+  String get sortBy => 'Ordenar por';
+
+  @override
+  String get sortByName => 'Nombre';
+
+  @override
+  String get sortByDays => 'Días';
+
+  @override
+  String get noFrequenciesFound => 'No se encontraron frecuencias';
 }

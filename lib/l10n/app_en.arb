@@ -892,5 +892,12 @@
   "validationFrequencyInUse": "This frequency is in use by active loans and cannot be modified/deleted",
   "deleteFrequencyConfirm": "Delete this frequency?",
   "paymentFrequenciesInfoTitle": "What are Frequencies?",
-  "paymentFrequenciesInfoDescription": "Define time periods for payments (e.g., daily, biweekly, 20 days).\nYou can create custom frequencies with specific day intervals to suit your loans."
+  "paymentFrequenciesInfoDescription": "Define time periods for payments (e.g., daily, biweekly, 20 days).\nYou can create custom frequencies with specific day intervals to suit your loans.",
+  "freqAnnually": "Annually",
+  "selectFrequency": "Select Frequency",
+  "searchFrequency": "Search frequency...",
+  "sortBy": "Sort by",
+  "sortByName": "Name",
+  "sortByDays": "Days",
+  "noFrequenciesFound": "No frequencies found"
 }
