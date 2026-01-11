@@ -383,6 +383,28 @@ class DatabaseHelper {
     } catch (e) {
       debugPrint('Error repairing V25 schema: $e');
     }
+
+    // Check and add term fields to payment_plans if missing (Dev migration)
+    try {
+      final termsInfo = await db.rawQuery(
+        "SELECT COUNT(*) as cnt FROM pragma_table_info('payment_plans') WHERE name='term_value'",
+      );
+      final hasTermColumns = (termsInfo.first['cnt'] as int) > 0;
+
+      if (!hasTermColumns) {
+        debugPrint(
+          'Adding missing columns to payment_plans: term_value, term_unit',
+        );
+        await db.execute(
+          "ALTER TABLE payment_plans ADD COLUMN term_value INTEGER NOT NULL DEFAULT 0",
+        );
+        await db.execute(
+          "ALTER TABLE payment_plans ADD COLUMN term_unit TEXT NOT NULL DEFAULT 'Months'",
+        );
+      }
+    } catch (e) {
+      debugPrint('Error adding term fields to payment_plans: $e');
+    }
   }
 
   /// Configure database (enable foreign keys, WAL mode, busy timeout)
@@ -578,9 +600,39 @@ class DatabaseHelper {
         loan_number INTEGER,
         currency_code TEXT DEFAULT 'NIO',
         applied_exchange_rate REAL,
+        payment_frequency_days INTEGER,
+        plan_id TEXT,
+        plan_installments_total INTEGER,
+        distribute_capital_and_interest INTEGER DEFAULT 0,
+        end_date_calculated TEXT,
         created_at TEXT NOT NULL,
         updated_at TEXT NOT NULL,
         FOREIGN KEY (customer_id) REFERENCES customers(customer_id) ON DELETE RESTRICT
+      )
+    ''');
+
+    // Payment Plans table (V29)
+    await db.execute('''
+      CREATE TABLE payment_plans (
+        plan_id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        payment_frequency_id TEXT NOT NULL,
+        payment_frequency_days INTEGER NOT NULL,
+        term_value INTEGER NOT NULL DEFAULT 0,
+        term_unit TEXT NOT NULL DEFAULT 'Months',
+        installments_total INTEGER NOT NULL,
+        monthly_interest_rate REAL NOT NULL,
+        currency_code TEXT NOT NULL DEFAULT 'NIO',
+        allow_currency_change INTEGER NOT NULL DEFAULT 0,
+        min_amount REAL NOT NULL,
+        max_amount REAL NOT NULL,
+        distribute_capital_and_interest INTEGER NOT NULL DEFAULT 0,
+        period_starts_on_disbursement INTEGER NOT NULL DEFAULT 1,
+        applicable_category_ids TEXT,
+        is_active INTEGER NOT NULL DEFAULT 1,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL,
+        FOREIGN KEY (payment_frequency_id) REFERENCES payment_frequencies(id)
       )
     ''');
 
@@ -597,6 +649,10 @@ class DatabaseHelper {
         interest_expected REAL NOT NULL DEFAULT 0,
         interest_paid REAL NOT NULL DEFAULT 0,
         interest_pending REAL NOT NULL DEFAULT 0,
+        installment_expected REAL,
+        installment_paid REAL DEFAULT 0,
+        installment_pending REAL,
+        principal_portion REAL,
         status TEXT NOT NULL DEFAULT 'PENDING',
         closed_at TEXT,
         is_capitalized INTEGER NOT NULL DEFAULT 0,
@@ -1269,6 +1325,86 @@ class DatabaseHelper {
         }
       } catch (e) {
         debugPrint('Error adding payment_frequency_days to loans: $e');
+      }
+    }
+
+    // Migration from v28 to v29: Payment Plans feature
+    if (oldVersion < 29) {
+      debugPrint('Running V29 migration: Payment Plans');
+
+      // Create payment_plans table
+      try {
+        await db.execute('''
+          CREATE TABLE IF NOT EXISTS payment_plans (
+            plan_id TEXT PRIMARY KEY,
+            name TEXT NOT NULL,
+            payment_frequency_id TEXT NOT NULL,
+            payment_frequency_days INTEGER NOT NULL,
+            installments_total INTEGER NOT NULL,
+            monthly_interest_rate REAL NOT NULL,
+            currency_code TEXT NOT NULL DEFAULT 'NIO',
+            allow_currency_change INTEGER NOT NULL DEFAULT 0,
+            min_amount REAL NOT NULL,
+            max_amount REAL NOT NULL,
+            distribute_capital_and_interest INTEGER NOT NULL DEFAULT 0,
+            period_starts_on_disbursement INTEGER NOT NULL DEFAULT 1,
+            applicable_category_ids TEXT,
+            is_active INTEGER NOT NULL DEFAULT 1,
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL,
+            FOREIGN KEY (payment_frequency_id) REFERENCES payment_frequencies(id)
+          )
+        ''');
+      } catch (e) {
+        debugPrint('Error creating payment_plans table: $e');
+      }
+
+      // Add plan snapshot columns to loans table
+      final loanPlanColumns = [
+        {'name': 'plan_id', 'def': 'TEXT'},
+        {'name': 'plan_installments_total', 'def': 'INTEGER'},
+        {'name': 'distribute_capital_and_interest', 'def': 'INTEGER DEFAULT 0'},
+        {'name': 'end_date_calculated', 'def': 'TEXT'},
+      ];
+
+      for (final col in loanPlanColumns) {
+        try {
+          final result = await db.rawQuery(
+            "SELECT COUNT(*) as cnt FROM pragma_table_info('loans') WHERE name='${col['name']}'",
+          );
+          final hasColumn = (result.first['cnt'] as int) > 0;
+          if (!hasColumn) {
+            await db.execute(
+              'ALTER TABLE loans ADD COLUMN ${col['name']} ${col['def']}',
+            );
+          }
+        } catch (e) {
+          debugPrint('Error adding ${col['name']} to loans: $e');
+        }
+      }
+
+      // Add installment columns to billing_cycles table
+      final cycleInstallmentColumns = [
+        {'name': 'installment_expected', 'def': 'REAL'},
+        {'name': 'installment_paid', 'def': 'REAL DEFAULT 0'},
+        {'name': 'installment_pending', 'def': 'REAL'},
+        {'name': 'principal_portion', 'def': 'REAL'},
+      ];
+
+      for (final col in cycleInstallmentColumns) {
+        try {
+          final result = await db.rawQuery(
+            "SELECT COUNT(*) as cnt FROM pragma_table_info('billing_cycles') WHERE name='${col['name']}'",
+          );
+          final hasColumn = (result.first['cnt'] as int) > 0;
+          if (!hasColumn) {
+            await db.execute(
+              'ALTER TABLE billing_cycles ADD COLUMN ${col['name']} ${col['def']}',
+            );
+          }
+        } catch (e) {
+          debugPrint('Error adding ${col['name']} to billing_cycles: $e');
+        }
       }
     }
 

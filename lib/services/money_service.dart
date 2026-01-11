@@ -24,7 +24,7 @@ class MoneyService {
     // 1. Get Decimal Separator for Locale
     locale ??= Intl.getCurrentLocale();
     final NumberSymbols symbols =
-        numberFormatSymbols[locale] as NumberSymbols? ??
+        numberFormatSymbols[locale] ??
         numberFormatSymbols['en_US'] as NumberSymbols;
     final String decimalSep = symbols.DECIMAL_SEP;
 

@@ -314,7 +314,7 @@ class SEs extends S {
   String get dueDate => 'Vence:';
 
   @override
-  String get noBillingCycles => 'No hay ciclos de cobro generados';
+  String get noBillingCycles => 'No hay ciclos de cobro';
 
   @override
   String get noPayments => 'No hay pagos';
@@ -422,7 +422,7 @@ class SEs extends S {
   String get exportBackup => 'Exportar Backup';
 
   @override
-  String get creatingBackup => 'Creando respaldo de seguridad...';
+  String get creatingBackup => 'Creando respaldo...';
 
   @override
   String get backupCreated => 'Respaldo creado exitosamente';
@@ -714,7 +714,7 @@ class SEs extends S {
   String get toleranceDaysDesc => 'Días antes de marcar como atrasado';
 
   @override
-  String get paymentOrder => 'Orden de aplicación';
+  String get paymentOrder => 'Orden de aplicación de pagos';
 
   @override
   String get paymentOrderInterestFirst => 'Interés primero';
@@ -982,7 +982,7 @@ class SEs extends S {
   String get capitalLabel => 'Capital:';
 
   @override
-  String get loanLabel => 'Préstamo';
+  String get loanLabelPrefix => 'Préstamo #:';
 
   @override
   String get clientLabel => 'Cliente:';
@@ -1036,9 +1036,7 @@ class SEs extends S {
   String get generatingReceipt => 'Generando recibo...';
 
   @override
-  String errorGeneratingReceipt(Object error) {
-    return 'Error al generar comprobante: $error';
-  }
+  String get errorGeneratingReceiptTitle => 'Error al generar recibo';
 
   @override
   String get generatingDisbursement => 'Generando comprobante de desembolso...';
@@ -1136,7 +1134,7 @@ class SEs extends S {
   String get createCustomer => 'Crear Cliente';
 
   @override
-  String get paymentAmountLabel => 'Monto Pago';
+  String get paymentAmountLabelRequired => 'Monto del Pago *';
 
   @override
   String get invalidAmountMsg => 'Ingrese un monto válido';
@@ -1358,7 +1356,7 @@ class SEs extends S {
   String get cycleConcluding => 'Ciclo Por Concluir';
 
   @override
-  String get aboutTitle => 'Acerca de';
+  String get aboutTitle => 'Acerca de Prestazo';
 
   @override
   String get aboutVersion => 'Versión';
@@ -1368,7 +1366,7 @@ class SEs extends S {
 
   @override
   String get aboutDescription =>
-      'Información sobre la versión instalada y el desarrollador.\nAquí puedes verificar si tienes la última actualización y contactar a soporte si es necesario.';
+      'Prestazo es una aplicación diseñada para simplificar la gestión de tus préstamos personales. Con Prestazo, puedes mantener un control total sobre tus clientes, créditos y cobros, todo desde la palma de tu mano.';
 
   @override
   String get featureCustomers => 'Gestiona tu cartera de clientes fácilmente.';
@@ -1589,70 +1587,6 @@ class SEs extends S {
       'Cambia el idioma de toda la interfaz de la aplicación.\nActualmente soportamos Español e Inglés.';
 
   @override
-  String get currencyTitle => 'Moneda';
-
-  @override
-  String get currencyDescription =>
-      'Define la moneda principal que se utilizará en toda la aplicación (Préstamos, Pagos, Reportes).\n\n**Importante:**\n* Todos los montos se mostrarán con el símbolo de la moneda seleccionada.\n* Cambiar la moneda NO convierte los montos existentes (ej. 100 U\$ no se convierte a 3600 C\$ automáticamente), solo cambia el símbolo de visualización.\n* Se recomienda definir la moneda al inicio y no cambiarla frecuentemente si manejas montos mixtos.';
-
-  @override
-  String get reportCurrencyDescription =>
-      'Define la moneda base para los reportes financieros y el dashboard. Se utilizará la Tasa de Cambio para convertir montos que estén en otras monedas.';
-
-  @override
-  String get reportCurrencyDesc => 'Define moneda y tasa de cambio';
-
-  @override
-  String get scheduledBackupTitle => 'Respaldo Programado';
-
-  @override
-  String get scheduledBackupDesc => 'Configurar frecuencia y disparadores';
-
-  @override
-  String get invalidExchangeRate => 'Ingresa una tasa de cambio válida';
-
-  @override
-  String get settingsSaved => 'Configuración guardada';
-
-  @override
-  String get exchangeRateTitle => 'Tasa de Cambio';
-
-  @override
-  String get reportCurrencyDialogDesc =>
-      '¿Cuándo usar Moneda de Reportes?\\n\\nSi su Moneda Base es diferente a la moneda en que quiere ver los reportes del Dashboard, configure aquí la moneda de visualización.\\n\\nEjemplo práctico:\\n• Moneda Base: Córdobas (NIO) - su capital de trabajo\\n• Moneda de Reportes: Dólares (USD) - para inversores\\n• Tasa de Cambio: 36.50 (si 1 USD = 36.50 NIO)\\n\\nNOTA: Si solo opera en una moneda, deje ambas iguales.';
-
-  @override
-  String get reportCurrencyInfoBanner =>
-      'Esto afecta solo tus reportes como prestamista, no los documentos del cliente.';
-
-  @override
-  String get tapToChange => 'Toca para cambiar';
-
-  @override
-  String get requiredField => 'Requerido';
-
-  @override
-  String get invalidRateError => 'Tasa inválida';
-
-  @override
-  String get saveButton => 'Guardar';
-
-  @override
-  String get backupSettingsSaved => 'Configuración de respaldo guardada';
-
-  @override
-  String get frequency => 'Frecuencia';
-
-  @override
-  String get disabled => 'Desactivado';
-
-  @override
-  String get preferredTime => 'Hora preferida';
-
-  @override
-  String get automaticTriggers => 'Disparadores Automáticos';
-
-  @override
   String get onLoanCreation => 'Al crear préstamo';
 
   @override
@@ -1690,6 +1624,11 @@ class SEs extends S {
   @override
   String errorGeneratingPdf(Object error) {
     return 'Error al generar PDF: $error';
+  }
+
+  @override
+  String errorGeneratingReceipt(Object error) {
+    return 'Error al generar comprobante: $error';
   }
 
   @override
@@ -1837,36 +1776,6 @@ class SEs extends S {
   String get selectALoan => 'Seleccione un préstamo';
 
   @override
-  String get confirmAndDelete => 'Confirmar y Borrar';
-
-  @override
-  String get dataDeletedSuccessfully => 'Datos eliminados correctamente';
-
-  @override
-  String get interestFirst => 'Interés primero';
-
-  @override
-  String get principalFirst => 'Capital primero';
-
-  @override
-  String get noBackupsAvailable => 'No hay respaldos disponibles';
-
-  @override
-  String get searchBackupFile => 'Buscar Archivo de Respaldo...';
-
-  @override
-  String get restore => 'Restaurar';
-
-  @override
-  String get discoverFeatures => 'Descubre lo que puedes hacer';
-
-  @override
-  String get editableFields => 'Campos Editables';
-
-  @override
-  String get loanStatus => 'Estado del Préstamo';
-
-  @override
   String get loanUpdatedRecalculated => 'Préstamo actualizado y recalculado';
 
   @override
@@ -1989,6 +1898,49 @@ class SEs extends S {
 
   @override
   String get baseCurrency => 'Moneda Base';
+
+  @override
+  String get planNameHint => 'Ej: Préstamo Personal Rápido';
+
+  @override
+  String get financialData => 'Datos Financieros';
+
+  @override
+  String get allowCurrencyChangeTitle => 'Permitir cambio de moneda';
+
+  @override
+  String get allowCurrencyChangeSubtitle => 'Al crear el préstamo';
+
+  @override
+  String get distributeCapitalInterestTitle => 'Distribuir capital e interés';
+
+  @override
+  String get distributeCapitalInterestSubtitle => 'En cuotas niveladas';
+
+  @override
+  String get periodStartsOnDisbursementTitle =>
+      'El periodo inicia en desembolso';
+
+  @override
+  String get limitByCategoryTitle =>
+      'Aplica a clientes con categoría (opcional)';
+
+  @override
+  String get limitByCategorySubtitle =>
+      'Limitar este plan a un tipo específico de cliente';
+
+  @override
+  String get noCategoriesCreated =>
+      'No hay categorías creadas. Cree una categoría primero.';
+
+  @override
+  String get labelSelectCategory => 'Seleccione Categoría';
+
+  @override
+  String get planNotFound => 'Plan no encontrado';
+
+  @override
+  String get selectStartCategory => 'Seleccione una categoría';
 
   @override
   String get baseCurrencyDesc => 'Moneda principal para cálculos y reportes';
@@ -2135,10 +2087,16 @@ class SEs extends S {
   String get client => 'Cliente';
 
   @override
+  String get loanLabel => 'Préstamo';
+
+  @override
   String get receiptNo => 'No. Recibo';
 
   @override
   String get paymentCurrency => 'Moneda Pago';
+
+  @override
+  String get paymentAmountLabel => 'Monto Pago';
 
   @override
   String get appliedRate => 'Tasa Aplicada';
@@ -2167,70 +2125,6 @@ class SEs extends S {
 
   @override
   String get fxPayments => 'Pagos en Divisas';
-
-  @override
-  String get paymentFrequencies => 'Frecuencias de Pago';
-
-  @override
-  String get paymentFrequenciesSubtitle =>
-      'Gestionar frecuencias de cobro (Diario, Semanal, etc)';
-
-  @override
-  String get newFrequency => 'Nueva Frecuencia';
-
-  @override
-  String get editFrequency => 'Editar Frecuencia';
-
-  @override
-  String get frequencyName => 'Nombre';
-
-  @override
-  String get frequencyNameHint => 'Ej: Mensual, Quincenal';
-
-  @override
-  String get daysInterval => 'Intervalo (Días)';
-
-  @override
-  String get daysIntervalHint => 'Ej: 30';
-
-  @override
-  String get isDefaultFrequency => 'Frecuencia por defecto';
-
-  @override
-  String get validationFrequencyInUse =>
-      'Esta frecuencia está en uso por préstamos activos y no puede ser modificada/eliminada';
-
-  @override
-  String get deleteFrequencyConfirm => '¿Eliminar esta frecuencia?';
-
-  @override
-  String get deactivateFrequencyConfirm => '¿Desactivar esta frecuencia?';
-
-  @override
-  String get activeFrequency => 'Activa';
-
-  @override
-  String get inactiveFrequency => 'Inactiva';
-
-  @override
-  String get frequencyCreated => 'Frecuencia creada';
-
-  @override
-  String get frequencyUpdated => 'Frecuencia actualizada';
-
-  @override
-  String get frequencyDeleted => 'Frecuencia eliminada';
-
-  @override
-  String get cantDeleteDefault =>
-      'No se pueden eliminar las frecuencias predeterminadas';
-
-  @override
-  String get cantEditDefaultInterval =>
-      'No se puede editar el intervalo de frecuencias predeterminadas';
-
-  @override
-  String get selectFrequency => 'Seleccionar Frecuencia';
 
   @override
   String get applied => 'Aplicado';
@@ -2371,6 +2265,51 @@ class SEs extends S {
   String get customColor => 'Color personalizado';
 
   @override
+  String get paymentFrequencies => 'Frecuencias de Pago';
+
+  @override
+  String get paymentFrequenciesSubtitle =>
+      'Gestionar frecuencias de cobro (Diario, Semanal, etc)';
+
+  @override
+  String get newFrequency => 'Nueva Frecuencia';
+
+  @override
+  String get editFrequency => 'Editar Frecuencia';
+
+  @override
+  String get frequencyName => 'Nombre';
+
+  @override
+  String get frequencyNameHint => 'Ej: Mensual, Quincenal';
+
+  @override
+  String get daysInterval => 'Intervalo (Días)';
+
+  @override
+  String get daysIntervalHint => 'Ej: 30';
+
+  @override
+  String get cantEditDefaultInterval =>
+      'No se puede editar el intervalo de frecuencias predeterminadas';
+
+  @override
+  String get deactivateFrequencyConfirm => '¿Desactivar esta frecuencia?';
+
+  @override
+  String get activeFrequency => 'Activa';
+
+  @override
+  String get inactiveFrequency => 'Inactiva';
+
+  @override
+  String get validationFrequencyInUse =>
+      'Esta frecuencia está en uso por préstamos activos y no puede ser modificada/eliminada';
+
+  @override
+  String get deleteFrequencyConfirm => '¿Eliminar esta frecuencia?';
+
+  @override
   String get paymentFrequenciesInfoTitle => '¿Qué son las Frecuencias?';
 
   @override
@@ -2379,6 +2318,9 @@ class SEs extends S {
 
   @override
   String get freqAnnually => 'Anual';
+
+  @override
+  String get selectFrequency => 'Seleccionar Frecuencia';
 
   @override
   String get searchFrequency => 'Buscar frecuencia...';
@@ -2394,4 +2336,180 @@ class SEs extends S {
 
   @override
   String get noFrequenciesFound => 'No se encontraron frecuencias';
+
+  @override
+  String get planTerm => 'Plazo';
+
+  @override
+  String get planTermUnit => 'Unidad de Plazo';
+
+  @override
+  String get termDays => 'Días';
+
+  @override
+  String get termWeeks => 'Semanas';
+
+  @override
+  String get termMonths => 'Meses';
+
+  @override
+  String get termYears => 'Años';
+
+  @override
+  String calculatedInstallments(int count) {
+    return 'Cuotas Calculadas: $count';
+  }
+
+  @override
+  String calculatedInstallmentsWarning(int count) {
+    return 'Advertencia: El plazo no es múltiplo exacto de la frecuencia. Se ajustará a $count cuotas.';
+  }
+
+  @override
+  String get applicableCategories => 'Categorías Aplicables';
+
+  @override
+  String get allCategories => 'Todas las Categorías';
+
+  @override
+  String get selectCategories => 'Seleccionar Categorías';
+
+  @override
+  String get distributeCapitalInterestTooltip =>
+      'Si se activa, la cuota calculada incluirá capital e interés amortizado. Si se desactiva, el cobro por ciclo será solo interés.';
+
+  @override
+  String get periodStartsOnDisbursementTooltip =>
+      'Activo: La fecha de inicio es la fecha de desembolso. Inactivo: Debe seleccionar fecha de inicio manual.';
+
+  @override
+  String get paymentPlans => 'Planes de Pago';
+
+  @override
+  String get paymentPlansSubtitle =>
+      'Configurar planes preconfigurados para préstamos';
+
+  @override
+  String get noPaymentPlans => 'No hay planes de pago';
+
+  @override
+  String get addPaymentPlanHint => 'Presiona el botón + para agregar un plan';
+
+  @override
+  String get newPaymentPlan => 'Nuevo Plan de Pago';
+
+  @override
+  String get editPaymentPlan => 'Editar Plan de Pago';
+
+  @override
+  String get planName => 'Nombre del Plan';
+
+  @override
+  String get installments => 'cuotas';
+
+  @override
+  String get installmentsTotal => 'Total de Cuotas';
+
+  @override
+  String get minAmount => 'Monto Mínimo';
+
+  @override
+  String get maxAmount => 'Monto Máximo';
+
+  @override
+  String get days => 'días';
+
+  @override
+  String get distributeCapitalInterest => 'Distribuir Capital e Interés';
+
+  @override
+  String get distributeCapitalInterestDesc =>
+      'Calcular cuotas fijas con capital + interés distribuido';
+
+  @override
+  String get periodStartsOnDisbursement => 'Período inicia al desembolsar';
+
+  @override
+  String get periodStartsOnDisbursementDesc =>
+      'La fecha de desembolso se autocompleta con la fecha actual';
+
+  @override
+  String get allowCurrencyChange => 'Permitir cambiar moneda en préstamo';
+
+  @override
+  String get activate => 'Activar';
+
+  @override
+  String get deactivate => 'Desactivar';
+
+  @override
+  String get cannotDeactivatePlanWithLoans =>
+      'No se puede desactivar un plan con préstamos activos';
+
+  @override
+  String get cannotDeletePlanWithLoans =>
+      'No se puede eliminar un plan con préstamos activos';
+
+  @override
+  String get deletePlanConfirmation =>
+      '¿Está seguro de eliminar este plan de pago?';
+
+  @override
+  String get scheduledBackupTitle => 'Respaldo Programado';
+
+  @override
+  String get frequency => 'Frecuencia';
+
+  @override
+  String get disabled => 'Desactivado';
+
+  @override
+  String get preferredTime => 'Hora Preferida';
+
+  @override
+  String get automaticTriggers => 'Disparadores Automáticos';
+
+  @override
+  String get backupSettingsSaved => 'Configuración de respaldo guardada';
+
+  @override
+  String get reportCurrencyDialogDesc =>
+      'Moneda utilizada para reportes financieros';
+
+  @override
+  String get reportCurrencyInfoBanner =>
+      'Los reportes se mostrarán en esta moneda';
+
+  @override
+  String get tapToChange => 'Toca para cambiar';
+
+  @override
+  String get exchangeRateTitle => 'Tasa de Cambio';
+
+  @override
+  String get invalidRateError => 'Tasa inválida';
+
+  @override
+  String get saveButton => 'Guardar';
+
+  @override
+  String get requiredField => 'Requerido';
+
+  @override
+  String get scheduledBackupDesc => 'Configura copias de seguridad automáticas';
+
+  @override
+  String get interestFirst => 'Interés Primero';
+
+  @override
+  String get principalFirst => 'Capital Primero';
+
+  @override
+  String get noBackupsAvailable => 'No hay respaldos disponibles';
+
+  @override
+  String get settingsSaved => 'Configuración guardada';
+
+  @override
+  String get invalidExchangeRate => 'Tasa de cambio inválida';
 }

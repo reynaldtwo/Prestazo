@@ -21,6 +21,11 @@ class Loan extends Equatable {
   final DateTime createdAt;
   final DateTime updatedAt;
   final int? paymentFrequencyDays; // Added in V28
+  // V29: Payment Plan snapshot fields
+  final String? planId;
+  final int? planInstallmentsTotal;
+  final bool? distributeCapitalAndInterest;
+  final DateTime? endDateCalculated;
 
   const Loan({
     required this.loanId,
@@ -41,6 +46,10 @@ class Loan extends Equatable {
     required this.createdAt,
     required this.updatedAt,
     this.paymentFrequencyDays,
+    this.planId,
+    this.planInstallmentsTotal,
+    this.distributeCapitalAndInterest,
+    this.endDateCalculated,
   });
 
   /// Check if loan is active (includes IN_MORA)
@@ -121,6 +130,12 @@ class Loan extends Equatable {
       createdAt: DateTime.parse(map['created_at'] as String),
       updatedAt: DateTime.parse(map['updated_at'] as String),
       paymentFrequencyDays: map['payment_frequency_days'] as int?,
+      planId: map['plan_id'] as String?,
+      planInstallmentsTotal: map['plan_installments_total'] as int?,
+      distributeCapitalAndInterest: map['distribute_capital_and_interest'] == 1,
+      endDateCalculated: map['end_date_calculated'] != null
+          ? DateTime.parse(map['end_date_calculated'] as String)
+          : null,
     );
   }
 
@@ -145,6 +160,12 @@ class Loan extends Equatable {
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
       'payment_frequency_days': paymentFrequencyDays,
+      'plan_id': planId,
+      'plan_installments_total': planInstallmentsTotal,
+      'distribute_capital_and_interest': distributeCapitalAndInterest == true
+          ? 1
+          : 0,
+      'end_date_calculated': endDateCalculated?.toIso8601String().split('T')[0],
     };
   }
 
@@ -164,6 +185,10 @@ class Loan extends Equatable {
     double? appliedExchangeRate,
     DateTime? updatedAt,
     int? paymentFrequencyDays,
+    String? planId,
+    int? planInstallmentsTotal,
+    bool? distributeCapitalAndInterest,
+    DateTime? endDateCalculated,
   }) {
     return Loan(
       loanId: loanId,
@@ -184,6 +209,12 @@ class Loan extends Equatable {
       createdAt: createdAt,
       updatedAt: updatedAt ?? DateTime.now(),
       paymentFrequencyDays: paymentFrequencyDays ?? this.paymentFrequencyDays,
+      planId: planId ?? this.planId,
+      planInstallmentsTotal:
+          planInstallmentsTotal ?? this.planInstallmentsTotal,
+      distributeCapitalAndInterest:
+          distributeCapitalAndInterest ?? this.distributeCapitalAndInterest,
+      endDateCalculated: endDateCalculated ?? this.endDateCalculated,
     );
   }
 
@@ -207,5 +238,9 @@ class Loan extends Equatable {
     createdAt,
     updatedAt,
     paymentFrequencyDays,
+    planId,
+    planInstallmentsTotal,
+    distributeCapitalAndInterest,
+    endDateCalculated,
   ];
 }

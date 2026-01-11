@@ -374,6 +374,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             ),
             onTap: () => context.push('/settings/payment-frequencies'),
           ),
+          ListTile(
+            leading: const Icon(Icons.assignment_outlined),
+            title: Text(S.of(context).paymentPlans),
+            subtitle: Text(S.of(context).paymentPlansSubtitle),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => context.push('/settings/payment-plans'),
+          ),
         ],
       ),
     );

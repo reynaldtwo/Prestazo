@@ -9,7 +9,7 @@ import '../../../core/theme/app_typography.dart';
 import '../../../core/widgets/widgets.dart';
 import '../../../data/models/payment_frequency.dart';
 import '../../../data/providers/payment_frequency_provider.dart';
-import '../../../core/widgets/app_button.dart';
+
 import '../../../core/widgets/app_text_field.dart';
 
 class PaymentFrequenciesScreen extends ConsumerWidget {

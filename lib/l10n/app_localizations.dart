@@ -706,7 +706,7 @@ abstract class S {
   /// No description provided for @noBillingCycles.
   ///
   /// In es, this message translates to:
-  /// **'No hay ciclos de cobro generados'**
+  /// **'No hay ciclos de cobro'**
   String get noBillingCycles;
 
   /// No description provided for @noPayments.
@@ -922,7 +922,7 @@ abstract class S {
   /// No description provided for @creatingBackup.
   ///
   /// In es, this message translates to:
-  /// **'Creando respaldo de seguridad...'**
+  /// **'Creando respaldo...'**
   String get creatingBackup;
 
   /// No description provided for @backupCreated.
@@ -1450,7 +1450,7 @@ abstract class S {
   /// No description provided for @paymentOrder.
   ///
   /// In es, this message translates to:
-  /// **'Orden de aplicación'**
+  /// **'Orden de aplicación de pagos'**
   String get paymentOrder;
 
   /// No description provided for @paymentOrderInterestFirst.
@@ -1963,11 +1963,11 @@ abstract class S {
   /// **'Capital:'**
   String get capitalLabel;
 
-  /// No description provided for @loanLabel.
+  /// No description provided for @loanLabelPrefix.
   ///
   /// In es, this message translates to:
-  /// **'Préstamo'**
-  String get loanLabel;
+  /// **'Préstamo #:'**
+  String get loanLabelPrefix;
 
   /// No description provided for @clientLabel.
   ///
@@ -2065,11 +2065,11 @@ abstract class S {
   /// **'Generando recibo...'**
   String get generatingReceipt;
 
-  /// No description provided for @errorGeneratingReceipt.
+  /// No description provided for @errorGeneratingReceiptTitle.
   ///
   /// In es, this message translates to:
-  /// **'Error al generar comprobante: {error}'**
-  String errorGeneratingReceipt(Object error);
+  /// **'Error al generar recibo'**
+  String get errorGeneratingReceiptTitle;
 
   /// No description provided for @generatingDisbursement.
   ///
@@ -2257,11 +2257,11 @@ abstract class S {
   /// **'Crear Cliente'**
   String get createCustomer;
 
-  /// No description provided for @paymentAmountLabel.
+  /// No description provided for @paymentAmountLabelRequired.
   ///
   /// In es, this message translates to:
-  /// **'Monto Pago'**
-  String get paymentAmountLabel;
+  /// **'Monto del Pago *'**
+  String get paymentAmountLabelRequired;
 
   /// No description provided for @invalidAmountMsg.
   ///
@@ -2680,7 +2680,7 @@ abstract class S {
   /// No description provided for @aboutTitle.
   ///
   /// In es, this message translates to:
-  /// **'Acerca de'**
+  /// **'Acerca de Prestazo'**
   String get aboutTitle;
 
   /// No description provided for @aboutVersion.
@@ -2698,7 +2698,7 @@ abstract class S {
   /// No description provided for @aboutDescription.
   ///
   /// In es, this message translates to:
-  /// **'Información sobre la versión instalada y el desarrollador.\nAquí puedes verificar si tienes la última actualización y contactar a soporte si es necesario.'**
+  /// **'Prestazo es una aplicación diseñada para simplificar la gestión de tus préstamos personales. Con Prestazo, puedes mantener un control total sobre tus clientes, créditos y cobros, todo desde la palma de tu mano.'**
   String get aboutDescription;
 
   /// No description provided for @featureCustomers.
@@ -3091,126 +3091,6 @@ abstract class S {
   /// **'Cambia el idioma de toda la interfaz de la aplicación.\nActualmente soportamos Español e Inglés.'**
   String get languageDescription;
 
-  /// No description provided for @currencyTitle.
-  ///
-  /// In es, this message translates to:
-  /// **'Moneda'**
-  String get currencyTitle;
-
-  /// No description provided for @currencyDescription.
-  ///
-  /// In es, this message translates to:
-  /// **'Define la moneda principal que se utilizará en toda la aplicación (Préstamos, Pagos, Reportes).\n\n**Importante:**\n* Todos los montos se mostrarán con el símbolo de la moneda seleccionada.\n* Cambiar la moneda NO convierte los montos existentes (ej. 100 U\$ no se convierte a 3600 C\$ automáticamente), solo cambia el símbolo de visualización.\n* Se recomienda definir la moneda al inicio y no cambiarla frecuentemente si manejas montos mixtos.'**
-  String get currencyDescription;
-
-  /// No description provided for @reportCurrencyDescription.
-  ///
-  /// In es, this message translates to:
-  /// **'Define la moneda base para los reportes financieros y el dashboard. Se utilizará la Tasa de Cambio para convertir montos que estén en otras monedas.'**
-  String get reportCurrencyDescription;
-
-  /// No description provided for @reportCurrencyDesc.
-  ///
-  /// In es, this message translates to:
-  /// **'Define moneda y tasa de cambio'**
-  String get reportCurrencyDesc;
-
-  /// No description provided for @scheduledBackupTitle.
-  ///
-  /// In es, this message translates to:
-  /// **'Respaldo Programado'**
-  String get scheduledBackupTitle;
-
-  /// No description provided for @scheduledBackupDesc.
-  ///
-  /// In es, this message translates to:
-  /// **'Configurar frecuencia y disparadores'**
-  String get scheduledBackupDesc;
-
-  /// No description provided for @invalidExchangeRate.
-  ///
-  /// In es, this message translates to:
-  /// **'Ingresa una tasa de cambio válida'**
-  String get invalidExchangeRate;
-
-  /// No description provided for @settingsSaved.
-  ///
-  /// In es, this message translates to:
-  /// **'Configuración guardada'**
-  String get settingsSaved;
-
-  /// No description provided for @exchangeRateTitle.
-  ///
-  /// In es, this message translates to:
-  /// **'Tasa de Cambio'**
-  String get exchangeRateTitle;
-
-  /// No description provided for @reportCurrencyDialogDesc.
-  ///
-  /// In es, this message translates to:
-  /// **'¿Cuándo usar Moneda de Reportes?\\n\\nSi su Moneda Base es diferente a la moneda en que quiere ver los reportes del Dashboard, configure aquí la moneda de visualización.\\n\\nEjemplo práctico:\\n• Moneda Base: Córdobas (NIO) - su capital de trabajo\\n• Moneda de Reportes: Dólares (USD) - para inversores\\n• Tasa de Cambio: 36.50 (si 1 USD = 36.50 NIO)\\n\\nNOTA: Si solo opera en una moneda, deje ambas iguales.'**
-  String get reportCurrencyDialogDesc;
-
-  /// No description provided for @reportCurrencyInfoBanner.
-  ///
-  /// In es, this message translates to:
-  /// **'Esto afecta solo tus reportes como prestamista, no los documentos del cliente.'**
-  String get reportCurrencyInfoBanner;
-
-  /// No description provided for @tapToChange.
-  ///
-  /// In es, this message translates to:
-  /// **'Toca para cambiar'**
-  String get tapToChange;
-
-  /// No description provided for @requiredField.
-  ///
-  /// In es, this message translates to:
-  /// **'Requerido'**
-  String get requiredField;
-
-  /// No description provided for @invalidRateError.
-  ///
-  /// In es, this message translates to:
-  /// **'Tasa inválida'**
-  String get invalidRateError;
-
-  /// No description provided for @saveButton.
-  ///
-  /// In es, this message translates to:
-  /// **'Guardar'**
-  String get saveButton;
-
-  /// No description provided for @backupSettingsSaved.
-  ///
-  /// In es, this message translates to:
-  /// **'Configuración de respaldo guardada'**
-  String get backupSettingsSaved;
-
-  /// No description provided for @frequency.
-  ///
-  /// In es, this message translates to:
-  /// **'Frecuencia'**
-  String get frequency;
-
-  /// No description provided for @disabled.
-  ///
-  /// In es, this message translates to:
-  /// **'Desactivado'**
-  String get disabled;
-
-  /// No description provided for @preferredTime.
-  ///
-  /// In es, this message translates to:
-  /// **'Hora preferida'**
-  String get preferredTime;
-
-  /// No description provided for @automaticTriggers.
-  ///
-  /// In es, this message translates to:
-  /// **'Disparadores Automáticos'**
-  String get automaticTriggers;
-
   /// No description provided for @onLoanCreation.
   ///
   /// In es, this message translates to:
@@ -3276,6 +3156,12 @@ abstract class S {
   /// In es, this message translates to:
   /// **'Error al generar PDF: {error}'**
   String errorGeneratingPdf(Object error);
+
+  /// No description provided for @errorGeneratingReceipt.
+  ///
+  /// In es, this message translates to:
+  /// **'Error al generar comprobante: {error}'**
+  String errorGeneratingReceipt(Object error);
 
   /// No description provided for @errorGeneratingVoucher.
   ///
@@ -3500,66 +3386,6 @@ abstract class S {
   /// In es, this message translates to:
   /// **'Seleccione un préstamo'**
   String get selectALoan;
-
-  /// No description provided for @confirmAndDelete.
-  ///
-  /// In es, this message translates to:
-  /// **'Confirmar y Borrar'**
-  String get confirmAndDelete;
-
-  /// No description provided for @dataDeletedSuccessfully.
-  ///
-  /// In es, this message translates to:
-  /// **'Datos eliminados correctamente'**
-  String get dataDeletedSuccessfully;
-
-  /// No description provided for @interestFirst.
-  ///
-  /// In es, this message translates to:
-  /// **'Interés primero'**
-  String get interestFirst;
-
-  /// No description provided for @principalFirst.
-  ///
-  /// In es, this message translates to:
-  /// **'Capital primero'**
-  String get principalFirst;
-
-  /// No description provided for @noBackupsAvailable.
-  ///
-  /// In es, this message translates to:
-  /// **'No hay respaldos disponibles'**
-  String get noBackupsAvailable;
-
-  /// No description provided for @searchBackupFile.
-  ///
-  /// In es, this message translates to:
-  /// **'Buscar Archivo de Respaldo...'**
-  String get searchBackupFile;
-
-  /// No description provided for @restore.
-  ///
-  /// In es, this message translates to:
-  /// **'Restaurar'**
-  String get restore;
-
-  /// No description provided for @discoverFeatures.
-  ///
-  /// In es, this message translates to:
-  /// **'Descubre lo que puedes hacer'**
-  String get discoverFeatures;
-
-  /// No description provided for @editableFields.
-  ///
-  /// In es, this message translates to:
-  /// **'Campos Editables'**
-  String get editableFields;
-
-  /// No description provided for @loanStatus.
-  ///
-  /// In es, this message translates to:
-  /// **'Estado del Préstamo'**
-  String get loanStatus;
 
   /// No description provided for @loanUpdatedRecalculated.
   ///
@@ -3788,6 +3614,84 @@ abstract class S {
   /// In es, this message translates to:
   /// **'Moneda Base'**
   String get baseCurrency;
+
+  /// No description provided for @planNameHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Ej: Préstamo Personal Rápido'**
+  String get planNameHint;
+
+  /// No description provided for @financialData.
+  ///
+  /// In es, this message translates to:
+  /// **'Datos Financieros'**
+  String get financialData;
+
+  /// No description provided for @allowCurrencyChangeTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Permitir cambio de moneda'**
+  String get allowCurrencyChangeTitle;
+
+  /// No description provided for @allowCurrencyChangeSubtitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Al crear el préstamo'**
+  String get allowCurrencyChangeSubtitle;
+
+  /// No description provided for @distributeCapitalInterestTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Distribuir capital e interés'**
+  String get distributeCapitalInterestTitle;
+
+  /// No description provided for @distributeCapitalInterestSubtitle.
+  ///
+  /// In es, this message translates to:
+  /// **'En cuotas niveladas'**
+  String get distributeCapitalInterestSubtitle;
+
+  /// No description provided for @periodStartsOnDisbursementTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'El periodo inicia en desembolso'**
+  String get periodStartsOnDisbursementTitle;
+
+  /// No description provided for @limitByCategoryTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Aplica a clientes con categoría (opcional)'**
+  String get limitByCategoryTitle;
+
+  /// No description provided for @limitByCategorySubtitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Limitar este plan a un tipo específico de cliente'**
+  String get limitByCategorySubtitle;
+
+  /// No description provided for @noCategoriesCreated.
+  ///
+  /// In es, this message translates to:
+  /// **'No hay categorías creadas. Cree una categoría primero.'**
+  String get noCategoriesCreated;
+
+  /// No description provided for @labelSelectCategory.
+  ///
+  /// In es, this message translates to:
+  /// **'Seleccione Categoría'**
+  String get labelSelectCategory;
+
+  /// No description provided for @planNotFound.
+  ///
+  /// In es, this message translates to:
+  /// **'Plan no encontrado'**
+  String get planNotFound;
+
+  /// No description provided for @selectStartCategory.
+  ///
+  /// In es, this message translates to:
+  /// **'Seleccione una categoría'**
+  String get selectStartCategory;
 
   /// No description provided for @baseCurrencyDesc.
   ///
@@ -4041,6 +3945,12 @@ abstract class S {
   /// **'Cliente'**
   String get client;
 
+  /// No description provided for @loanLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Préstamo'**
+  String get loanLabel;
+
   /// No description provided for @receiptNo.
   ///
   /// In es, this message translates to:
@@ -4052,6 +3962,12 @@ abstract class S {
   /// In es, this message translates to:
   /// **'Moneda Pago'**
   String get paymentCurrency;
+
+  /// No description provided for @paymentAmountLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Monto Pago'**
+  String get paymentAmountLabel;
 
   /// No description provided for @appliedRate.
   ///
@@ -4106,126 +4022,6 @@ abstract class S {
   /// In es, this message translates to:
   /// **'Pagos en Divisas'**
   String get fxPayments;
-
-  /// No description provided for @paymentFrequencies.
-  ///
-  /// In es, this message translates to:
-  /// **'Frecuencias de Pago'**
-  String get paymentFrequencies;
-
-  /// No description provided for @paymentFrequenciesSubtitle.
-  ///
-  /// In es, this message translates to:
-  /// **'Gestionar frecuencias de cobro (Diario, Semanal, etc)'**
-  String get paymentFrequenciesSubtitle;
-
-  /// No description provided for @newFrequency.
-  ///
-  /// In es, this message translates to:
-  /// **'Nueva Frecuencia'**
-  String get newFrequency;
-
-  /// No description provided for @editFrequency.
-  ///
-  /// In es, this message translates to:
-  /// **'Editar Frecuencia'**
-  String get editFrequency;
-
-  /// No description provided for @frequencyName.
-  ///
-  /// In es, this message translates to:
-  /// **'Nombre'**
-  String get frequencyName;
-
-  /// No description provided for @frequencyNameHint.
-  ///
-  /// In es, this message translates to:
-  /// **'Ej: Mensual, Quincenal'**
-  String get frequencyNameHint;
-
-  /// No description provided for @daysInterval.
-  ///
-  /// In es, this message translates to:
-  /// **'Intervalo (Días)'**
-  String get daysInterval;
-
-  /// No description provided for @daysIntervalHint.
-  ///
-  /// In es, this message translates to:
-  /// **'Ej: 30'**
-  String get daysIntervalHint;
-
-  /// No description provided for @isDefaultFrequency.
-  ///
-  /// In es, this message translates to:
-  /// **'Frecuencia por defecto'**
-  String get isDefaultFrequency;
-
-  /// No description provided for @validationFrequencyInUse.
-  ///
-  /// In es, this message translates to:
-  /// **'Esta frecuencia está en uso por préstamos activos y no puede ser modificada/eliminada'**
-  String get validationFrequencyInUse;
-
-  /// No description provided for @deleteFrequencyConfirm.
-  ///
-  /// In es, this message translates to:
-  /// **'¿Eliminar esta frecuencia?'**
-  String get deleteFrequencyConfirm;
-
-  /// No description provided for @deactivateFrequencyConfirm.
-  ///
-  /// In es, this message translates to:
-  /// **'¿Desactivar esta frecuencia?'**
-  String get deactivateFrequencyConfirm;
-
-  /// No description provided for @activeFrequency.
-  ///
-  /// In es, this message translates to:
-  /// **'Activa'**
-  String get activeFrequency;
-
-  /// No description provided for @inactiveFrequency.
-  ///
-  /// In es, this message translates to:
-  /// **'Inactiva'**
-  String get inactiveFrequency;
-
-  /// No description provided for @frequencyCreated.
-  ///
-  /// In es, this message translates to:
-  /// **'Frecuencia creada'**
-  String get frequencyCreated;
-
-  /// No description provided for @frequencyUpdated.
-  ///
-  /// In es, this message translates to:
-  /// **'Frecuencia actualizada'**
-  String get frequencyUpdated;
-
-  /// No description provided for @frequencyDeleted.
-  ///
-  /// In es, this message translates to:
-  /// **'Frecuencia eliminada'**
-  String get frequencyDeleted;
-
-  /// No description provided for @cantDeleteDefault.
-  ///
-  /// In es, this message translates to:
-  /// **'No se pueden eliminar las frecuencias predeterminadas'**
-  String get cantDeleteDefault;
-
-  /// No description provided for @cantEditDefaultInterval.
-  ///
-  /// In es, this message translates to:
-  /// **'No se puede editar el intervalo de frecuencias predeterminadas'**
-  String get cantEditDefaultInterval;
-
-  /// No description provided for @selectFrequency.
-  ///
-  /// In es, this message translates to:
-  /// **'Seleccionar Frecuencia'**
-  String get selectFrequency;
 
   /// No description provided for @applied.
   ///
@@ -4485,6 +4281,90 @@ abstract class S {
   /// **'Color personalizado'**
   String get customColor;
 
+  /// No description provided for @paymentFrequencies.
+  ///
+  /// In es, this message translates to:
+  /// **'Frecuencias de Pago'**
+  String get paymentFrequencies;
+
+  /// No description provided for @paymentFrequenciesSubtitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Gestionar frecuencias de cobro (Diario, Semanal, etc)'**
+  String get paymentFrequenciesSubtitle;
+
+  /// No description provided for @newFrequency.
+  ///
+  /// In es, this message translates to:
+  /// **'Nueva Frecuencia'**
+  String get newFrequency;
+
+  /// No description provided for @editFrequency.
+  ///
+  /// In es, this message translates to:
+  /// **'Editar Frecuencia'**
+  String get editFrequency;
+
+  /// No description provided for @frequencyName.
+  ///
+  /// In es, this message translates to:
+  /// **'Nombre'**
+  String get frequencyName;
+
+  /// No description provided for @frequencyNameHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Ej: Mensual, Quincenal'**
+  String get frequencyNameHint;
+
+  /// No description provided for @daysInterval.
+  ///
+  /// In es, this message translates to:
+  /// **'Intervalo (Días)'**
+  String get daysInterval;
+
+  /// No description provided for @daysIntervalHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Ej: 30'**
+  String get daysIntervalHint;
+
+  /// No description provided for @cantEditDefaultInterval.
+  ///
+  /// In es, this message translates to:
+  /// **'No se puede editar el intervalo de frecuencias predeterminadas'**
+  String get cantEditDefaultInterval;
+
+  /// No description provided for @deactivateFrequencyConfirm.
+  ///
+  /// In es, this message translates to:
+  /// **'¿Desactivar esta frecuencia?'**
+  String get deactivateFrequencyConfirm;
+
+  /// No description provided for @activeFrequency.
+  ///
+  /// In es, this message translates to:
+  /// **'Activa'**
+  String get activeFrequency;
+
+  /// No description provided for @inactiveFrequency.
+  ///
+  /// In es, this message translates to:
+  /// **'Inactiva'**
+  String get inactiveFrequency;
+
+  /// No description provided for @validationFrequencyInUse.
+  ///
+  /// In es, this message translates to:
+  /// **'Esta frecuencia está en uso por préstamos activos y no puede ser modificada/eliminada'**
+  String get validationFrequencyInUse;
+
+  /// No description provided for @deleteFrequencyConfirm.
+  ///
+  /// In es, this message translates to:
+  /// **'¿Eliminar esta frecuencia?'**
+  String get deleteFrequencyConfirm;
+
   /// No description provided for @paymentFrequenciesInfoTitle.
   ///
   /// In es, this message translates to:
@@ -4502,6 +4382,12 @@ abstract class S {
   /// In es, this message translates to:
   /// **'Anual'**
   String get freqAnnually;
+
+  /// No description provided for @selectFrequency.
+  ///
+  /// In es, this message translates to:
+  /// **'Seleccionar Frecuencia'**
+  String get selectFrequency;
 
   /// No description provided for @searchFrequency.
   ///
@@ -4532,6 +4418,330 @@ abstract class S {
   /// In es, this message translates to:
   /// **'No se encontraron frecuencias'**
   String get noFrequenciesFound;
+
+  /// No description provided for @planTerm.
+  ///
+  /// In es, this message translates to:
+  /// **'Plazo'**
+  String get planTerm;
+
+  /// No description provided for @planTermUnit.
+  ///
+  /// In es, this message translates to:
+  /// **'Unidad de Plazo'**
+  String get planTermUnit;
+
+  /// No description provided for @termDays.
+  ///
+  /// In es, this message translates to:
+  /// **'Días'**
+  String get termDays;
+
+  /// No description provided for @termWeeks.
+  ///
+  /// In es, this message translates to:
+  /// **'Semanas'**
+  String get termWeeks;
+
+  /// No description provided for @termMonths.
+  ///
+  /// In es, this message translates to:
+  /// **'Meses'**
+  String get termMonths;
+
+  /// No description provided for @termYears.
+  ///
+  /// In es, this message translates to:
+  /// **'Años'**
+  String get termYears;
+
+  /// No description provided for @calculatedInstallments.
+  ///
+  /// In es, this message translates to:
+  /// **'Cuotas Calculadas: {count}'**
+  String calculatedInstallments(int count);
+
+  /// No description provided for @calculatedInstallmentsWarning.
+  ///
+  /// In es, this message translates to:
+  /// **'Advertencia: El plazo no es múltiplo exacto de la frecuencia. Se ajustará a {count} cuotas.'**
+  String calculatedInstallmentsWarning(int count);
+
+  /// No description provided for @applicableCategories.
+  ///
+  /// In es, this message translates to:
+  /// **'Categorías Aplicables'**
+  String get applicableCategories;
+
+  /// No description provided for @allCategories.
+  ///
+  /// In es, this message translates to:
+  /// **'Todas las Categorías'**
+  String get allCategories;
+
+  /// No description provided for @selectCategories.
+  ///
+  /// In es, this message translates to:
+  /// **'Seleccionar Categorías'**
+  String get selectCategories;
+
+  /// No description provided for @distributeCapitalInterestTooltip.
+  ///
+  /// In es, this message translates to:
+  /// **'Si se activa, la cuota calculada incluirá capital e interés amortizado. Si se desactiva, el cobro por ciclo será solo interés.'**
+  String get distributeCapitalInterestTooltip;
+
+  /// No description provided for @periodStartsOnDisbursementTooltip.
+  ///
+  /// In es, this message translates to:
+  /// **'Activo: La fecha de inicio es la fecha de desembolso. Inactivo: Debe seleccionar fecha de inicio manual.'**
+  String get periodStartsOnDisbursementTooltip;
+
+  /// No description provided for @paymentPlans.
+  ///
+  /// In es, this message translates to:
+  /// **'Planes de Pago'**
+  String get paymentPlans;
+
+  /// No description provided for @paymentPlansSubtitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Configurar planes preconfigurados para préstamos'**
+  String get paymentPlansSubtitle;
+
+  /// No description provided for @noPaymentPlans.
+  ///
+  /// In es, this message translates to:
+  /// **'No hay planes de pago'**
+  String get noPaymentPlans;
+
+  /// No description provided for @addPaymentPlanHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Presiona el botón + para agregar un plan'**
+  String get addPaymentPlanHint;
+
+  /// No description provided for @newPaymentPlan.
+  ///
+  /// In es, this message translates to:
+  /// **'Nuevo Plan de Pago'**
+  String get newPaymentPlan;
+
+  /// No description provided for @editPaymentPlan.
+  ///
+  /// In es, this message translates to:
+  /// **'Editar Plan de Pago'**
+  String get editPaymentPlan;
+
+  /// No description provided for @planName.
+  ///
+  /// In es, this message translates to:
+  /// **'Nombre del Plan'**
+  String get planName;
+
+  /// No description provided for @installments.
+  ///
+  /// In es, this message translates to:
+  /// **'cuotas'**
+  String get installments;
+
+  /// No description provided for @installmentsTotal.
+  ///
+  /// In es, this message translates to:
+  /// **'Total de Cuotas'**
+  String get installmentsTotal;
+
+  /// No description provided for @minAmount.
+  ///
+  /// In es, this message translates to:
+  /// **'Monto Mínimo'**
+  String get minAmount;
+
+  /// No description provided for @maxAmount.
+  ///
+  /// In es, this message translates to:
+  /// **'Monto Máximo'**
+  String get maxAmount;
+
+  /// No description provided for @days.
+  ///
+  /// In es, this message translates to:
+  /// **'días'**
+  String get days;
+
+  /// No description provided for @distributeCapitalInterest.
+  ///
+  /// In es, this message translates to:
+  /// **'Distribuir Capital e Interés'**
+  String get distributeCapitalInterest;
+
+  /// No description provided for @distributeCapitalInterestDesc.
+  ///
+  /// In es, this message translates to:
+  /// **'Calcular cuotas fijas con capital + interés distribuido'**
+  String get distributeCapitalInterestDesc;
+
+  /// No description provided for @periodStartsOnDisbursement.
+  ///
+  /// In es, this message translates to:
+  /// **'Período inicia al desembolsar'**
+  String get periodStartsOnDisbursement;
+
+  /// No description provided for @periodStartsOnDisbursementDesc.
+  ///
+  /// In es, this message translates to:
+  /// **'La fecha de desembolso se autocompleta con la fecha actual'**
+  String get periodStartsOnDisbursementDesc;
+
+  /// No description provided for @allowCurrencyChange.
+  ///
+  /// In es, this message translates to:
+  /// **'Permitir cambiar moneda en préstamo'**
+  String get allowCurrencyChange;
+
+  /// No description provided for @activate.
+  ///
+  /// In es, this message translates to:
+  /// **'Activar'**
+  String get activate;
+
+  /// No description provided for @deactivate.
+  ///
+  /// In es, this message translates to:
+  /// **'Desactivar'**
+  String get deactivate;
+
+  /// No description provided for @cannotDeactivatePlanWithLoans.
+  ///
+  /// In es, this message translates to:
+  /// **'No se puede desactivar un plan con préstamos activos'**
+  String get cannotDeactivatePlanWithLoans;
+
+  /// No description provided for @cannotDeletePlanWithLoans.
+  ///
+  /// In es, this message translates to:
+  /// **'No se puede eliminar un plan con préstamos activos'**
+  String get cannotDeletePlanWithLoans;
+
+  /// No description provided for @deletePlanConfirmation.
+  ///
+  /// In es, this message translates to:
+  /// **'¿Está seguro de eliminar este plan de pago?'**
+  String get deletePlanConfirmation;
+
+  /// No description provided for @scheduledBackupTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Respaldo Programado'**
+  String get scheduledBackupTitle;
+
+  /// No description provided for @frequency.
+  ///
+  /// In es, this message translates to:
+  /// **'Frecuencia'**
+  String get frequency;
+
+  /// No description provided for @disabled.
+  ///
+  /// In es, this message translates to:
+  /// **'Desactivado'**
+  String get disabled;
+
+  /// No description provided for @preferredTime.
+  ///
+  /// In es, this message translates to:
+  /// **'Hora Preferida'**
+  String get preferredTime;
+
+  /// No description provided for @automaticTriggers.
+  ///
+  /// In es, this message translates to:
+  /// **'Disparadores Automáticos'**
+  String get automaticTriggers;
+
+  /// No description provided for @backupSettingsSaved.
+  ///
+  /// In es, this message translates to:
+  /// **'Configuración de respaldo guardada'**
+  String get backupSettingsSaved;
+
+  /// No description provided for @reportCurrencyDialogDesc.
+  ///
+  /// In es, this message translates to:
+  /// **'Moneda utilizada para reportes financieros'**
+  String get reportCurrencyDialogDesc;
+
+  /// No description provided for @reportCurrencyInfoBanner.
+  ///
+  /// In es, this message translates to:
+  /// **'Los reportes se mostrarán en esta moneda'**
+  String get reportCurrencyInfoBanner;
+
+  /// No description provided for @tapToChange.
+  ///
+  /// In es, this message translates to:
+  /// **'Toca para cambiar'**
+  String get tapToChange;
+
+  /// No description provided for @exchangeRateTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Tasa de Cambio'**
+  String get exchangeRateTitle;
+
+  /// No description provided for @invalidRateError.
+  ///
+  /// In es, this message translates to:
+  /// **'Tasa inválida'**
+  String get invalidRateError;
+
+  /// No description provided for @saveButton.
+  ///
+  /// In es, this message translates to:
+  /// **'Guardar'**
+  String get saveButton;
+
+  /// No description provided for @requiredField.
+  ///
+  /// In es, this message translates to:
+  /// **'Requerido'**
+  String get requiredField;
+
+  /// No description provided for @scheduledBackupDesc.
+  ///
+  /// In es, this message translates to:
+  /// **'Configura copias de seguridad automáticas'**
+  String get scheduledBackupDesc;
+
+  /// No description provided for @interestFirst.
+  ///
+  /// In es, this message translates to:
+  /// **'Interés Primero'**
+  String get interestFirst;
+
+  /// No description provided for @principalFirst.
+  ///
+  /// In es, this message translates to:
+  /// **'Capital Primero'**
+  String get principalFirst;
+
+  /// No description provided for @noBackupsAvailable.
+  ///
+  /// In es, this message translates to:
+  /// **'No hay respaldos disponibles'**
+  String get noBackupsAvailable;
+
+  /// No description provided for @settingsSaved.
+  ///
+  /// In es, this message translates to:
+  /// **'Configuración guardada'**
+  String get settingsSaved;
+
+  /// No description provided for @invalidExchangeRate.
+  ///
+  /// In es, this message translates to:
+  /// **'Tasa de cambio inválida'**
+  String get invalidExchangeRate;
 }
 
 class _SDelegate extends LocalizationsDelegate<S> {

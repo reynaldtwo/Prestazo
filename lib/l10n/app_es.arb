@@ -341,7 +341,7 @@
   "totalPaidLabel": "Total Pagado:",
   "interestMoraLabel": "Interés/Mora:",
   "capitalLabel": "Capital:",
-  "loanLabel": "Préstamo #:",
+  "loanLabelPrefix": "Préstamo #:",
   "clientLabel": "Cliente:",
   "dniLabel": "Cédula:",
   "restrictedEditTitle": "Edición Restringida",
@@ -358,7 +358,7 @@
   "loanNotLoaded": "Préstamo no cargado",
   "customerNotFound": "Cliente no encontrado",
   "generatingReceipt": "Generando recibo...",
-  "errorGeneratingReceipt": "Error al generar recibo",
+  "errorGeneratingReceiptTitle": "Error al generar recibo",
   "generatingDisbursement": "Generando comprobante de desembolso...",
   "errorGeneratingDisbursement": "Error al generar comprobante",
   "disbursementReceiptTooltip": "Comprobante Desembolso",
@@ -390,7 +390,7 @@
   "errorDeleting": "Error al eliminar:",
   "selectCustomer": "Seleccionar Cliente",
   "createCustomer": "Crear Cliente",
-  "paymentAmountLabel": "Monto del Pago *",
+  "paymentAmountLabelRequired": "Monto del Pago *",
   "invalidAmountMsg": "Ingrese un monto válido",
   "identity": "Identidad",
   "contact": "Contacto",
@@ -551,32 +551,6 @@
   "appearanceDescription": "Personaliza cómo se ve la aplicación.\n\n**Modo Claro:** Ideal para entornos muy iluminados.\n**Modo Oscuro:** Reduce la fatiga visual y ahorra batería.\n**Sistema:** Se adapta automáticamente a la configuración de tu teléfono.",
   "languageTitle": "Idioma",
   "languageDescription": "Cambia el idioma de toda la interfaz de la aplicación.\nActualmente soportamos Español e Inglés.",
-  "currencyTitle": "Moneda",
-  "currencyDescription": "Define la moneda principal que se utilizará en toda la aplicación (Préstamos, Pagos, Reportes).\n\n**Importante:**\n* Todos los montos se mostrarán con el símbolo de la moneda seleccionada.\n* Cambiar la moneda NO convierte los montos existentes (ej. 100 U$ no se convierte a 3600 C$ automáticamente), solo cambia el símbolo de visualización.\n* Se recomienda definir la moneda al inicio y no cambiarla frecuentemente si manejas montos mixtos.",
-  "reportCurrencyDescription": "Define la moneda base para los reportes financieros y el dashboard. Se utilizará la Tasa de Cambio para convertir montos que estén en otras monedas.",
-  "aboutTitle": "Acerca de",
-  "aboutDescription": "Información sobre la versión instalada y el desarrollador.\nAquí puedes verificar si tienes la última actualización y contactar a soporte si es necesario.",
-  "reportCurrencyDesc": "Define moneda y tasa de cambio",
-  "scheduledBackupTitle": "Respaldo Programado",
-  "scheduledBackupDesc": "Configurar frecuencia y disparadores",
-  "invalidExchangeRate": "Ingresa una tasa de cambio válida",
-  "settingsSaved": "Configuración guardada",
-  "exchangeRateTitle": "Tasa de Cambio",
-  "reportCurrencyDialogDesc": "¿Cuándo usar Moneda de Reportes?\\n\\nSi su Moneda Base es diferente a la moneda en que quiere ver los reportes del Dashboard, configure aquí la moneda de visualización.\\n\\nEjemplo práctico:\\n• Moneda Base: Córdobas (NIO) - su capital de trabajo\\n• Moneda de Reportes: Dólares (USD) - para inversores\\n• Tasa de Cambio: 36.50 (si 1 USD = 36.50 NIO)\\n\\nNOTA: Si solo opera en una moneda, deje ambas iguales.",
-  "understood": "Entendido",
-  "reportCurrencyInfoBanner": "Esto afecta solo tus reportes como prestamista, no los documentos del cliente.",
-  "tapToChange": "Toca para cambiar",
-  "requiredField": "Requerido",
-  "invalidRateError": "Tasa inválida",
-  "saveButton": "Guardar",
-  "backupSettingsSaved": "Configuración de respaldo guardada",
-  "frequency": "Frecuencia",
-  "disabled": "Desactivado",
-  "daily": "Diario",
-  "weekly": "Semanal",
-  "monthly": "Mensual",
-  "preferredTime": "Hora preferida",
-  "automaticTriggers": "Disparadores Automáticos",
   "onLoanCreation": "Al crear préstamo",
   "onLoanCreationDesc": "Respaldar cada vez que se crea un préstamo",
   "onPayment": "Al registrar pago",
@@ -591,7 +565,6 @@
       }
     }
   },
-  "saveConfiguration": "Guardar Configuración",
   "autoBackupInfo": "Los respaldos automáticos se verificarán cuando abras la aplicación. Asegúrate de abrir la app regularmente.",
   "errorCheckingPayments": "Error al verificar pagos: {error}",
   "@errorCheckingPayments": {
@@ -601,8 +574,6 @@
       }
     }
   },
-  "loanNotLoaded": "Préstamo no cargado",
-  "customerNotFound": "Cliente no encontrado",
   "configNotLoaded": "Configuración no cargada",
   "errorGeneratingPdf": "Error al generar PDF: {error}",
   "@errorGeneratingPdf": {
@@ -657,7 +628,6 @@
       }
     }
   },
-  "creatingBackup": "Creando respaldo de seguridad...",
   "recalculatingPortfolio": "Recalculando cartera...",
   "errorRestoringBackup": "Error al restaurar respaldo",
   "errorSelectingFile": "Error al seleccionar archivo: {error}",
@@ -676,77 +646,99 @@
   "incorrectCancelAmountMessage": "Para cancelar el préstamo, el monto debe ser exactamente {symbol} {amount} (Capital + Intereses).",
   "@incorrectCancelAmountMessage": {
     "placeholders": {
-      "symbol": { "type": "String" },
-      "amount": { "type": "String" }
+      "symbol": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      }
     }
   },
   "amountExceedsInterestTitle": "Monto Excede Intereses",
   "amountExceedsInterestMessage": "El monto ({symbol} {paid}) excede los intereses pendientes ({symbol} {pending}).\n\nSeleccione \"Mixto\" para abonar al capital.",
   "@amountExceedsInterestMessage": {
     "placeholders": {
-      "symbol": { "type": "String" },
-      "paid": { "type": "String" },
-      "pending": { "type": "String" }
+      "symbol": {
+        "type": "String"
+      },
+      "paid": {
+        "type": "String"
+      },
+      "pending": {
+        "type": "String"
+      }
     }
   },
   "insufficientMixedAmountTitle": "Monto Insuficiente para Mixto",
   "insufficientMixedAmountMessage": "Para un pago mixto, el monto debe ser mayor a los intereses pendientes ({symbol} {pending}).\n\nSi solo desea pagar intereses, seleccione \"Solo Interés\".",
   "@insufficientMixedAmountMessage": {
     "placeholders": {
-      "symbol": { "type": "String" },
-      "pending": { "type": "String" }
+      "symbol": {
+        "type": "String"
+      },
+      "pending": {
+        "type": "String"
+      }
     }
   },
   "pendingInterestTitle": "Intereses Pendientes",
   "pendingInterestMessage": "No puede abonar solo al capital porque tiene intereses pendientes ({symbol} {pending}).\n\nDebe pagar los intereses primero.",
   "@pendingInterestMessage": {
     "placeholders": {
-      "symbol": { "type": "String" },
-      "pending": { "type": "String" }
+      "symbol": {
+        "type": "String"
+      },
+      "pending": {
+        "type": "String"
+      }
     }
   },
   "amountExceedsPrincipalTitle": "Monto Excede Capital",
   "amountExceedsPrincipalMessage": "El monto ({symbol} {paid}) excede el capital pendiente ({symbol} {pending}).",
   "@amountExceedsPrincipalMessage": {
     "placeholders": {
-      "symbol": { "type": "String" },
-      "paid": { "type": "String" },
-      "pending": { "type": "String" }
+      "symbol": {
+        "type": "String"
+      },
+      "paid": {
+        "type": "String"
+      },
+      "pending": {
+        "type": "String"
+      }
     }
   },
   "calculating": "Calculando...",
   "errorLoadingCycles": "Error al cargar ciclos: {error}",
-  "@errorLoadingCycles": { "placeholders": { "error": { "type": "Object" } } },
-  "noBillingCycles": "No hay ciclos de cobro generados",
+  "@errorLoadingCycles": {
+    "placeholders": {
+      "error": {
+        "type": "Object"
+      }
+    }
+  },
   "errorLoadingPayments": "Error al cargar pagos: {error}",
-  "@errorLoadingPayments": { "placeholders": { "error": { "type": "Object" } } },
+  "@errorLoadingPayments": {
+    "placeholders": {
+      "error": {
+        "type": "Object"
+      }
+    }
+  },
   "noPaymentsRegistered": "No hay pagos registrados",
   "loadingDetails": "Cargando detalles...",
   "errorLoadingDetails": "Error al cargar detalles",
   "noAllocationDetails": "Sin asignación detallada",
   "companyDataUpdated": "Datos de la empresa actualizados",
   "errorSaving": "Error al guardar: {error}",
-  "@errorSaving": { "placeholders": { "error": { "type": "Object" } } },
+  "@errorSaving": {
+    "placeholders": {
+      "error": {
+        "type": "Object"
+      }
+    }
+  },
   "selectALoan": "Seleccione un préstamo",
-  "validations": "Validaciones",
-  "backupFolder": "Carpeta de Respaldo",
-  "confirmAndDelete": "Confirmar y Borrar",
-  "dataDeletedSuccessfully": "Datos eliminados correctamente",
-  "understood": "Entendido",
-  "paymentOrder": "Orden de aplicación",
-  "interestFirst": "Interés primero",
-  "principalFirst": "Capital primero",
-  "localBackups": "Respaldos Locales",
-  "noBackupsAvailable": "No hay respaldos disponibles",
-  "createNewBackup": "Crear Nuevo Respaldo",
-  "searchBackupFile": "Buscar Archivo de Respaldo...",
-  "restoreBackup": "Restaurar Respaldo",
-  "restore": "Restaurar",
-  "discoverFeatures": "Descubre lo que puedes hacer",
-  "editLoan": "Editar Préstamo",
-  "editableFields": "Campos Editables",
-  "loanStatus": "Estado del Préstamo",
-  "notes": "Notas",
   "loanUpdatedRecalculated": "Préstamo actualizado y recalculado",
   "exchangeRates": "Tasas de Cambio",
   "addExchangeRate": "Agregar Tasa",
@@ -764,7 +756,13 @@
   "deleteRateConfirmation": "¿Está seguro de eliminar esta tasa?",
   "rateAlreadyExists": "Ya existe una tasa para esta fecha y par de monedas",
   "workingCapitalIn": "Capital de Trabajo en {currency}",
-  "@workingCapitalIn": { "placeholders": { "currency": { "type": "String" } } },
+  "@workingCapitalIn": {
+    "placeholders": {
+      "currency": {
+        "type": "String"
+      }
+    }
+  },
   "recalculateCapitalQuestion": "¿Desea recalcular el capital de trabajo a la nueva moneda base?",
   "baseCurrencyChanged": "Moneda base cambiada",
   "capitalWillBeRecalculated": "El capital será recalculado según la tasa vigente",
@@ -774,7 +772,13 @@
   "noRateForToday": "No hay tasa registrada para hoy",
   "usingFallbackRate": "Usando tasa de respaldo",
   "totalInBaseCurrency": "Total en {currency}",
-  "@totalInBaseCurrency": { "placeholders": { "currency": { "type": "String" } } },
+  "@totalInBaseCurrency": {
+    "placeholders": {
+      "currency": {
+        "type": "String"
+      }
+    }
+  },
   "currencyDifferentialReport": "Reporte Diferencial Cambiario",
   "exchangeGain": "Ganancia Cambiaria",
   "exchangeLoss": "Pérdida Cambiaria",
@@ -785,9 +789,28 @@
   "currentRate": "Tasa Actual",
   "noDifferentials": "No hay diferenciales cambiarios",
   "loansWithDifferential": "{count} préstamos con diferencial",
-  "@loansWithDifferential": { "placeholders": { "count": { "type": "int" } } },
+  "@loansWithDifferential": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "manageExchangeRates": "Gestionar tasas de cambio",
   "baseCurrency": "Moneda Base",
+  "planNameHint": "Ej: Préstamo Personal Rápido",
+  "financialData": "Datos Financieros",
+  "allowCurrencyChangeTitle": "Permitir cambio de moneda",
+  "allowCurrencyChangeSubtitle": "Al crear el préstamo",
+  "distributeCapitalInterestTitle": "Distribuir capital e interés",
+  "distributeCapitalInterestSubtitle": "En cuotas niveladas",
+  "periodStartsOnDisbursementTitle": "El periodo inicia en desembolso",
+  "limitByCategoryTitle": "Aplica a clientes con categoría (opcional)",
+  "limitByCategorySubtitle": "Limitar este plan a un tipo específico de cliente",
+  "noCategoriesCreated": "No hay categorías creadas. Cree una categoría primero.",
+  "labelSelectCategory": "Seleccione Categoría",
+  "planNotFound": "Plan no encontrado",
+  "selectStartCategory": "Seleccione una categoría",
   "baseCurrencyDesc": "Moneda principal para cálculos y reportes",
   "baseCurrencyInfo": "La Moneda Base es la moneda local en la que opera su negocio de préstamos.\n\n¿Qué afecta?\n• El campo de Capital de Trabajo se muestra en esta moneda\n• Las tasas de cambio se registran contra esta moneda\n• Los préstamos en otra moneda usan la tasa del día para conversión\n\nEjemplo: Si opera en Nicaragua, su moneda base sería Córdoba (NIO).",
   "capitalConverted": "Capital convertido",
@@ -820,8 +843,12 @@
   "periodFromTo": "Período: {startDate} al {endDate}",
   "@periodFromTo": {
     "placeholders": {
-      "startDate": {"type": "String"},
-      "endDate": {"type": "String"}
+      "startDate": {
+        "type": "String"
+      },
+      "endDate": {
+        "type": "String"
+      }
     }
   },
   "periodSummary": "Resumen del período",
@@ -849,32 +876,14 @@
   "noFxOperations": "Sin operaciones cambiarias",
   "noFxPaymentsInPeriod": "No hay pagos en moneda extranjera\nen el período seleccionado",
   "fxPayments": "Pagos en Divisas",
-  "paymentFrequencies": "Frecuencias de Pago",
-  "paymentFrequenciesSubtitle": "Gestionar frecuencias de cobro personalizadas",
-  "newFrequency": "Nueva Frecuencia",
-  "editFrequency": "Editar Frecuencia",
-  "frequencyName": "Nombre",
-  "frequencyNameHint": "Ej: Trimestral",
-  "daysInterval": "Intervalo (Días)",
-  "daysIntervalHint": "Ej: 90",
-  "isDefaultFrequency": "Frecuencia por defecto",
-  "validationFrequencyInUse": "Esta frecuencia no se puede eliminar o desactivar porque está siendo usada por préstamos activos.",
-  "deleteFrequencyConfirm": "¿Eliminar frecuencia?",
-  "deactivateFrequencyConfirm": "¿Desactivar frecuencia?",
-  "activeFrequency": "Activa",
-  "inactiveFrequency": "Inactiva",
-  "frequencyCreated": "Frecuencia creada",
-  "frequencyUpdated": "Frecuencia actualizada",
-  "frequencyDeleted": "Frecuencia eliminada",
-  "cantDeleteDefault": "No se pueden eliminar las frecuencias predeterminadas",
-  "cantEditDefaultInterval": "No se puede editar el intervalo de frecuencias predeterminadas",
-  "selectFrequency": "Seleccione una frecuencia",
   "applied": "Aplicado",
   "differentialProfit2": "Ganancia por Diferencial",
   "pdfGenerationError": "Error al generar PDF: {error}",
   "@pdfGenerationError": {
     "placeholders": {
-      "error": {"type": "String"}
+      "error": {
+        "type": "String"
+      }
     }
   },
   "shareReportText": "Reporte Diferencial Cambiario",
@@ -896,13 +905,17 @@
   "categoryInUseByOne": "Esta categoría está asignada a {customerName}. Quítala del cliente antes de eliminarla.",
   "@categoryInUseByOne": {
     "placeholders": {
-      "customerName": {"type": "String"}
+      "customerName": {
+        "type": "String"
+      }
     }
   },
   "categoryInUseByMany": "Esta categoría está asignada a {count} clientes. Quítala de todos los clientes antes de eliminarla.",
   "@categoryInUseByMany": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "noCategories": "Sin categorías",
@@ -922,7 +935,6 @@
   "doNotLend": "No prestar",
   "bad": "Malo",
   "paymentSuccess": "Pago registrado exitosamente",
-  "monetaryManagement": "Gestión Monetaria",
   "catalogInfoTitle": "¿Qué es el Catálogo?",
   "catalogInfoDescription": "El catálogo permite crear categorías personalizadas para clasificar a tus clientes (ej. Bueno, Regular, No Prestar).\n\nCon las categorías asignadas a los clientes, podrás:\n• Identificar rápidamente el tipo de cada cliente\n• Generar reportes filtrados por categoría\n• Tomar mejores decisiones de crédito basadas en el historial",
   "colorSelector": "Color",
@@ -950,5 +962,73 @@
   "sortBy": "Ordenar por",
   "sortByName": "Nombre",
   "sortByDays": "Días",
-  "noFrequenciesFound": "No se encontraron frecuencias"
+  "noFrequenciesFound": "No se encontraron frecuencias",
+  "planTerm": "Plazo",
+  "planTermUnit": "Unidad de Plazo",
+  "termDays": "Días",
+  "termWeeks": "Semanas",
+  "termMonths": "Meses",
+  "termYears": "Años",
+  "calculatedInstallments": "Cuotas Calculadas: {count}",
+  "@calculatedInstallments": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "calculatedInstallmentsWarning": "Advertencia: El plazo no es múltiplo exacto de la frecuencia. Se ajustará a {count} cuotas.",
+  "@calculatedInstallmentsWarning": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "applicableCategories": "Categorías Aplicables",
+  "allCategories": "Todas las Categorías",
+  "selectCategories": "Seleccionar Categorías",
+  "distributeCapitalInterestTooltip": "Si se activa, la cuota calculada incluirá capital e interés amortizado. Si se desactiva, el cobro por ciclo será solo interés.",
+  "periodStartsOnDisbursementTooltip": "Activo: La fecha de inicio es la fecha de desembolso. Inactivo: Debe seleccionar fecha de inicio manual.",
+  "paymentPlans": "Planes de Pago",
+  "paymentPlansSubtitle": "Configurar planes preconfigurados para préstamos",
+  "noPaymentPlans": "No hay planes de pago",
+  "addPaymentPlanHint": "Presiona el botón + para agregar un plan",
+  "newPaymentPlan": "Nuevo Plan de Pago",
+  "editPaymentPlan": "Editar Plan de Pago",
+  "planName": "Nombre del Plan",
+  "installments": "cuotas",
+  "installmentsTotal": "Total de Cuotas",
+  "minAmount": "Monto Mínimo",
+  "maxAmount": "Monto Máximo",
+  "days": "días",
+  "distributeCapitalInterest": "Distribuir Capital e Interés",
+  "distributeCapitalInterestDesc": "Calcular cuotas fijas con capital + interés distribuido",
+  "periodStartsOnDisbursement": "Período inicia al desembolsar",
+  "periodStartsOnDisbursementDesc": "La fecha de desembolso se autocompleta con la fecha actual",
+  "allowCurrencyChange": "Permitir cambiar moneda en préstamo",
+  "activate": "Activar",
+  "deactivate": "Desactivar",
+  "cannotDeactivatePlanWithLoans": "No se puede desactivar un plan con préstamos activos",
+  "cannotDeletePlanWithLoans": "No se puede eliminar un plan con préstamos activos",
+  "deletePlanConfirmation": "¿Está seguro de eliminar este plan de pago?",
+  "scheduledBackupTitle": "Respaldo Programado",
+  "frequency": "Frecuencia",
+  "disabled": "Desactivado",
+  "preferredTime": "Hora Preferida",
+  "automaticTriggers": "Disparadores Automáticos",
+  "backupSettingsSaved": "Configuración de respaldo guardada",
+  "reportCurrencyDialogDesc": "Moneda utilizada para reportes financieros",
+  "reportCurrencyInfoBanner": "Los reportes se mostrarán en esta moneda",
+  "tapToChange": "Toca para cambiar",
+  "exchangeRateTitle": "Tasa de Cambio",
+  "invalidRateError": "Tasa inválida",
+  "saveButton": "Guardar",
+  "requiredField": "Requerido",
+  "scheduledBackupDesc": "Configura copias de seguridad automáticas",
+  "interestFirst": "Interés Primero",
+  "principalFirst": "Capital Primero",
+  "noBackupsAvailable": "No hay respaldos disponibles",
+  "settingsSaved": "Configuración guardada",
+  "invalidExchangeRate": "Tasa de cambio inválida"
 }

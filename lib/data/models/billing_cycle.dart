@@ -20,6 +20,11 @@ class BillingCycle extends Equatable {
   final DateTime? capitalizedAt;
   final DateTime createdAt;
   final DateTime updatedAt;
+  // V29: Installment fields for plan distribution
+  final double? installmentExpected;
+  final double? installmentPaid;
+  final double? installmentPending;
+  final double? principalPortion;
 
   const BillingCycle({
     required this.billingCycleId,
@@ -39,6 +44,10 @@ class BillingCycle extends Equatable {
     this.capitalizedAt,
     required this.createdAt,
     required this.updatedAt,
+    this.installmentExpected,
+    this.installmentPaid,
+    this.installmentPending,
+    this.principalPortion,
   });
 
   /// Check if cycle is overdue
@@ -87,6 +96,10 @@ class BillingCycle extends Equatable {
           : null,
       createdAt: DateTime.parse(map['created_at'] as String),
       updatedAt: DateTime.parse(map['updated_at'] as String),
+      installmentExpected: (map['installment_expected'] as num?)?.toDouble(),
+      installmentPaid: (map['installment_paid'] as num?)?.toDouble(),
+      installmentPending: (map['installment_pending'] as num?)?.toDouble(),
+      principalPortion: (map['principal_portion'] as num?)?.toDouble(),
     );
   }
 
@@ -110,6 +123,10 @@ class BillingCycle extends Equatable {
       'capitalized_at': capitalizedAt?.toIso8601String(),
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
+      'installment_expected': installmentExpected,
+      'installment_paid': installmentPaid,
+      'installment_pending': installmentPending,
+      'principal_portion': principalPortion,
     };
   }
 
@@ -123,6 +140,10 @@ class BillingCycle extends Equatable {
     double? capitalizedAmount,
     DateTime? capitalizedAt,
     DateTime? updatedAt,
+    double? installmentExpected,
+    double? installmentPaid,
+    double? installmentPending,
+    double? principalPortion,
   }) {
     return BillingCycle(
       billingCycleId: billingCycleId,
@@ -142,6 +163,10 @@ class BillingCycle extends Equatable {
       capitalizedAt: capitalizedAt ?? this.capitalizedAt,
       createdAt: createdAt,
       updatedAt: updatedAt ?? DateTime.now(),
+      installmentExpected: installmentExpected ?? this.installmentExpected,
+      installmentPaid: installmentPaid ?? this.installmentPaid,
+      installmentPending: installmentPending ?? this.installmentPending,
+      principalPortion: principalPortion ?? this.principalPortion,
     );
   }
 
@@ -164,5 +189,9 @@ class BillingCycle extends Equatable {
     capitalizedAt,
     createdAt,
     updatedAt,
+    installmentExpected,
+    installmentPaid,
+    installmentPending,
+    principalPortion,
   ];
 }

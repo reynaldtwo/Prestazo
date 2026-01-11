@@ -8,7 +8,7 @@ class AppConstants {
 
   // Database
   static const String databaseName = 'prestamos_app.db';
-  static const int databaseVersion = 28; // V27: Payment Frequencies feature
+  static const int databaseVersion = 29; // V29: Payment Plans feature
 
   // Currency - NO DEFAULTS HERE
   // Currency must always come from settings.baseCurrency at runtime

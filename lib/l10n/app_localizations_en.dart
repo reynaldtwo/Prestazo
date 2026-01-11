@@ -48,7 +48,7 @@ class SEn extends S {
   String get info => 'Information';
 
   @override
-  String get understood => 'Got it';
+  String get understood => 'Understood';
 
   @override
   String get continue_ => 'Continue';
@@ -313,7 +313,7 @@ class SEn extends S {
   String get dueDate => 'Due:';
 
   @override
-  String get noBillingCycles => 'No billing cycles generated';
+  String get noBillingCycles => 'No billing cycles';
 
   @override
   String get noPayments => 'No payments';
@@ -709,7 +709,7 @@ class SEn extends S {
   String get toleranceDaysDesc => 'Days before marking as overdue';
 
   @override
-  String get paymentOrder => 'Payment Order';
+  String get paymentOrder => 'Payment application order';
 
   @override
   String get paymentOrderInterestFirst => 'Interest first';
@@ -976,7 +976,7 @@ class SEn extends S {
   String get capitalLabel => 'Principal:';
 
   @override
-  String get loanLabel => 'Loan';
+  String get loanLabelPrefix => 'Préstamo #:';
 
   @override
   String get clientLabel => 'Customer:';
@@ -1030,9 +1030,7 @@ class SEn extends S {
   String get generatingReceipt => 'Generating receipt...';
 
   @override
-  String errorGeneratingReceipt(Object error) {
-    return 'Error generating receipt: $error';
-  }
+  String get errorGeneratingReceiptTitle => 'Error al generar recibo';
 
   @override
   String get generatingDisbursement => 'Generating disbursement receipt...';
@@ -1130,7 +1128,7 @@ class SEn extends S {
   String get createCustomer => 'Create Customer';
 
   @override
-  String get paymentAmountLabel => 'Payment Amount';
+  String get paymentAmountLabelRequired => 'Monto del Pago *';
 
   @override
   String get invalidAmountMsg => 'Enter a valid amount';
@@ -1351,7 +1349,7 @@ class SEn extends S {
   String get cycleConcluding => 'Cycle Concluding';
 
   @override
-  String get aboutTitle => 'About';
+  String get aboutTitle => 'About Prestazo';
 
   @override
   String get aboutVersion => 'Version';
@@ -1361,7 +1359,7 @@ class SEn extends S {
 
   @override
   String get aboutDescription =>
-      'Information about the installed version and the developer.\nHere you can check if you have the latest update and contact support if needed.';
+      'Prestazo is an app designed to simplify your personal loan management. With Prestazo, you can keep total control over your customers, credits, and collections, all from the palm of your hand.';
 
   @override
   String get featureCustomers => 'Manage your customer portfolio easily.';
@@ -1581,70 +1579,6 @@ class SEn extends S {
       'Change the language of the entire application interface.\nWe currently support Spanish and English.';
 
   @override
-  String get currencyTitle => 'Currency';
-
-  @override
-  String get currencyDescription =>
-      'Defines the main currency to be used throughout the application (Loans, Payments, Reports).\n\n**Important:**\n* All amounts will be displayed with the selected currency symbol.\n* Changing the currency does NOT convert existing amounts (e.g., 100 U\$ does not automatically convert to 3600 C\$), it only changes the display symbol.\n* It is recommended to define the currency at the beginning and not change it frequently if you handle mixed amounts.';
-
-  @override
-  String get reportCurrencyDescription =>
-      'Defines the base currency for financial reports and the dashboard. The Exchange Rate will be used to convert amounts in other currencies.';
-
-  @override
-  String get reportCurrencyDesc => 'Set currency and exchange rate';
-
-  @override
-  String get scheduledBackupTitle => 'Scheduled Backup';
-
-  @override
-  String get scheduledBackupDesc => 'Configure frequency and triggers';
-
-  @override
-  String get invalidExchangeRate => 'Enter a valid exchange rate';
-
-  @override
-  String get settingsSaved => 'Settings saved';
-
-  @override
-  String get exchangeRateTitle => 'Exchange Rate';
-
-  @override
-  String get reportCurrencyDialogDesc =>
-      'When to use Report Currency?\\n\\nIf your Base Currency is different from the currency you want to see on the Dashboard reports, configure the display currency here.\\n\\nPractical example:\\n• Base Currency: Córdobas (NIO) - your working capital\\n• Report Currency: Dollars (USD) - for investors\\n• Exchange Rate: 36.50 (if 1 USD = 36.50 NIO)\\n\\nNOTE: If you only operate in one currency, leave both the same.';
-
-  @override
-  String get reportCurrencyInfoBanner =>
-      'This affects only your reports as lender, not client documents.';
-
-  @override
-  String get tapToChange => 'Tap to change';
-
-  @override
-  String get requiredField => 'Required';
-
-  @override
-  String get invalidRateError => 'Invalid rate';
-
-  @override
-  String get saveButton => 'Save';
-
-  @override
-  String get backupSettingsSaved => 'Backup settings saved';
-
-  @override
-  String get frequency => 'Frequency';
-
-  @override
-  String get disabled => 'Disabled';
-
-  @override
-  String get preferredTime => 'Preferred time';
-
-  @override
-  String get automaticTriggers => 'Automatic Triggers';
-
-  @override
   String get onLoanCreation => 'On loan creation';
 
   @override
@@ -1682,6 +1616,11 @@ class SEn extends S {
   @override
   String errorGeneratingPdf(Object error) {
     return 'Error generating PDF: $error';
+  }
+
+  @override
+  String errorGeneratingReceipt(Object error) {
+    return 'Error generating receipt: $error';
   }
 
   @override
@@ -1828,36 +1767,6 @@ class SEn extends S {
   String get selectALoan => 'Select a loan';
 
   @override
-  String get confirmAndDelete => 'Confirm and Delete';
-
-  @override
-  String get dataDeletedSuccessfully => 'Data deleted successfully';
-
-  @override
-  String get interestFirst => 'Interest first';
-
-  @override
-  String get principalFirst => 'Principal first';
-
-  @override
-  String get noBackupsAvailable => 'No backups available';
-
-  @override
-  String get searchBackupFile => 'Search Backup File...';
-
-  @override
-  String get restore => 'Restore';
-
-  @override
-  String get discoverFeatures => 'Discover what you can do';
-
-  @override
-  String get editableFields => 'Editable Fields';
-
-  @override
-  String get loanStatus => 'Loan Status';
-
-  @override
   String get loanUpdatedRecalculated => 'Loan updated and recalculated';
 
   @override
@@ -1981,6 +1890,49 @@ class SEn extends S {
 
   @override
   String get baseCurrency => 'Base Currency';
+
+  @override
+  String get planNameHint => 'Ex: Quick Personal Loan';
+
+  @override
+  String get financialData => 'Financial Data';
+
+  @override
+  String get allowCurrencyChangeTitle => 'Allow currency change';
+
+  @override
+  String get allowCurrencyChangeSubtitle => 'When creating the loan';
+
+  @override
+  String get distributeCapitalInterestTitle =>
+      'Distribute capital and interest';
+
+  @override
+  String get distributeCapitalInterestSubtitle => 'In level installments';
+
+  @override
+  String get periodStartsOnDisbursementTitle => 'Period starts on disbursement';
+
+  @override
+  String get limitByCategoryTitle =>
+      'Apply to customers with category (optional)';
+
+  @override
+  String get limitByCategorySubtitle =>
+      'Limit this plan to a specific customer type';
+
+  @override
+  String get noCategoriesCreated =>
+      'No categories created. Create a category first.';
+
+  @override
+  String get labelSelectCategory => 'Select Category';
+
+  @override
+  String get planNotFound => 'Plan not found';
+
+  @override
+  String get selectStartCategory => 'Select a category';
 
   @override
   String get baseCurrencyDesc => 'Main currency for calculations and reports';
@@ -2127,10 +2079,16 @@ class SEn extends S {
   String get client => 'Client';
 
   @override
+  String get loanLabel => 'Loan';
+
+  @override
   String get receiptNo => 'Receipt No.';
 
   @override
   String get paymentCurrency => 'Payment Currency';
+
+  @override
+  String get paymentAmountLabel => 'Payment Amount';
 
   @override
   String get appliedRate => 'Applied Rate';
@@ -2159,69 +2117,6 @@ class SEn extends S {
 
   @override
   String get fxPayments => 'FX Payments';
-
-  @override
-  String get paymentFrequencies => 'Payment Frequencies';
-
-  @override
-  String get paymentFrequenciesSubtitle =>
-      'Manage payment frequencies (Daily, Weekly, etc)';
-
-  @override
-  String get newFrequency => 'New Frequency';
-
-  @override
-  String get editFrequency => 'Edit Frequency';
-
-  @override
-  String get frequencyName => 'Name';
-
-  @override
-  String get frequencyNameHint => 'Ex: Monthly, Biweekly';
-
-  @override
-  String get daysInterval => 'Interval (Days)';
-
-  @override
-  String get daysIntervalHint => 'Ex: 30';
-
-  @override
-  String get isDefaultFrequency => 'Default Frequency';
-
-  @override
-  String get validationFrequencyInUse =>
-      'This frequency is in use by active loans and cannot be modified/deleted';
-
-  @override
-  String get deleteFrequencyConfirm => 'Delete this frequency?';
-
-  @override
-  String get deactivateFrequencyConfirm => 'Deactivate this frequency?';
-
-  @override
-  String get activeFrequency => 'Active';
-
-  @override
-  String get inactiveFrequency => 'Inactive';
-
-  @override
-  String get frequencyCreated => 'Frequency created';
-
-  @override
-  String get frequencyUpdated => 'Frequency updated';
-
-  @override
-  String get frequencyDeleted => 'Frequency deleted';
-
-  @override
-  String get cantDeleteDefault => 'Default frequencies cannot be deleted';
-
-  @override
-  String get cantEditDefaultInterval =>
-      'Cannot edit interval of default frequencies';
-
-  @override
-  String get selectFrequency => 'Select Frequency';
 
   @override
   String get applied => 'Applied';
@@ -2361,6 +2256,51 @@ class SEn extends S {
   String get customColor => 'Custom color';
 
   @override
+  String get paymentFrequencies => 'Payment Frequencies';
+
+  @override
+  String get paymentFrequenciesSubtitle =>
+      'Manage payment frequencies (Daily, Weekly, etc)';
+
+  @override
+  String get newFrequency => 'New Frequency';
+
+  @override
+  String get editFrequency => 'Edit Frequency';
+
+  @override
+  String get frequencyName => 'Name';
+
+  @override
+  String get frequencyNameHint => 'Ex: Monthly, Biweekly';
+
+  @override
+  String get daysInterval => 'Interval (Days)';
+
+  @override
+  String get daysIntervalHint => 'Ex: 30';
+
+  @override
+  String get cantEditDefaultInterval =>
+      'Cannot edit interval of default frequencies';
+
+  @override
+  String get deactivateFrequencyConfirm => 'Deactivate this frequency?';
+
+  @override
+  String get activeFrequency => 'Active';
+
+  @override
+  String get inactiveFrequency => 'Inactive';
+
+  @override
+  String get validationFrequencyInUse =>
+      'This frequency is in use by active loans and cannot be modified/deleted';
+
+  @override
+  String get deleteFrequencyConfirm => 'Delete this frequency?';
+
+  @override
   String get paymentFrequenciesInfoTitle => 'What are Frequencies?';
 
   @override
@@ -2369,6 +2309,9 @@ class SEn extends S {
 
   @override
   String get freqAnnually => 'Annually';
+
+  @override
+  String get selectFrequency => 'Select Frequency';
 
   @override
   String get searchFrequency => 'Search frequency...';
@@ -2384,4 +2327,179 @@ class SEn extends S {
 
   @override
   String get noFrequenciesFound => 'No frequencies found';
+
+  @override
+  String get planTerm => 'Term';
+
+  @override
+  String get planTermUnit => 'Term Unit';
+
+  @override
+  String get termDays => 'Days';
+
+  @override
+  String get termWeeks => 'Weeks';
+
+  @override
+  String get termMonths => 'Months';
+
+  @override
+  String get termYears => 'Years';
+
+  @override
+  String calculatedInstallments(int count) {
+    return 'Calculated Installments: $count';
+  }
+
+  @override
+  String calculatedInstallmentsWarning(int count) {
+    return 'Warning: Term is not an exact multiple of frequency. Adjusted to $count installments.';
+  }
+
+  @override
+  String get applicableCategories => 'Applicable Categories';
+
+  @override
+  String get allCategories => 'All Categories';
+
+  @override
+  String get selectCategories => 'Select Categories';
+
+  @override
+  String get distributeCapitalInterestTooltip =>
+      'If active, calculated installment includes principal and amortized interest. If inactive, cycle charge is interest only.';
+
+  @override
+  String get periodStartsOnDisbursementTooltip =>
+      'Active: Start date is disbursement date. Inactive: Manual start date required.';
+
+  @override
+  String get paymentPlans => 'Payment Plans';
+
+  @override
+  String get paymentPlansSubtitle => 'Configure preconfigured plans for loans';
+
+  @override
+  String get noPaymentPlans => 'No payment plans';
+
+  @override
+  String get addPaymentPlanHint => 'Press the + button to add a plan';
+
+  @override
+  String get newPaymentPlan => 'New Payment Plan';
+
+  @override
+  String get editPaymentPlan => 'Edit Payment Plan';
+
+  @override
+  String get planName => 'Plan Name';
+
+  @override
+  String get installments => 'installments';
+
+  @override
+  String get installmentsTotal => 'Total Installments';
+
+  @override
+  String get minAmount => 'Minimum Amount';
+
+  @override
+  String get maxAmount => 'Maximum Amount';
+
+  @override
+  String get days => 'days';
+
+  @override
+  String get distributeCapitalInterest => 'Distribute Capital and Interest';
+
+  @override
+  String get distributeCapitalInterestDesc =>
+      'Calculate fixed installments with capital + interest distributed';
+
+  @override
+  String get periodStartsOnDisbursement => 'Period starts on disbursement';
+
+  @override
+  String get periodStartsOnDisbursementDesc =>
+      'Disbursement date auto-fills with current date';
+
+  @override
+  String get allowCurrencyChange => 'Allow currency change on loan';
+
+  @override
+  String get activate => 'Activate';
+
+  @override
+  String get deactivate => 'Deactivate';
+
+  @override
+  String get cannotDeactivatePlanWithLoans =>
+      'Cannot deactivate a plan with active loans';
+
+  @override
+  String get cannotDeletePlanWithLoans =>
+      'Cannot delete a plan with active loans';
+
+  @override
+  String get deletePlanConfirmation =>
+      'Are you sure you want to delete this payment plan?';
+
+  @override
+  String get scheduledBackupTitle => 'Respaldo Programado';
+
+  @override
+  String get frequency => 'Frecuencia';
+
+  @override
+  String get disabled => 'Desactivado';
+
+  @override
+  String get preferredTime => 'Hora Preferida';
+
+  @override
+  String get automaticTriggers => 'Disparadores Automáticos';
+
+  @override
+  String get backupSettingsSaved => 'Configuración de respaldo guardada';
+
+  @override
+  String get reportCurrencyDialogDesc =>
+      'Moneda utilizada para reportes financieros';
+
+  @override
+  String get reportCurrencyInfoBanner =>
+      'Los reportes se mostrarán en esta moneda';
+
+  @override
+  String get tapToChange => 'Toca para cambiar';
+
+  @override
+  String get exchangeRateTitle => 'Tasa de Cambio';
+
+  @override
+  String get invalidRateError => 'Tasa inválida';
+
+  @override
+  String get saveButton => 'Guardar';
+
+  @override
+  String get requiredField => 'Requerido';
+
+  @override
+  String get scheduledBackupDesc => 'Configura copias de seguridad automáticas';
+
+  @override
+  String get interestFirst => 'Interés Primero';
+
+  @override
+  String get principalFirst => 'Capital Primero';
+
+  @override
+  String get noBackupsAvailable => 'No hay respaldos disponibles';
+
+  @override
+  String get settingsSaved => 'Configuración guardada';
+
+  @override
+  String get invalidExchangeRate => 'Tasa de cambio inválida';
 }

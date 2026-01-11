@@ -9,8 +9,7 @@ import '../../../data/models/loan.dart';
 import '../../../core/localization/locale_provider.dart';
 import '../../../core/providers/currency_provider.dart';
 import 'package:sealed_currencies/sealed_currencies.dart';
-import '../../../data/models/app_settings.dart';
-import '../../../services/currency_service.dart';
+
 import 'fx_differential_report_screen.dart';
 
 class ReportsScreen extends ConsumerStatefulWidget {

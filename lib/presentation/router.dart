@@ -24,6 +24,8 @@ import 'screens/settings/exchange_rate_screen.dart';
 import 'screens/settings/exchange_rate_form_screen.dart';
 import 'screens/settings/customer_categories_screen.dart';
 import 'screens/settings/payment_frequencies_screen.dart';
+import 'screens/settings/payment_plans_screen.dart';
+import 'screens/settings/plan_form_screen.dart';
 import 'shell_screen.dart';
 
 /// App router configuration
@@ -132,6 +134,26 @@ final appRouter = GoRouter(
               path: 'payment-frequencies',
               name: 'payment-frequencies',
               builder: (context, state) => const PaymentFrequenciesScreen(),
+            ),
+            GoRoute(
+              path: 'payment-plans',
+              name: 'payment-plans',
+              builder: (context, state) => const PaymentPlansScreen(),
+              routes: [
+                GoRoute(
+                  path: 'add',
+                  name: 'add-payment-plan',
+                  builder: (context, state) => const PlanFormScreen(),
+                ),
+                GoRoute(
+                  path: 'edit/:id',
+                  name: 'edit-payment-plan',
+                  builder: (context, state) {
+                    final id = state.pathParameters['id'];
+                    return PlanFormScreen(planId: id);
+                  },
+                ),
+              ],
             ),
           ],
         ),

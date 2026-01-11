@@ -14,3 +14,5 @@ export 'currency.dart';
 export 'loan_event.dart';
 export 'audit_log.dart';
 export 'exchange_rate.dart';
+export 'payment_plan.dart';
+export 'payment_frequency.dart';

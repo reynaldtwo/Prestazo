@@ -9,7 +9,7 @@ import '../../../core/widgets/widgets.dart';
 import '../../../data/providers/providers.dart';
 import '../../../core/localization/locale_provider.dart';
 import '../../../../core/utils/currency_utils.dart';
-import '../../../services/currency_service.dart';
+
 import 'currency_selection_screen.dart';
 
 class MonetarySettingsScreen extends ConsumerStatefulWidget {

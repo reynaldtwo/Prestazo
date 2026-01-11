@@ -756,6 +756,10 @@ Advertencias a considerar en el desarrollo:
 **Siguiente mejora**
 **10 enero 2026**
 
+Antes de cualquier mejora, debes revisar bien el archivo .antigravityrules.md y analizar bien todo el proyecto para entender hasta que punto esta ya desarrollado, despues analizar el nuevo querimiento y indentificar que afecta y asegurarte de que no rompas nada.
+
+
+
 Tómate un tiempo para analizar la siguiente mejora y haz el desarrollo considerando las reglas descritas en el archivo .antigravityrules.md y apóyate del MCP de Flutter para resolver los errores que aparezcan, así como para investigar sobre las buenas prácticas a la hora de escribir código.
 
 CASO 1: Implementar “Planes de Pago” (Planes de Préstamo) para creación rápida de préstamos.
@@ -772,21 +776,21 @@ El sistema debe aplicar automáticamente el resto de valores del plan y generar 
 
 Crear una nueva pantalla para administrar planes con opciones:
 
-Nuevo
+1. Nuevo
+2. Editar
+3. Eliminar
+4. Activar / Desactivar
 
-Editar
 
-Eliminar
+**Validaciones en Planes:**
 
-Activar / Desactivar
+1. No se puede eliminar un plan si existe al menos un préstamo activo asociado a ese plan.
 
-Validaciones en Planes:
+2. No se puede desactivar un plan si existe al menos un préstamo activo asociado a ese plan.
 
-No se puede eliminar un plan si existe al menos un préstamo activo asociado a ese plan.
 
-No se puede desactivar un plan si existe al menos un préstamo activo asociado a ese plan.
 
-2) Datos que debe tener cada Plan de Pago
+**2) Datos que debe tener cada Plan de Pago**
 
 Cada plan debe guardar al menos:
 
@@ -824,7 +828,9 @@ Aplica a clientes con categoría (opcional)
 
 Si el plan se restringe a categorías específicas, solo debe estar disponible al crear préstamos para clientes que coincidan.
 
-3) Crear Préstamo: integrar Plan de Pago sin romper flujo actual
+
+**3) Crear Préstamo: integrar Plan de Pago sin romper flujo actual**
+
 3.1) Nuevo campo en “Nuevo Préstamo”
 
 En la pantalla Nuevo Préstamo, agregar arriba un selector:
@@ -997,15 +1003,11 @@ Los ciclos “Esperado/Pendiente” deben seguir mostrándose como hoy en el det
 
 La pantalla Registrar Pago debe mantenerse igual para préstamos sin plan (flujo actual), conservando exactamente las opciones existentes como:
 
-Mixto
-
-Solo Interés
-
-Solo Capital
-
-Cancelar
-
-Recuperar
+1. Mixto
+2. Solo Interés
+3. Solo Capital
+4. Cancelar
+5. Recuperar
 
 6.1 Detección del escenario “Plan con cuotas distribuidas”
 
@@ -1093,3 +1095,15 @@ Si es necesario crear nuevos campos/tablas para soportar el plan, puedes hacerlo
 Asegurar que todo lo nuevo funcione con multi-idiomas.
 
 Reconstruir el APK para que yo lo pruebe.
+
+
+Debido a que este nuveo requerimiento es bastante grande, dividilo en sprint (entregables) que se puedan probar por separado, para irnos asegurando de que lo que vaya desarrollandose vaya funcionando y  que no rompa nada.
+
+
+
+
+
+
+
+
+

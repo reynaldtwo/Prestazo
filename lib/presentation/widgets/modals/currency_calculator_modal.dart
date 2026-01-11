@@ -216,7 +216,7 @@ class _CurrencyCalculatorModalState
                   ),
                 ),
                 Text(
-                  '${targetFiat?.name ?? _targetCurrency}',
+                  targetFiat?.name ?? _targetCurrency,
                   style: AppTypography.bodySmall,
                 ),
               ],
