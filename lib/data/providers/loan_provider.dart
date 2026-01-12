@@ -3,6 +3,7 @@ import '../models/loan.dart';
 import '../models/billing_cycle.dart';
 
 import 'database_providers.dart';
+import 'service_providers.dart';
 
 /// State for loans list
 class LoansState {
@@ -87,7 +88,6 @@ class LoansNotifier extends StateNotifier<LoansState> {
   Future<Loan?> addSimpleLoan(Loan loan) async {
     try {
       final loanRepo = _ref.read(loanRepositoryProvider);
-      final cycleRepo = _ref.read(billingCycleRepositoryProvider);
       final customerRepo = _ref.read(customerRepositoryProvider);
 
       // Insert the loan (returns loan with loanNumber assigned)
@@ -101,44 +101,11 @@ class LoansNotifier extends StateNotifier<LoansState> {
         // So for 15-day cycle: start + 14 = end date (day 15)
         // For DAILY: start + 0 = end date (day 1)
 
-        // PRIORITY: Use paymentFrequencyDays from DB
-        final cycleDays =
-            loan.paymentFrequencyDays ??
-            switch (loan.billingFrequency) {
-              'WEEKLY' => 7,
-              'DAILY' => 1,
-              'BIWEEKLY' => 15,
-              'ANNUALLY' => 365,
-              _ => 30, // MONTHLY
-            };
+        // Insert the loan (returns loan with loanNumber assigned)
+        final createdLoan = await loanRepo.insertLoan(loan);
 
-        final daysToAdd = cycleDays - 1;
-        final dueDate = loan.disbursementDate.add(Duration(days: daysToAdd));
-
-        // Calculate interest for first cycle using daily interest * days (High Precision)
-        final interestExpected = loan.calculateInterestForDays(cycleDays);
-
-        final now = DateTime.now();
-
-        // Create first billing cycle
-        final frequency = loan.billingFrequency;
-        final firstCycle = BillingCycle(
-          billingCycleId: '${loan.loanId}_cycle_1',
-          loanId: loan.loanId,
-          cycleNumber: 1,
-          frequency: frequency,
-          periodStartDate: loan.disbursementDate,
-          periodEndDate: dueDate,
-          dueDate: dueDate,
-          interestExpected: interestExpected,
-          interestPaid: 0,
-          interestPending: interestExpected,
-          status: 'PENDING',
-          createdAt: now,
-          updatedAt: now,
-        );
-
-        await cycleRepo.insertBillingCycle(firstCycle);
+        final cycleService = _ref.read(billingCycleServiceProvider);
+        await cycleService.generateInitialSchedule(createdLoan);
       }
 
       await loadLoans();

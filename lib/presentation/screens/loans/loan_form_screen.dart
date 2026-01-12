@@ -18,6 +18,9 @@ import '../../../services/whatsapp_service.dart';
 import '../../../data/models/currency_context.dart';
 import 'package:sealed_currencies/sealed_currencies.dart';
 import '../frequencies/payment_frequency_selection_screen.dart';
+import '../../../data/models/payment_plan.dart';
+import '../../../data/providers/payment_plan_provider.dart';
+import '../../../core/logic/loan_calculator.dart';
 
 /// Loan form screen for creating new loans with Riverpod
 class LoanFormScreen extends ConsumerStatefulWidget {
@@ -39,6 +42,7 @@ class _LoanFormScreenState extends ConsumerState<LoanFormScreen> {
   String _selectedCurrencyCode = 'NIO'; // Default currency
   double? _appliedExchangeRate; // Exchange Rate State
   bool _isLoadingRate = false;
+  PaymentPlan? _selectedPlan; // Selected Plan
   final TextEditingController _exchangeRateController = TextEditingController();
 
   bool _isLoading = false;
@@ -291,6 +295,8 @@ class _LoanFormScreenState extends ConsumerState<LoanFormScreen> {
           padding: const EdgeInsets.all(16),
           children: [
             _buildCustomerInfo(),
+            const SizedBox(height: 16),
+            _buildPlanSelector(),
             const SizedBox(height: 24),
             _buildCurrencySelector(),
             const SizedBox(height: 16),
@@ -315,6 +321,9 @@ class _LoanFormScreenState extends ConsumerState<LoanFormScreen> {
               label: S.of(context).monthlyRateLabel,
               controller: _rateController,
               prefixIcon: Icons.percent,
+              enabled:
+                  _selectedPlan == null ||
+                  (_selectedPlan?.allowCurrencyChange ?? true),
               keyboardType: const TextInputType.numberWithOptions(
                 decimal: true,
               ),
@@ -360,156 +369,8 @@ class _LoanFormScreenState extends ConsumerState<LoanFormScreen> {
     );
   }
 
-  Widget _buildCustomerInfo() {
-    if (_customer == null) {
-      return const AppCard(child: Center(child: CircularProgressIndicator()));
-    }
-
-    final displayName = _customer!.alias ?? _customer!.fullName;
-
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    return AppCard(
-      child: Row(
-        children: [
-          Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              color: (isDark ? AppColors.info : AppColors.primary).withValues(
-                alpha: 0.1,
-              ),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Center(
-              child: Text(
-                displayName[0].toUpperCase(),
-                style: AppTypography.headlineSmall.copyWith(
-                  color: isDark ? AppColors.info : AppColors.primary,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(displayName, style: AppTypography.titleMedium),
-                if (_customer!.alias != null)
-                  Text(_customer!.fullName, style: AppTypography.bodySmall),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildRateInfo() {
-    final principal =
-        double.tryParse(_principalController.text.replaceAll(',', '')) ?? 0;
-    final rate = double.tryParse(_rateController.text) ?? 0;
-
-    if (principal <= 0 || rate <= 0 || _selectedFrequency == null)
-      return const SizedBox.shrink();
-
-    // Calculate interest for the selected frequency interval
-    // Monthly Rate (20%) -> Daily Rate (20% / 30) -> Frequency Rate (Daily * Interval)
-    // Formula: Principal * (MonthlyRate / 100 / 30 * Interval)
-    final dailyInterest = principal * (rate / 100) / 30;
-    final periodInterest = dailyInterest * _selectedFrequency!.daysInterval;
-
-    final frequencyLabel = _selectedFrequency!.name;
-
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Row(
-        children: [
-          Icon(
-            Icons.info_outline,
-            size: 20,
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Wrap(
-              crossAxisAlignment: WrapCrossAlignment.center,
-              children: [
-                Text(
-                  '${S.of(context).interest} $frequencyLabel: ',
-                  style: AppTypography.bodySmall,
-                ),
-                DefaultTextStyle(
-                  style: AppTypography.titleSmall.copyWith(
-                    color: Theme.of(context).brightness == Brightness.dark
-                        ? AppColors.info
-                        : AppColors.primary,
-                  ),
-                  child: MoneyDisplay(amount: periodInterest),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildCurrencySelector() {
-    // Get the currency info dynamically
-    final settings = ref.watch(appSettingsProvider).value;
-    final baseCurrencyCode = settings?.baseCurrency ?? 'NIO';
-
-    // Use CurrencyInfo for dynamic symbol
-    final currencyInfo = CurrencyInfo.fromCode(_selectedCurrencyCode);
-    final baseCurrencyInfo = CurrencyInfo.fromCode(baseCurrencyCode);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(S.of(context).loanCurrencyLabel, style: AppTypography.labelMedium),
-        const SizedBox(height: 8),
-        AppCard(
-          child: ListTile(
-            leading: Text(
-              currencyInfo.symbol,
-              style: AppTypography.headlineMedium.copyWith(
-                color: AppColors.primary,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            title: Text('${currencyInfo.name} (${currencyInfo.code})'),
-            subtitle: _selectedCurrencyCode != baseCurrencyCode
-                ? Text(
-                    'Moneda Base: ${baseCurrencyInfo.symbol} ${baseCurrencyInfo.code}',
-                    style: AppTypography.bodySmall.copyWith(
-                      color: AppColors.textSecondary,
-                    ),
-                  )
-                : null,
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () async {
-              final result = await context.push<String>(
-                '/settings/currency-selection',
-              );
-              if (result != null && result.isNotEmpty && mounted) {
-                setState(() => _selectedCurrencyCode = result);
-                _loadExchangeRate();
-              }
-            },
-          ),
-        ),
-      ],
-    );
-  }
-
   Widget _buildExchangeRateField() {
-    final settings = ref.read(appSettingsProvider).value;
+    final settings = ref.watch(appSettingsProvider).value;
     final baseCurrency = settings?.baseCurrency ?? 'NIO';
     final allowManual = settings?.allowManualExchangeRate ?? false;
 
@@ -709,6 +570,328 @@ class _LoanFormScreenState extends ConsumerState<LoanFormScreen> {
     );
   }
 
+  Future<void> _applyPlan(PaymentPlan plan) async {
+    setState(() => _selectedPlan = plan);
+
+    // 1. Currency
+    if (plan.currencyCode != _selectedCurrencyCode) {
+      if (!plan.allowCurrencyChange) {
+        setState(() => _selectedCurrencyCode = plan.currencyCode);
+        await _loadExchangeRate();
+      } else {
+        // Optional: Ask user or just switch? For now switch but allow edit.
+        setState(() => _selectedCurrencyCode = plan.currencyCode);
+        await _loadExchangeRate();
+      }
+    }
+
+    // 2. Frequency
+    // We need to match the Plan's frequency ID with the available frequencies
+    // The Plan stores frequencyId and daysInterval.
+    try {
+      final frequencies = await ref.read(
+        activePaymentFrequenciesProvider.future,
+      );
+      // Try to find by ID first
+      var match = frequencies
+          .where((f) => f.id == plan.paymentFrequencyId)
+          .firstOrNull;
+
+      // Fallback: match by daysInterval if ID not found (e.g. legacy/custom)
+      match ??= frequencies
+          .where((f) => f.daysInterval == plan.paymentFrequencyDays)
+          .firstOrNull;
+
+      if (match != null && mounted) {
+        setState(() => _selectedFrequency = match);
+      }
+    } catch (e) {
+      debugPrint('Error loading frequencies for plan: $e');
+    }
+
+    // 3. Rate
+    // Plan has monthlyInterestRate.
+    if (mounted) {
+      setState(() {
+        _rateController.text = plan.monthlyInterestRate.toStringAsFixed(2);
+      });
+    }
+
+    // 4. Calculate End Date (if Term is provided in plan)
+    // We assume the user inputs the Principal, then we calculate details?
+    // Wait, the plan has a Term (Value + Unit).
+    // So if I select a plan validation, does it enforce the term?
+    // YES. We should probably calculate the date immediately if we can.
+    _calculatePlanEndDate(plan);
+  }
+
+  void _calculatePlanEndDate(PaymentPlan plan) {
+    if (plan.termValue > 0) {
+      final days = LoanCalculator.calculateTermInDays(
+        plan.termValue,
+        plan.termUnit,
+      );
+      final endDate = LoanCalculator.calculateEndDate(_disbursementDate, days);
+      setState(() {
+        _endDate = endDate;
+      });
+    }
+  }
+
+  Widget _buildCustomerInfo() {
+    if (_customer == null) {
+      return const AppCard(child: Center(child: CircularProgressIndicator()));
+    }
+
+    final displayName = _customer!.alias ?? _customer!.fullName;
+
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return AppCard(
+      child: Row(
+        children: [
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              color: (isDark ? AppColors.info : AppColors.primary).withValues(
+                alpha: 0.1,
+              ),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Center(
+              child: Text(
+                displayName[0].toUpperCase(),
+                style: AppTypography.headlineSmall.copyWith(
+                  color: isDark ? AppColors.info : AppColors.primary,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(displayName, style: AppTypography.titleMedium),
+                if (_customer!.alias != null)
+                  Text(_customer!.fullName, style: AppTypography.bodySmall),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRateInfo() {
+    final principal =
+        double.tryParse(_principalController.text.replaceAll(',', '')) ?? 0;
+    final rate = double.tryParse(_rateController.text) ?? 0;
+
+    if (principal <= 0 || rate <= 0 || _selectedFrequency == null)
+      return const SizedBox.shrink();
+
+    // Calculate interest for the selected frequency interval
+    // Monthly Rate (20%) -> Daily Rate (20% / 30) -> Frequency Rate (Daily * Interval)
+    // Formula: Principal * (MonthlyRate / 100 / 30 * Interval)
+    final dailyInterest = principal * (rate / 100) / 30;
+    final periodInterest = dailyInterest * _selectedFrequency!.daysInterval;
+
+    final frequencyLabel = _selectedFrequency!.name;
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            Icons.info_outline,
+            size: 20,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Wrap(
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                Text(
+                  '${S.of(context).interest} $frequencyLabel: ',
+                  style: AppTypography.bodySmall,
+                ),
+                DefaultTextStyle(
+                  style: AppTypography.titleSmall.copyWith(
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? AppColors.info
+                        : AppColors.primary,
+                  ),
+                  child: MoneyDisplay(amount: periodInterest),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCurrencySelector() {
+    // Get the currency info dynamically
+    final settings = ref.watch(appSettingsProvider).value;
+    final baseCurrencyCode = settings?.baseCurrency ?? 'NIO';
+
+    // Use CurrencyInfo for dynamic symbol
+    final currencyInfo = CurrencyInfo.fromCode(_selectedCurrencyCode);
+    final baseCurrencyInfo = CurrencyInfo.fromCode(baseCurrencyCode);
+
+    // Lock if Plan forbids currency change
+    final isLocked =
+        _selectedPlan != null && !_selectedPlan!.allowCurrencyChange;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              S.of(context).loanCurrencyLabel,
+              style: AppTypography.labelMedium,
+            ),
+            if (isLocked)
+              Padding(
+                padding: const EdgeInsets.only(right: 4),
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.lock,
+                      size: 14,
+                      color: AppColors.textSecondary,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      'Restringido por Plan',
+                      style: AppTypography.bodySmall.copyWith(
+                        color: AppColors.textSecondary,
+                        fontSize: 10,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Opacity(
+          opacity: isLocked ? 0.7 : 1.0,
+          child: AppCard(
+            child: ListTile(
+              leading: Text(
+                currencyInfo.symbol,
+                style: AppTypography.headlineMedium.copyWith(
+                  color: isLocked ? AppColors.textSecondary : AppColors.primary,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              title: Text('${currencyInfo.name} (${currencyInfo.code})'),
+              subtitle: _selectedCurrencyCode != baseCurrencyCode
+                  ? Text(
+                      'Moneda Base: ${baseCurrencyInfo.symbol} ${baseCurrencyInfo.code}',
+                      style: AppTypography.bodySmall.copyWith(
+                        color: AppColors.textSecondary,
+                      ),
+                    )
+                  : null,
+              trailing: isLocked
+                  ? const Icon(Icons.lock_outline, size: 20)
+                  : const Icon(Icons.chevron_right),
+              onTap: isLocked
+                  ? null
+                  : () async {
+                      final result = await context.push<String>(
+                        '/settings/currency-selection',
+                      );
+                      if (result != null && result.isNotEmpty && mounted) {
+                        setState(() => _selectedCurrencyCode = result);
+                        _loadExchangeRate();
+                      }
+                    },
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPlanSelector() {
+    final plansAsync = ref.watch(paymentPlansProvider);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(S.of(context).paymentPlans, style: AppTypography.labelMedium),
+        const SizedBox(height: 8),
+        plansAsync.when(
+          loading: () => const LinearProgressIndicator(),
+          error: (e, _) => Text('Error loading plans: $e'),
+          data: (plans) {
+            // Filter active plans + valid for customer category if check enabled
+            final activePlans = plans.where((p) => p.isActive).toList();
+
+            // Filter by Customer Category
+            final visiblePlans = activePlans.where((p) {
+              return p.appliesToCategory(_customer?.categoryId);
+            }).toList();
+
+            return AppCard(
+              child: DropdownButtonFormField<String>(
+                value: _selectedPlan?.planId,
+                decoration: InputDecoration(
+                  labelText:
+                      S.of(context).selectPlan ?? 'Seleccionar Plan (Opcional)',
+                  border: InputBorder.none,
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                  prefixIcon: const Icon(Icons.assignment_outlined),
+                ),
+                items: [
+                  DropdownMenuItem<String>(
+                    value: null,
+                    child: Text(S.of(context).optional ?? 'Ninguno (Manual)'),
+                  ),
+                  ...visiblePlans.map((plan) {
+                    return DropdownMenuItem<String>(
+                      value: plan.planId,
+                      child: Text(plan.name),
+                    );
+                  }),
+                ],
+                onChanged: (value) {
+                  if (value == null) {
+                    setState(() {
+                      _selectedPlan = null;
+                      _endDate = null; // Clear calculated end date
+                    });
+                  } else {
+                    final plan = visiblePlans.firstWhere(
+                      (p) => p.planId == value,
+                      orElse: () => visiblePlans.first, // Fallback safety
+                    );
+                    _applyPlan(plan);
+                  }
+                },
+              ),
+            );
+          },
+        ),
+      ],
+    );
+  }
+
+  // ... (keeping _applyPlan same, but updating validators below) ...
+
   Widget _buildEndDatePicker() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -794,6 +977,10 @@ class _LoanFormScreenState extends ConsumerState<LoanFormScreen> {
                 // Clear end date if it becomes invalid
                 if (_endDate != null && _endDate!.isBefore(date)) {
                   _endDate = null;
+                }
+                // Recalculate if plan is selected
+                if (_selectedPlan != null) {
+                  _calculatePlanEndDate(_selectedPlan!);
                 }
               });
             }
@@ -981,6 +1168,50 @@ class _LoanFormScreenState extends ConsumerState<LoanFormScreen> {
           return;
         }
       }
+      // Validate Plan Limits
+      // Validate Plan Limits
+      if (_selectedPlan != null) {
+        bool hasError = false;
+        String errorMessage = '';
+
+        if (_selectedPlan!.minAmount != null &&
+            principal < _selectedPlan!.minAmount!) {
+          hasError = true;
+          errorMessage =
+              'El monto es inferior al mínimo permitido por el plan (${_selectedPlan!.minAmount}).';
+        }
+        if (_selectedPlan!.maxAmount != null &&
+            principal > _selectedPlan!.maxAmount!) {
+          hasError = true;
+          errorMessage =
+              'El monto excede el máximo permitido por el plan (${_selectedPlan!.maxAmount}).';
+        }
+
+        if (hasError) {
+          if (mounted) {
+            showDialog(
+              context: context,
+              builder: (ctx) => AlertDialog(
+                title: const Row(
+                  children: [
+                    Icon(Icons.error_outline, color: AppColors.danger),
+                    SizedBox(width: 8),
+                    Text('Monto Inválido'),
+                  ],
+                ),
+                content: Text(errorMessage),
+                actions: [
+                  FilledButton(
+                    onPressed: () => Navigator.pop(ctx),
+                    child: const Text('OK'),
+                  ),
+                ],
+              ),
+            );
+          }
+          return;
+        }
+      }
     } catch (e) {
       // Continue if settings check fails
     }
@@ -1008,6 +1239,12 @@ class _LoanFormScreenState extends ConsumerState<LoanFormScreen> {
         appliedExchangeRate: _appliedExchangeRate, // Exchange rate snapshot
         createdAt: now,
         updatedAt: now,
+        // Payment Plan Snapshot
+        planId: _selectedPlan?.planId,
+        planInstallmentsTotal: _selectedPlan?.installmentsTotal,
+        distributeCapitalAndInterest:
+            _selectedPlan?.distributeCapitalAndInterest,
+        endDateCalculated: _endDate, // Snapshot calculated end date
       );
 
       final createdLoan = await ref

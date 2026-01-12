@@ -188,6 +188,68 @@ class BillingCycleService {
     }
   }
 
+  /// Generate initial schedule for a new loan
+  Future<void> generateInitialSchedule(Loan loan) async {
+    // Determine number of cycles to generate
+    int cyclesToGenerate = 1;
+
+    // If it's a planned loan (Plan ID exists + Total Installments > 0)
+    // We generate the full schedule
+    if (loan.planId != null && (loan.planInstallmentsTotal ?? 0) > 0) {
+      cyclesToGenerate = loan.planInstallmentsTotal!;
+    }
+
+    final frequency = loan.billingFrequency;
+    // PRIORITY: Use paymentFrequencyDays from DB
+    final cycleDays =
+        loan.paymentFrequencyDays ??
+        switch (frequency) {
+          'WEEKLY' => 7,
+          'DAILY' => 1,
+          'BIWEEKLY' => 15,
+          'ANNUALLY' => 365,
+          _ => 30, // MONTHLY
+        };
+
+    // Calculate start/end dates for each cycle
+    // Cycle 1 starts on Disbursement Date
+    DateTime nextStart = loan.disbursementDate;
+    final now = DateTime.now();
+
+    final cycles = <BillingCycle>[];
+
+    for (int i = 1; i <= cyclesToGenerate; i++) {
+      // End date = Start + Duration - 1
+      final nextEnd = nextStart.add(Duration(days: cycleDays - 1));
+
+      final cycle = _createCycle(
+        loan: loan,
+        customer:
+            await _customerRepo.getCustomerById(loan.customerId) ??
+            Customer(
+              customerId: 'unknown',
+              fullName: 'Unknown',
+              billingFrequency: 'MONTHLY',
+              createdAt: now,
+              updatedAt: now,
+            ), // Fallback if customer missing (rare)
+        cycleNumber: i,
+        startDate: nextStart,
+        endDate: nextEnd,
+        cycleDurationDays: cycleDays,
+      );
+
+      cycles.add(cycle);
+
+      // Next start = End + 1
+      nextStart = nextEnd.add(const Duration(days: 1));
+    }
+
+    if (cycles.isNotEmpty) {
+      await _cycleRepo.insertBillingCycles(cycles);
+    }
+  }
+
   /// Create a new billing cycle
   BillingCycle _createCycle({
     required Loan loan,
@@ -200,8 +262,59 @@ class BillingCycleService {
     final now = DateTime.now();
     final frequency = loan.billingFrequency;
 
-    // Calculate expected interest (High Precision)
-    final interestExpected = loan.calculateInterestForDays(cycleDurationDays);
+    // Calculate expected interest
+    double interestExpected;
+    double? installmentExpected;
+    double? principalPortion;
+
+    // RULE: If Loan has a Payment Plan AND "Distribute Capital & Interest" is TRUE
+    // Use Level Installment (Flat Interest)
+    // "Cuota Nivelada" logic: (Principal + TotalInterest) / N
+    final useLevelInstallment =
+        loan.planId != null &&
+        (loan.planInstallmentsTotal ?? 0) > 0 &&
+        (loan.distributeCapitalAndInterest ?? false);
+
+    if (useLevelInstallment) {
+      final n = loan.planInstallmentsTotal!;
+      final r = loan.monthlyInterestRate; // e.g. 10.0
+
+      // Calculate Equivalent Months
+      // If frequency is Monthly (approx 30 days), equivalent months = N
+      // Otherwise, calc based on total days (N * duration) / 30
+      double equivalentMonths;
+      if (cycleDurationDays >= 28 && cycleDurationDays <= 31) {
+        equivalentMonths = n.toDouble();
+      } else {
+        final totalDays = n * cycleDurationDays;
+        equivalentMonths = totalDays / 30.0;
+      }
+
+      // Total Interest = P * r * t
+      final totalInterest =
+          loan.principalOriginal * (r / 100) * equivalentMonths;
+
+      // Per Installment
+      final monthlyInterest = totalInterest / n;
+      final monthlyPrincipal = loan.principalOriginal / n;
+      // final installmentTotal = monthlyPrincipal + monthlyInterest; // UNUSED
+
+      // Rounding to 2 decimal places standard
+      interestExpected = (monthlyInterest * 100).round() / 100.0;
+      principalPortion = (monthlyPrincipal * 100).round() / 100.0;
+      // Recalculate installment from rounded components to avoid mismatch
+      installmentExpected = interestExpected + principalPortion;
+    } else {
+      // STANDARD LOGIC (Interest on Unpaid Balance / Simple Interest for period)
+      // Used for loans WITHOUT a fixed plan OR Plan with "Distribute = No"
+      interestExpected = loan.calculateInterestForDays(cycleDurationDays);
+
+      // If plan exists but distribute is NO, usually implies Interest Only or Bullet
+      // principalPortion is typically 0 or Payment covers key principal.
+      // We leave principalPortion null or 0.
+      principalPortion = 0;
+      installmentExpected = interestExpected; // Minimum payment is interest
+    }
 
     return BillingCycle(
       billingCycleId: '${loan.loanId}_cycle_$cycleNumber',
@@ -217,6 +330,10 @@ class BillingCycleService {
       status: 'PENDING',
       createdAt: now,
       updatedAt: now,
+      // V29: Plan fields
+      installmentExpected: installmentExpected,
+      installmentPending: installmentExpected,
+      principalPortion: principalPortion,
     );
   }
 
