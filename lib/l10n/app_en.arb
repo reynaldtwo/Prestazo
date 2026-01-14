@@ -82,6 +82,7 @@
   "typeInterest": "Interest Only",
   "typePrincipal": "Principal Only",
   "typeCancel": "Payoff",
+  "planInstallmentMode": "Plan Installment",
   "collectedToday": "Total Collected Today",
   "paymentsToday": "Today's Payments",
   "paymentHistory": "Payment History",
@@ -964,5 +965,6 @@
   "noCategoriesCreated": "No categories created. Create a category first.",
   "labelSelectCategory": "Select Category",
   "planNotFound": "Plan not found",
-  "selectStartCategory": "Select a category"
+  "selectStartCategory": "Select a category",
+  "selectPlan": "Select Plan"
 }

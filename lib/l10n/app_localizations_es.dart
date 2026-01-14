@@ -257,6 +257,9 @@ class SEs extends S {
   String get typeCancel => 'Cancelar';
 
   @override
+  String get planInstallmentMode => 'Cuota del Plan';
+
+  @override
   String get collectedToday => 'Total Cobrado Hoy';
 
   @override
@@ -2512,4 +2515,7 @@ class SEs extends S {
 
   @override
   String get invalidExchangeRate => 'Tasa de cambio inválida';
+
+  @override
+  String get selectPlan => 'Seleccionar Plan';
 }

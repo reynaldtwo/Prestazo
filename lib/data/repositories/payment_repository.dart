@@ -274,13 +274,29 @@ class PaymentRepository {
         }
       }
 
-      // Update billing cycle interest if there's an interest allocation
+      // Update billing cycle values (Interest AND Principal/Installment)
       for (final allocation in allocations.where(
-        (a) => a.allocationType == 'INTEREST' && a.billingCycleId != null,
+        (a) => a.billingCycleId != null,
       )) {
-        // First update the interest values
+        final isInterest = allocation.allocationType == 'INTEREST';
+
+        // 1. Update Interest values (if applicable)
+        if (isInterest) {
+          await txn.rawUpdate(
+            'UPDATE billing_cycles SET interest_paid = interest_paid + ?, interest_pending = interest_pending - ?, updated_at = ? WHERE billing_cycle_id = ?',
+            [
+              allocation.amount,
+              allocation.amount,
+              DateTime.now().toIso8601String(),
+              allocation.billingCycleId,
+            ],
+          );
+        }
+
+        // 2. Update Installment values (For both Interest and Principal allocations)
+        // installment_pending is reduced by ANY payment towards the cycle
         await txn.rawUpdate(
-          'UPDATE billing_cycles SET interest_paid = interest_paid + ?, interest_pending = interest_pending - ?, updated_at = ? WHERE billing_cycle_id = ?',
+          'UPDATE billing_cycles SET installment_paid = COALESCE(installment_paid, 0) + ?, installment_pending = COALESCE(installment_pending, 0) - ?, updated_at = ? WHERE billing_cycle_id = ?',
           [
             allocation.amount,
             allocation.amount,
@@ -289,9 +305,22 @@ class PaymentRepository {
           ],
         );
 
-        // Then update status to PAID if interest_pending is 0 or less
+        // 3. Check for PAID status
+        // A cycle is PAID if EITHER:
+        // - It's a Level Installment (installment_pending <= 0)
+        // - It's a Legacy Interest-Only (interest_pending <= 0)
+        // We check both for robustness.
         await txn.rawUpdate(
-          'UPDATE billing_cycles SET status = ? WHERE billing_cycle_id = ? AND interest_pending <= 0',
+          '''
+            UPDATE billing_cycles 
+            SET status = ? 
+            WHERE billing_cycle_id = ? 
+              AND (
+                (installment_expected IS NOT NULL AND installment_pending <= 0.01)
+                OR 
+                (installment_expected IS NULL AND interest_pending <= 0.01)
+              )
+          ''',
           ['PAID', allocation.billingCycleId],
         );
       }
@@ -708,9 +737,53 @@ class PaymentRepository {
         [newNextNumber, DateTime.now().toIso8601String(), 'global'],
       );
 
-      // 4. Insert allocations
+      // 4. Insert allocations and update cycles
       for (final allocation in allocations) {
         await txn.insert('payment_allocations', allocation.toMap());
+
+        // Update billing cycle values if mapped
+        if (allocation.billingCycleId != null) {
+          final isInterest = allocation.allocationType == 'INTEREST';
+
+          // 1. Update Interest values
+          if (isInterest) {
+            await txn.rawUpdate(
+              'UPDATE billing_cycles SET interest_paid = interest_paid + ?, interest_pending = ROUND(MAX(0, interest_pending - ?), 2), updated_at = ? WHERE billing_cycle_id = ?',
+              [
+                allocation.amount,
+                allocation.amount,
+                DateTime.now().toIso8601String(),
+                allocation.billingCycleId,
+              ],
+            );
+          }
+
+          // 2. Update Installment values (Total Payment reduces installment balance)
+          await txn.rawUpdate(
+            'UPDATE billing_cycles SET installment_paid = COALESCE(installment_paid, 0) + ?, installment_pending = ROUND(MAX(0, COALESCE(installment_pending, 0) - ?), 2), updated_at = ? WHERE billing_cycle_id = ?',
+            [
+              allocation.amount,
+              allocation.amount,
+              DateTime.now().toIso8601String(),
+              allocation.billingCycleId,
+            ],
+          );
+
+          // 3. Check for PAID status
+          await txn.rawUpdate(
+            '''
+              UPDATE billing_cycles 
+              SET status = ? 
+              WHERE billing_cycle_id = ? 
+                AND (
+                  (installment_expected IS NOT NULL AND installment_pending <= 0.01)
+                  OR 
+                  (installment_expected IS NULL AND interest_pending <= 0.01)
+                )
+            ''',
+            ['PAID', allocation.billingCycleId],
+          );
+        }
       }
 
       // 5. Update loan - DEDUCT Principal
@@ -733,7 +806,7 @@ class PaymentRepository {
       await txn.rawUpdate(
         'UPDATE loans SET status = ?, closed_at = ?, updated_at = ? WHERE loan_id = ?',
         [
-          'CLOSED', // Using CLOSED as standard for finished loans
+          'CLOSED',
           DateTime.now().toIso8601String(),
           DateTime.now().toIso8601String(),
           payment.loanId,
@@ -742,14 +815,15 @@ class PaymentRepository {
 
       // 7. FORCE CLOSE/ANNUL CYCLES
       // "Cancelar el prestamo sin considerar los intereses"
+      // Also clear installment_pending so UI shows 0 pending
       await txn.rawUpdate(
-        'UPDATE billing_cycles SET status = ?, interest_pending = 0, closed_at = ?, updated_at = ? WHERE loan_id = ? AND status != ?',
+        'UPDATE billing_cycles SET status = ?, interest_pending = 0, installment_pending = 0, closed_at = ?, updated_at = ? WHERE loan_id = ? AND status != ?',
         [
           'ANULLED',
           DateTime.now().toIso8601String(),
           DateTime.now().toIso8601String(),
           payment.loanId,
-          'PAID', // Don't touch already paid cycles
+          'PAID',
         ],
       );
 

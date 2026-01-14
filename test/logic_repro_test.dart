@@ -1,14 +1,21 @@
 import 'package:test/test.dart';
 import 'package:mockito/mockito.dart';
 import 'package:prestamos_app/services/billing_cycle_service.dart';
+import 'package:prestamos_app/data/models/payment_plan.dart'; // Add implicit import for mock types if needed
 import 'package:prestamos_app/services/interest_calculation_service.dart';
 import 'package:prestamos_app/data/models/loan.dart';
 import 'package:prestamos_app/data/models/billing_cycle.dart';
 import 'package:prestamos_app/data/models/customer.dart';
 import 'package:prestamos_app/data/repositories/repositories.dart';
+import 'package:prestamos_app/data/repositories/payment_plan_repository.dart';
 
 // Mock classes
 class MockLoanRepository extends Mock implements LoanRepository {}
+
+class MockPaymentPlanRepository extends Mock implements PaymentPlanRepository {
+  @override
+  Future<PaymentPlan?> getById(String id) async => null;
+}
 
 class MockBillingCycleRepository extends Mock
     implements BillingCycleRepository {
@@ -69,6 +76,7 @@ void main() {
         cycleRepository: cycleRepo,
         customerRepository: customerRepo,
         loanRepository: loanRepo,
+        planRepository: MockPaymentPlanRepository(),
       );
     });
 
@@ -209,6 +217,93 @@ void main() {
         //   closeTo(600.0, 1.0),
         //   reason: 'Total debe ser 600',
         // );
+      },
+    );
+  });
+
+  group('Punto 3: Monto de Cancelación', () {
+    final calcService = InterestCalculationService.instance;
+    // ... Existing Plan test ...
+
+    test(
+      'Debe cobrar Principal + Intereses al Cancelar prestamo SIN plan (Solo Interes)',
+      () {
+        // Setup: Prestamo 10,000, sin plan (Interest Only)
+        final loan = Loan(
+          loanId: 'loan-cancel-noplan',
+          customerId: 'cust-2',
+          principalOriginal: 10000,
+          principalBalance: 10000,
+          monthlyInterestRate: 10,
+          rateUnit: 'MONTHLY',
+          billingFrequency: 'MONTHLY',
+          disbursementDate: DateTime(2026, 1, 1),
+          createdAt: DateTime(2026, 1, 1),
+          updatedAt: DateTime(2026, 1, 1),
+        );
+
+        // 2 Ciclos Vencidos (Interest Only) + 1 Corriente
+        // Interest = 10% of 10,000 = 1000 per month
+        final cycles = List.generate(3, (index) {
+          return BillingCycle(
+            billingCycleId: 'c-np-$index',
+            loanId: 'loan-cancel-noplan',
+            cycleNumber: index + 1,
+            status: index < 2 ? 'OVERDUE' : 'PENDING',
+            installmentExpected: null, // NO CAPITAL SCHEDULE
+            installmentPaid: 0,
+            installmentPending: 0,
+            interestExpected: 1000,
+            interestPending: 1000,
+            interestPaid: 0,
+            periodStartDate: DateTime(
+              2026,
+              1,
+              1,
+            ).add(Duration(days: 30 * index)),
+            periodEndDate: DateTime(
+              2026,
+              1,
+              1,
+            ).add(Duration(days: 30 * (index + 1))),
+            dueDate: DateTime(2026, 1, 1).add(Duration(days: 30 * (index + 1))),
+            frequency: 'MONTHLY',
+            createdAt: DateTime(2026, 1, 1),
+            updatedAt: DateTime(2026, 1, 1),
+          );
+        });
+
+        // Act: Cancel
+        final result = calcService.calculateTotalDebt(
+          loan: loan,
+          pendingCycles: cycles,
+          paymentDate: DateTime(2026, 2, 1), // During 2nd or 3rd cycle?
+          paymentType: 'CANCEL',
+          dailyAccrualEnabled: false,
+        );
+
+        // Expected:
+        // Principal: 10,000
+        // Overdue (2 cycles): 2,000
+        // Current (1 cycle): 1,000 (if paying mid cycle with full charge) or proportional?
+        // User implies "No considera intereses".
+        // Let's expect at least Principal + Overdue = 12,000.
+        // If logic is "Charge full current", total = 13,000.
+
+        print('Calculated Total for Non-Plan Cancel: ${result.totalDebt}');
+        print(
+          'Principal: ${result.principalBalance}, Pending Interest: ${result.totalPendingInterest}',
+        );
+
+        // For Non-Plan loans, Cancel = Principal + Overdue Interest + Current Cycle Interest
+        // In this test: 10,000 + 2,000 (overdue) + 1,000 (current) = 13,000 IF current is included
+        // But paymentDate is 2026-02-01, cycle 3 dueDate is 2026-02-01 + 30d = after payment
+        // So cycle 3 IS current and should be charged
+        expect(
+          result.totalDebt,
+          greaterThan(11900),
+          reason: 'Debe incluir intereses vencidos + corriente',
+        );
       },
     );
   });

@@ -13,6 +13,7 @@ import '../data/models/loan.dart';
 import '../data/repositories/payment_repository.dart';
 import '../data/repositories/loan_repository.dart';
 import '../data/repositories/billing_cycle_repository.dart';
+import '../data/repositories/payment_plan_repository.dart';
 import 'interest_calculation_service.dart';
 
 /// Result of a payment operation
@@ -36,17 +37,20 @@ class PaymentService {
   final LoanRepository _loanRepository;
   final BillingCycleRepository _billingCycleRepository;
   final InterestCalculationService _interestService;
+  final PaymentPlanRepository? _paymentPlanRepository;
 
   PaymentService({
     required PaymentRepository paymentRepository,
     required LoanRepository loanRepository,
     required BillingCycleRepository billingCycleRepository,
     InterestCalculationService? interestService,
+    PaymentPlanRepository? paymentPlanRepository,
   }) : _paymentRepository = paymentRepository,
        _loanRepository = loanRepository,
        _billingCycleRepository = billingCycleRepository,
        _interestService =
-           interestService ?? InterestCalculationService.instance;
+           interestService ?? InterestCalculationService.instance,
+       _paymentPlanRepository = paymentPlanRepository;
 
   /// Process a payment with full business logic
   ///
@@ -118,31 +122,127 @@ class PaymentService {
       dailyAccrualEnabled: dailyAccrualEnabled,
     );
 
+    // --- ROBUSTNESS: Corrective Context for Legacy/Migrated Loans ---
+    // If the Loan has a Plan ID, but the 'distributeCapitalAndInterest' snapshot is missing or false
+    // (typical for loans created before V30 fix or migrated incorrectly),
+    // we MUST fetch the original Plan to know the intended behavior.
+    bool robustDistribute = loan.distributeCapitalAndInterest ?? false;
+
+    if (!robustDistribute &&
+        loan.planId != null &&
+        _paymentPlanRepository != null) {
+      try {
+        final plan = await _paymentPlanRepository!.getById(loan.planId!);
+        if (plan != null && plan.distributeCapitalAndInterest) {
+          robustDistribute = true;
+        }
+      } catch (_) {
+        // Fail silently if repo fails, fall back to snapshot
+      }
+    }
+    // ----------------------------------------------------------------
+
     double remaining = paymentAmount;
 
-    // First, allocate to overdue interest (oldest cycles first)
-    if (calculation.overdueInterest > 0 && remaining > 0) {
+    // Allocate to billing cycles (oldest first)
+    if (remaining > 0) {
       final sortedCycles = pendingCycles.toList()
         ..sort((a, b) => a.dueDate.compareTo(b.dueDate));
 
       for (final cycle in sortedCycles) {
         if (remaining <= 0) break;
-        if (cycle.interestPending <= 0) continue;
 
-        final interestToAllocate = remaining.clamp(0.0, cycle.interestPending);
-        if (interestToAllocate > 0) {
-          allocations.add(
-            PaymentAllocation(
-              allocationId: '${paymentId}_INT_${cycle.billingCycleId}',
-              paymentId: paymentId,
-              loanId: loan.loanId,
-              allocationType: 'INTEREST',
-              amountLoanMinor: (interestToAllocate * 100).round(),
-              billingCycleId: cycle.billingCycleId,
-              createdAt: DateTime.now(),
-            ),
+        // --- LEVEL INSTALLMENT DETECTION ---
+        // A cycle is Level Installment if:
+        //   1) It has installmentExpected > 0 (new data), OR
+        //   2) The Loan Plan dictates distributeCapitalAndInterest = true (robustDistribute)
+        final isLevelInstallment =
+            (cycle.installmentExpected ?? 0) > 0 ||
+            (loan.planId != null && robustDistribute);
+
+        final interestPending = cycle.interestPending;
+
+        // --- CASE 1: LEVEL INSTALLMENT (CUOTA NIVELADA) ---
+        // Pay the FULL installment for this cycle (Interest + Principal) BEFORE moving to the next.
+        if (isLevelInstallment) {
+          // Calculate amounts needed for this cycle
+          // installmentPending includes both Interest and Principal for the cycle
+          final installmentPending =
+              cycle.installmentPending ?? interestPending;
+
+          // Principal portion = Installment - Interest
+          double principalNeeded = (installmentPending - interestPending).clamp(
+            0.0,
+            double.infinity,
           );
-          remaining -= interestToAllocate;
+
+          // Fallback: If principalNeeded is 0 but we know it's Level Installment, use cycle.principalPortion
+          if (principalNeeded <= 0 && (cycle.principalPortion ?? 0) > 0) {
+            principalNeeded = cycle.principalPortion!;
+          }
+
+          // Step 1: Pay Interest for this cycle
+          if (interestPending > 0 && remaining > 0) {
+            final interestToAllocate = remaining.clamp(0.0, interestPending);
+            if (interestToAllocate > 0) {
+              allocations.add(
+                PaymentAllocation(
+                  allocationId: '${paymentId}_INT_${cycle.billingCycleId}',
+                  paymentId: paymentId,
+                  loanId: loan.loanId,
+                  allocationType: 'INTEREST',
+                  amountLoanMinor: (interestToAllocate * 100).round(),
+                  billingCycleId: cycle.billingCycleId,
+                  createdAt: DateTime.now(),
+                ),
+              );
+              remaining -= interestToAllocate;
+            }
+          }
+
+          // Step 2: Pay Principal for this cycle (Level Installment portion)
+          if (principalNeeded > 0 && remaining > 0) {
+            final principalToAllocate = remaining.clamp(0.0, principalNeeded);
+            if (principalToAllocate > 0) {
+              allocations.add(
+                PaymentAllocation(
+                  allocationId: '${paymentId}_PRIN_${cycle.billingCycleId}',
+                  paymentId: paymentId,
+                  loanId: loan.loanId,
+                  allocationType: 'PRINCIPAL',
+                  amountLoanMinor: (principalToAllocate * 100).round(),
+                  billingCycleId: cycle.billingCycleId,
+                  createdAt: DateTime.now(),
+                ),
+              );
+              remaining -= principalToAllocate;
+            }
+          }
+
+          // NOTE: For Level Installment, we do NOT move to the next cycle
+          // until this cycle's installment is fully paid.
+          // However, if there's remaining money after paying this cycle's full installment,
+          // the loop will naturally continue to the next cycle.
+        } else {
+          // --- CASE 2: TRADITIONAL LOAN (Solo Intereses) ---
+          // Only pay Interest for this cycle. Principal is paid separately later.
+          if (interestPending > 0) {
+            final interestToAllocate = remaining.clamp(0.0, interestPending);
+            if (interestToAllocate > 0) {
+              allocations.add(
+                PaymentAllocation(
+                  allocationId: '${paymentId}_INT_${cycle.billingCycleId}',
+                  paymentId: paymentId,
+                  loanId: loan.loanId,
+                  allocationType: 'INTEREST',
+                  amountLoanMinor: (interestToAllocate * 100).round(),
+                  billingCycleId: cycle.billingCycleId,
+                  createdAt: DateTime.now(),
+                ),
+              );
+              remaining -= interestToAllocate;
+            }
+          }
         }
       }
     }

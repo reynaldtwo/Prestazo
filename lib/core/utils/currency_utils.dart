@@ -37,4 +37,20 @@ class CurrencyUtils {
     };
     return symbols[currencyCode.toUpperCase()] ?? currencyCode;
   }
+
+  /// Get decimal precision for a currency (Default 2)
+  static int getCurrencyPrecision(String currencyCode) {
+    // In the future, this can be loaded from AppSettings or a DB table.
+    // For now, most supported currencies use 2 decimals.
+    // Exceptions like JPY (0) or BHD (3) can be added here.
+    const precisions = {
+      'CLF': 4, // Example: Fundos in Chile
+      'JPY': 0, // Yen
+      'BHD': 3, // Bahrain Dinar
+      'KWD': 3, // Kuwait Dinar
+      'OMR': 3, // Oman Rial
+      'TND': 3, // Tunisian Dinar
+    };
+    return precisions[currencyCode.toUpperCase()] ?? 2;
+  }
 }

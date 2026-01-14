@@ -65,6 +65,9 @@ class AppSettings extends Equatable {
   final String disbursementRateType; // 'BUY', 'SELL', 'MID'
   final String paymentRateType; // 'BUY', 'SELL', 'MID'
 
+  // Recovery Priority
+  final String recoveryPriority; // 'CAPITAL_FIRST', 'INTEREST_FIRST'
+
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -121,6 +124,7 @@ class AppSettings extends Equatable {
     this.allowManualExchangeRate = false,
     this.disbursementRateType = 'SELL',
     this.paymentRateType = 'BUY',
+    this.recoveryPriority = 'CAPITAL_FIRST',
     required this.createdAt,
     required this.updatedAt,
   });
@@ -192,6 +196,7 @@ class AppSettings extends Equatable {
           (map['allow_manual_exchange_rate'] as int? ?? 0) == 1,
       disbursementRateType: map['disbursement_rate_type'] as String? ?? 'SELL',
       paymentRateType: map['payment_rate_type'] as String? ?? 'BUY',
+      recoveryPriority: map['recovery_priority'] as String? ?? 'CAPITAL_FIRST',
       createdAt: DateTime.parse(map['created_at'] as String),
       updatedAt: DateTime.parse(map['updated_at'] as String),
     );
@@ -252,6 +257,7 @@ class AppSettings extends Equatable {
       'allow_manual_exchange_rate': allowManualExchangeRate ? 1 : 0,
       'disbursement_rate_type': disbursementRateType,
       'payment_rate_type': paymentRateType,
+      'recovery_priority': recoveryPriority,
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
     };
@@ -310,6 +316,7 @@ class AppSettings extends Equatable {
     bool? allowManualExchangeRate,
     String? disbursementRateType,
     String? paymentRateType,
+    String? recoveryPriority,
     DateTime? updatedAt,
   }) {
     return AppSettings(
@@ -373,6 +380,7 @@ class AppSettings extends Equatable {
           allowManualExchangeRate ?? this.allowManualExchangeRate,
       disbursementRateType: disbursementRateType ?? this.disbursementRateType,
       paymentRateType: paymentRateType ?? this.paymentRateType,
+      recoveryPriority: recoveryPriority ?? this.recoveryPriority,
       createdAt: createdAt,
       updatedAt: updatedAt ?? DateTime.now(),
     );
@@ -438,6 +446,7 @@ class AppSettings extends Equatable {
     allowManualExchangeRate,
     disbursementRateType,
     paymentRateType,
+    recoveryPriority,
     createdAt,
     updatedAt,
   ];

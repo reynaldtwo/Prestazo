@@ -10,7 +10,6 @@ import '../../../data/models/payment.dart';
 import '../../../data/providers/providers.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../services/billing_cycle_service.dart';
 import '../../../core/constants/app_status.dart';
 import '../../../core/localization/locale_provider.dart';
 import '../../../services/whatsapp_service.dart';
@@ -378,15 +377,7 @@ class _LoanDetailScreenState extends ConsumerState<LoanDetailScreen> {
       final loan = await ref.read(loanByIdProvider(widget.loanId).future);
       if (loan != null &&
           (loan.status == 'ACTIVE' || loan.status == 'IN_MORA')) {
-        final loanRepo = ref.read(loanRepositoryProvider);
-        final cycleRepo = ref.read(billingCycleRepositoryProvider);
-        final customerRepo = ref.read(customerRepositoryProvider);
-
-        final service = BillingCycleService(
-          cycleRepository: cycleRepo,
-          customerRepository: customerRepo,
-          loanRepository: loanRepo,
-        );
+        final service = ref.read(billingCycleServiceProvider);
 
         final newCycles = await service.generateMissingCycles(loan);
         if (newCycles.isNotEmpty && mounted) {
@@ -849,20 +840,24 @@ class _CycleCard extends StatelessWidget {
                   children: [
                     MoneyLabel(
                       label: S.of(context).expected,
-                      amount: cycle.interestExpected,
+                      amount:
+                          cycle.installmentExpected ?? cycle.interestExpected,
                       isCompact: true,
                     ),
                     const SizedBox(width: 16),
                     Flexible(
                       child: MoneyLabel(
                         label: S.of(context).pending,
-                        // VISUAL FIX: If paid, always show 0.00 regardless of DB value
+                        // VISUAL FIX: If paid, always show 0.00
                         amount: cycle.status == 'PAID'
                             ? 0
-                            : cycle.interestPending,
+                            : (cycle.installmentPending ??
+                                  cycle.interestPending),
                         amountColor:
                             (cycle.status != 'PAID' &&
-                                cycle.interestPending > 0)
+                                (cycle.installmentPending ??
+                                        cycle.interestPending) >
+                                    0)
                             ? AppColors.danger
                             : AppColors.success,
                         isCompact: true,
@@ -961,38 +956,117 @@ class _PaymentCard extends ConsumerWidget {
                 return Text(S.of(context).noAllocationDetails);
               }
 
-              return Column(
-                children: allocations
-                    .map(
-                      (alloc) => Padding(
-                        padding: const EdgeInsets.only(left: 8, top: 2),
-                        child: Row(
-                          children: [
-                            Icon(
-                              Icons.arrow_right,
-                              size: 16,
-                              color: Theme.of(context).colorScheme.outline,
-                            ),
-                            Expanded(
-                              child: Text(
-                                _getAllocationLabel(
-                                  context,
-                                  alloc.allocationType,
-                                ),
-                                style: AppTypography.bodySmall,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                            MoneyDisplay(
-                              amount: alloc.amount,
-                              size: MoneyDisplaySize.small,
-                            ),
-                          ],
+              // Group allocations logic to match PdfGeneratorService
+              final interestTotal = allocations
+                  .where(
+                    (a) =>
+                        a.allocationType == 'INTEREST' ||
+                        a.allocationType == 'MORA',
+                  )
+                  .fold(0.0, (sum, a) => sum + a.amount);
+
+              final principalTotal = allocations
+                  .where((a) => a.allocationType == 'PRINCIPAL')
+                  .fold(0.0, (sum, a) => sum + a.amount);
+
+              // Check for other types (e.g. Fees)
+              final otherAllocations = allocations
+                  .where(
+                    (a) =>
+                        a.allocationType != 'INTEREST' &&
+                        a.allocationType != 'MORA' &&
+                        a.allocationType != 'PRINCIPAL',
+                  )
+                  .toList();
+
+              final groupedItems = <Widget>[];
+
+              if (interestTotal > 0.001) {
+                groupedItems.add(
+                  Padding(
+                    padding: const EdgeInsets.only(left: 8, top: 2),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.arrow_right,
+                          size: 16,
+                          color: Theme.of(context).colorScheme.outline,
                         ),
-                      ),
-                    )
-                    .toList(),
-              );
+                        Expanded(
+                          child: Text(
+                            S
+                                .of(context)
+                                .interest, // Use generic Interest label
+                            style: AppTypography.bodySmall,
+                          ),
+                        ),
+                        MoneyDisplay(
+                          amount: interestTotal,
+                          size: MoneyDisplaySize.small,
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }
+
+              if (principalTotal > 0.001) {
+                groupedItems.add(
+                  Padding(
+                    padding: const EdgeInsets.only(left: 8, top: 2),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.arrow_right,
+                          size: 16,
+                          color: Theme.of(context).colorScheme.outline,
+                        ),
+                        Expanded(
+                          child: Text(
+                            S.of(context).capital,
+                            style: AppTypography.bodySmall,
+                          ),
+                        ),
+                        MoneyDisplay(
+                          amount: principalTotal,
+                          size: MoneyDisplaySize.small,
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }
+
+              // Add others individually
+              for (final alloc in otherAllocations) {
+                groupedItems.add(
+                  Padding(
+                    padding: const EdgeInsets.only(left: 8, top: 2),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.arrow_right,
+                          size: 16,
+                          color: Theme.of(context).colorScheme.outline,
+                        ),
+                        Expanded(
+                          child: Text(
+                            _getAllocationLabel(context, alloc.allocationType),
+                            style: AppTypography.bodySmall,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        MoneyDisplay(
+                          amount: alloc.amount,
+                          size: MoneyDisplaySize.small,
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }
+
+              return Column(children: groupedItems);
             },
           ),
         ],

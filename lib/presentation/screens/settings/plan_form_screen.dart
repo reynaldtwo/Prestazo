@@ -217,7 +217,7 @@ class _PlanFormScreenState extends ConsumerState<PlanFormScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          widget.planId == null ? 'Nuevo Plan de Pago' : 'Editar Plan',
+          widget.planId == null ? l10n.newPaymentPlan : l10n.editPaymentPlan,
         ),
       ),
       body: _isLoading
@@ -393,11 +393,17 @@ class _PlanFormScreenState extends ConsumerState<PlanFormScreen> {
                         child: AppTextField(
                           controller: _minAmountController,
                           label: l10n.minAmount,
-                          hint: l10n.optional, // Placeholder
+                          hint: l10n.optional,
                           prefixIcon: Icons.attach_money,
                           keyboardType: const TextInputType.numberWithOptions(
                             decimal: true,
                           ),
+                          validator: (v) {
+                            if (v == null || v.isEmpty) return null; // Optional
+                            final n = double.tryParse(v);
+                            if (n == null || n < 0) return l10n.invalidAmount;
+                            return null;
+                          },
                         ),
                       ),
                       const SizedBox(width: 16),
@@ -405,11 +411,17 @@ class _PlanFormScreenState extends ConsumerState<PlanFormScreen> {
                         child: AppTextField(
                           controller: _maxAmountController,
                           label: l10n.maxAmount,
-                          hint: l10n.optional, // Placeholder
+                          hint: l10n.optional,
                           prefixIcon: Icons.attach_money,
                           keyboardType: const TextInputType.numberWithOptions(
                             decimal: true,
                           ),
+                          validator: (v) {
+                            if (v == null || v.isEmpty) return null; // Optional
+                            final n = double.tryParse(v);
+                            if (n == null || n < 0) return l10n.invalidAmount;
+                            return null;
+                          },
                         ),
                       ),
                     ],

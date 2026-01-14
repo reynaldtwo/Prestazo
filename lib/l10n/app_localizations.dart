@@ -589,6 +589,12 @@ abstract class S {
   /// **'Cancelar'**
   String get typeCancel;
 
+  /// No description provided for @planInstallmentMode.
+  ///
+  /// In es, this message translates to:
+  /// **'Cuota del Plan'**
+  String get planInstallmentMode;
+
   /// No description provided for @collectedToday.
   ///
   /// In es, this message translates to:
@@ -4742,6 +4748,12 @@ abstract class S {
   /// In es, this message translates to:
   /// **'Tasa de cambio inválida'**
   String get invalidExchangeRate;
+
+  /// No description provided for @selectPlan.
+  ///
+  /// In es, this message translates to:
+  /// **'Seleccionar Plan'**
+  String get selectPlan;
 }
 
 class _SDelegate extends LocalizationsDelegate<S> {

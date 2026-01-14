@@ -8,6 +8,8 @@
 /// - Cycle interest calculations
 library;
 
+import 'package:flutter/foundation.dart';
+
 import '../data/models/billing_cycle.dart';
 import '../data/models/loan.dart';
 
@@ -146,13 +148,16 @@ class InterestCalculationService {
 
   /// Calculate how a payment amount should be allocated
   /// Centralizes the business rules: Overdue > Current > Principal
+  /// Calculate how a payment amount should be allocated
+  /// Centralizes the business rules: Overdue > Current > Principal
   PaymentDistribution calculatePaymentAllocation({
     required Loan loan,
     required double paymentAmount,
     required List<BillingCycle> pendingCycles,
-    required String paymentType, // CANCEL, INTEREST, MIXED, PRINCIPAL
+    required String paymentType, // CANCEL, INTEREST, MIXED, PRINCIPAL, RECOVERY
     required bool dailyAccrualEnabled,
     DateTime? paymentDate,
+    String recoveryPriority = 'CAPITAL_FIRST',
   }) {
     // 1. Calculate debt state first
     final debtCalc = calculateTotalDebt(
@@ -168,7 +173,19 @@ class InterestCalculationService {
     double toCurrent = 0;
     double toPrincipal = 0;
 
-    // 2. Allocating to Overdue Interest (Priority 1)
+    // Logic Branch: Capital First or Interest First?
+    // Capital First applies ONLY if Type is RECOVERY AND user configured CAPITAL_FIRST.
+    final bool prioritizeCapital =
+        paymentType == 'RECOVERY' && recoveryPriority == 'CAPITAL_FIRST';
+
+    // A. Capital First Allocation (Step 1 of 2)
+    if (prioritizeCapital && remaining > 0) {
+      final maxPrincipal = loan.principalBalance;
+      toPrincipal = remaining > maxPrincipal ? maxPrincipal : remaining;
+      remaining -= toPrincipal;
+    }
+
+    // B. Allocating to Overdue Interest (Priority 1 or 2)
     if (remaining > 0 && debtCalc.overdueInterest > 0) {
       toOverdue = remaining >= debtCalc.overdueInterest
           ? debtCalc.overdueInterest
@@ -176,9 +193,8 @@ class InterestCalculationService {
       remaining -= toOverdue;
     }
 
-    // 3. Allocating to Current Interest (Priority 2)
-    // Only if payment type allows it (Logic handled by calculateTotalDebt returning correct currentCycleInterest/proportionalInterest)
-    // We use the 'currentCycleInterest' or 'proportionalInterest' from result depending on type
+    // C. Allocating to Current Interest (Priority 2 or 3)
+    // Only if payment type allows it
     double targetCurrentInterest = 0;
 
     if (paymentType == 'CANCEL' && dailyAccrualEnabled) {
@@ -194,18 +210,27 @@ class InterestCalculationService {
       remaining -= toCurrent;
     }
 
-    // 4. Allocating to Principal (Priority 3)
-    if (paymentType != 'INTEREST' && remaining > 0) {
+    // D. Allocating to Principal (Priority 3 or 1-Residue)
+    // If NOT Capital First, allocate to principal here at the end.
+    // OR if Capital First, verify if we missed anything (unlikely unless logic above failed)
+    if (!prioritizeCapital && paymentType != 'INTEREST' && remaining > 0) {
       final maxPrincipal = loan.principalBalance;
       toPrincipal = remaining > maxPrincipal ? maxPrincipal : remaining;
-      // remaining -= toPrincipal; // Not strictly needed for result but good for tracking
+      // remaining -= toPrincipal;
+    } else if (prioritizeCapital && remaining > 0) {
+      // If prioritizeCapital was true, we allocated principal FIRST.
+      // But if user paid WAY more than Principal + Interest, the remainder is technically "Extra Capital" or "Prepayment"?
+      // Current logic caps Principal at loan.principalBalance.
+      // So remaining is truly extra. We leave it as remaining.
     }
 
     return PaymentDistribution(
       toOverdueInterest: _roundMoney(toOverdue),
       toCurrentInterest: _roundMoney(toCurrent),
       toPrincipal: _roundMoney(toPrincipal),
-      remainingAmount: _roundMoney(remaining > 0 ? remaining - toPrincipal : 0),
+      remainingAmount: _roundMoney(
+        remaining > 0 ? remaining - (!prioritizeCapital ? toPrincipal : 0) : 0,
+      ),
     );
   }
 
@@ -268,6 +293,11 @@ class InterestCalculationService {
       }
     }
 
+    // DEBUG: Trace Cancel calculation
+    debugPrint(
+      'CANCEL_DEBUG: pendingCycles.length=${pendingCycles.length}, overdueCycles=${overdueCycles.length}, currentCycle=${currentCycle?.billingCycleId}',
+    );
+
     // Sum all OVERDUE cycle interest (full interest for completed cycles)
     final overdueInterest = overdueCycles.fold<double>(
       0,
@@ -305,16 +335,57 @@ class InterestCalculationService {
         // "excepto intereses de los días del ciclo corriente"
         currentCycleInterest = 0;
       } else if (paymentType == 'MIXED') {
-        // MIXED: DO NOT include current cycle per fix.md #3
-        // "los intereses de los días del ciclo corriente no se consideran"
-        currentCycleInterest = 0;
+        // MIXED:
+        // 1. Level Installment: MUST include full current cycle interest (part of fixed installment)
+        // 2. Standard Loan: DO NOT include current cycle per fix.md #3
+        final isLevelInstallment =
+            loan.planId != null && (loan.distributeCapitalAndInterest ?? false);
+
+        if (isLevelInstallment) {
+          currentCycleInterest = currentCycle.interestPending;
+        } else {
+          currentCycleInterest = 0;
+        }
       } else {
         // PRINCIPAL or other: no current cycle interest
         currentCycleInterest = 0;
       }
     }
 
-    final totalPendingInterest = overdueInterest + currentCycleInterest;
+    // FIX: If CANCEL and loan has Level Installments (schedule),
+    // we must collect sum of all pending installments (Full Contract Value)
+    // instead of just Principal + Current Interest.
+    double? totalOverrideAmount;
+
+    if (paymentType == 'CANCEL') {
+      // Check if we have a defined schedule with expected installments
+      // We look at ALL pending cycles (overdue + current + future)
+      final hasInstallmentSchedule =
+          pendingCycles.isNotEmpty &&
+          pendingCycles.every((c) => (c.installmentExpected ?? 0) > 0);
+
+      if (hasInstallmentSchedule) {
+        // Sum of all pending installments (This includes Principal + Interest for the whole term)
+        totalOverrideAmount = pendingCycles.fold<double>(
+          0,
+          (sum, c) => sum + (c.installmentPending ?? 0),
+        );
+      }
+      // For Non-Plan loans: DO NOT override - use the original calculation
+      // which correctly handles Overdue + Current/Proportional interest
+    }
+
+    final totalPendingInterestRaw = overdueInterest + currentCycleInterest;
+
+    // If override exists, we calculate the implied "pending interest"
+    // so that (Principal + PendingInterest) == TotalOverride
+    // Use Max(0) to avoid negative interest
+    final totalPendingInterest = totalOverrideAmount != null
+        ? (totalOverrideAmount - loan.principalBalance)
+        : totalPendingInterestRaw;
+    final finalPendingInterest = totalPendingInterest < 0
+        ? 0.0
+        : totalPendingInterest;
 
     return LoanCalculationResult(
       overdueCycles: overdueCycles,
@@ -323,7 +394,7 @@ class InterestCalculationService {
       currentCycleInterest: _roundMoney(currentCycleInterest),
       proportionalInterest: _roundMoney(partialInterest),
       partialDays: partialDays,
-      totalPendingInterest: _roundMoney(totalPendingInterest),
+      totalPendingInterest: _roundMoney(finalPendingInterest),
       principalBalance: loan.principalBalance,
     );
   }

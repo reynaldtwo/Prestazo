@@ -7,7 +7,6 @@ import '../../../core/theme/app_typography.dart';
 import '../../../core/widgets/widgets.dart';
 import '../../../data/models/loan.dart';
 import '../../../data/providers/providers.dart';
-import '../../../services/billing_cycle_service.dart';
 import '../../../core/providers/currency_provider.dart';
 import '../../../core/localization/locale_provider.dart';
 import '../../../data/providers/payment_frequency_provider.dart';
@@ -366,11 +365,7 @@ class _LoanEditScreenState extends ConsumerState<LoanEditScreen> {
 
       if (success) {
         if (needsRecalculation) {
-          final service = BillingCycleService(
-            cycleRepository: ref.read(billingCycleRepositoryProvider),
-            customerRepository: ref.read(customerRepositoryProvider),
-            loanRepository: ref.read(loanRepositoryProvider),
-          );
+          final service = ref.read(billingCycleServiceProvider);
 
           await service.regenerateFutureCycles(updatedLoan);
 

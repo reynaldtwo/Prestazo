@@ -999,6 +999,8 @@ Préstamos CON plan + distribución activa deben permitir ciclos con cuota total
 
 Los ciclos “Esperado/Pendiente” deben seguir mostrándose como hoy en el detalle del préstamo.
 
+
+
 6) Registrar Pago: ajustar comportamiento solo para préstamos con Plan (sin romper el flujo actual)
 
 La pantalla Registrar Pago debe mantenerse igual para préstamos sin plan (flujo actual), conservando exactamente las opciones existentes como:
@@ -1092,12 +1094,793 @@ Considerar afectaciones en el flujo existente y hacer los ajustes necesarios sin
 
 Si es necesario crear nuevos campos/tablas para soportar el plan, puedes hacerlo, siempre y cuando no afecte la funcionalidad existente.
 
+**1**
+
+
+
+
+
+
+
+
 Asegurar que todo lo nuevo funcione con multi-idiomas.
 
 Reconstruir el APK para que yo lo pruebe.
 
 
+
+Haz lo siguiente:
+
+vas a dejar los campos de la pantalla Nuevo Plan de Pago de la siguiente forma:
+
+Nombre del plan
+plazo:Unidad de ..., Plazo
+Frecuencia
+total de cuotas
+el resto dejarlo a como esta y agerga esta parte que no lo agregastes: Aplica a clientes con categoría (opcional)
+
+
+
+
+
+
+
+Realiza las siguientes mejoras en pantalla de nuevo plan de pago:
+
+1. esta opcion : plica a clientes con categoría (opcional) debe ser un tuggle y solo si el usuario la activa, vas a mostrar un campo de seleccion de categoria para que el usuario, pueda seleccionar del catalogo de categorias, la categoria que desea aplicar al plan, solo puede seleccionar 1 categoria.
+
+2. en gestion de monedas, el campo moneda no debes harcodear nada, debe ser un campo que permita seleccionar la moneda de la base de datos. tal y a como se hace en la pantalla de nuevo prestamo.
+
+3. Nungun campo en que se tenga que digitar tenes que ponerle texto , actulmente por ejemplo el campo Plazo tiene harcodeadi un numero 12, los campos de maximo y minimo tienen cantidades, quita eso y en todo caso lo que podes poner es un placeholder no un texto, que el usuario tenaga que quitar.
+
+4. La pantalla no la mostre como una modal, mostrala como pantalla normal
+
+
+
+
 Debido a que este nuveo requerimiento es bastante grande, dividilo en sprint (entregables) que se puedan probar por separado, para irnos asegurando de que lo que vaya desarrollandose vaya funcionando y  que no rompa nada.
+
+
+
+seguiremos en el sprint 2, por que no se  ha hecho a como se solicito en el requerimiento, ya tenes el nombre del plan , la frecuencia, pero falta el plazo
+
+
+
+
+Yo no te pedi nada de simulacion, solo te dije que el numero de cuotas no se esta calculando correctamente, ejemplo: seleccione Frecuencia=Mensual , plazo= 3meses, Unidades=SEMANAS, al seleccionar esos 3 campos el campo de cuotas se devio calculado automaticamente y haber puesto 12 , PERO NO HACE NADA
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+**refinamiento**
+
+/*12  enero 2026 */
+
+Tomate un tiempo para analizar bien los escenarios y resuelve los errores que aparezcan. Y apoyate del MCP de flutter para resolver los errores que aparezcan, asegurate de cumplir con las rules descritas en el archivo .antigravityrules .
+
+CASO 1:
+
+Escenario en flujo del prestamo con planes de pagos:
+Caso: Sprint 4 no cumple con lo esperado en las pruebas realizadas por QA.
+
+
+**Datos del plan de pago creado:**
+Nombre del plan de pago: Iniciantes
+Plazo=3
+Unidad de plazo=Meses
+Frecuencia de cobro=Quincenal(15 días)
+Total de cuotas=6
+Moneda del prestamo=NIO
+Tasa de interes=10%
+Monto mínimo=1000
+Monto máximo=10000  
+Permitir cambio de moneda=no
+Distribuir capital e interes en cuotas niveladas=si
+El periodo inicia en desembolso=si
+Aplica a clientes con categoría (opcional)=Nuevos
+
+
+
+**Datos del prestamo a la hora  de crearlo:**
+
+1. Se selecciono el plan de pago "Iniciantes"
+2. se logro ver que se cargo automaticamente el interes del plan de pago, Frecuencia de pago, fecha de desembolso  y fecha fin 
+3. se procedio a digitar el monto por 10,000
+4. se procedio a crear el prestamo
+
+**Validaciones**
+1. El prestamo se creo correctamente(Cumple con lo esperado)
+2. se procedio a revisar el detalle del prestamo en pantalla "Detalle del Préstamo" y se observo que solo se genero un ciclo con monto =500 NIO (No cumple con lo esperado)
+
+**Que se esperaba**
+1. se esperaba que el sistema fuera capaz de generar los ciclos de manera correcta, en este escenario la cantidad de ciclos es de 6 quotas
+2. Se espera que el sistema distribuya el capital y el interes de manera correcta, en caso de que el plan de pago tenga activa la opcion "Distribuir capital e interes en cuotas niveladas=si"
+3. se espera que el sistema bloque la edición del campo de interes, cuando la opción :"Permitir cambio de moneda=no" este en NO, CASO CONTRARIO DEBE PERMITIR LA EDICION DEL CAMPO DE INTERES.(Actualmente no cumple con lo esperado) 
+4. se espera que el sistema no permita cambiar la moneda, cuando la opción :"Permitir cambio de moneda=no" este en NO, CASO CONTRARIO DEBE PERMITIR LA EDICION DEL CAMPO DE INTERES. (Actualmente no cumple con lo esperado)
+5. se espera que si la opción "Distribuir capital e interes en cuotas niveladas=NO" este en NO, el sistema se debe comportar como un prestamo tradicional abierto a como funcionaba antes de esta nueva implementación. (Actualmente no cumple con lo esperado)
+6. Se espera que el sistema valide que el monto digitado este ente los montos minimo y maximo del plan de pago. (esto si cumple con lo esperado). (Mas sin embargo debes mejorar el mensaje que se le muestra al usuario, actualmente aparece un mensaje tipo bandera, debes cambiarlo por un mensaje de tipo alerta y que sea mediante un dialogo con un solo botón que se llamen OK)
+7. SE espera que el sistema valide la categoria de los clientes, para el caso donde la opcion Aplica a clientes con categoría (opcional), este activado.(Actualmente no cumple con lo esperado)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+**refinamiento**
+
+/*12  enero 2026 */
+
+Tomate un tiempo para analizar bien los escenarios y resuelve los errores que aparezcan. Y apoyate del MCP de flutter para resolver los errores que aparezcan, asegurate de cumplir con las rules descritas en el archivo .antigravityrules .
+
+CASO 1:
+
+Escenario en flujo del prestamo con planes de pagos:
+Caso: Sprint 4 Distribución de capital mas intereses en las cuotas, no esta funcionando.
+
+
+**Datos del plan de pago creado:**
+Nombre del plan de pago: Iniciantes
+Plazo=3
+Unidad de plazo=Meses
+Frecuencia de cobro=Quincenal(15 días)
+Total de cuotas=6
+Moneda del prestamo=NIO
+Tasa de interes=10%
+Monto mínimo=1000
+Monto máximo=10000  
+Permitir cambio de moneda=no
+Distribuir capital e interes en cuotas niveladas=si
+El periodo inicia en desembolso=si
+Aplica a clientes con categoría (opcional)=Nuevos
+
+
+
+**Datos del prestamo a la hora  de crearlo:**
+
+1. Se selecciono el plan de pago "Iniciantes"
+2. se logro ver que se cargo automaticamente el interes del plan de pago, Frecuencia de pago, fecha de desembolso  y fecha fin 
+3. se procedio a digitar el monto por 10,000
+4. se procedio a crear el prestamo
+
+**Validaciones**
+1. El prestamo se creo correctamente(Cumple con lo esperado)
+2. se procedio a revisar el detalle del prestamo en pantalla "Detalle del Préstamo" y se observo que solo se genero un ciclo con monto =500 NIO (No cumple con lo esperado)
+
+**Que se esperaba**
+1. se esperaba que el sistema fuera capaz de generar los ciclos de manera correcta, en este escenario la cantidad de ciclos es de 6 quotas
+2. Se espera que el sistema distribuya el capital y el interes de manera correcta, en caso de que el plan de pago tenga activa la opcion "Distribuir capital e interes en cuotas niveladas=si"
+3. se espera que el sistema bloque la edición del campo de interes, cuando la opción :"Permitir cambio de moneda=no" este en NO, CASO CONTRARIO DEBE PERMITIR LA EDICION DEL CAMPO DE INTERES.(Actualmente no cumple con lo esperado) 
+4. se espera que el sistema no permita cambiar la moneda, cuando la opción :"Permitir cambio de moneda=no" este en NO, CASO CONTRARIO DEBE PERMITIR LA EDICION DEL CAMPO DE INTERES. (Actualmente no cumple con lo esperado)
+5. se espera que si la opción "Distribuir capital e interes en cuotas niveladas=NO" este en NO, el sistema se debe comportar como un prestamo tradicional abierto a como funcionaba antes de esta nueva implementación. (Actualmente no cumple con lo esperado)
+6. Se espera que el sistema valide que el monto digitado este ente los montos minimo y maximo del plan de pago. (esto si cumple con lo esperado). (Mas sin embargo debes mejorar el mensaje que se le muestra al usuario, actualmente aparece un mensaje tipo bandera, debes cambiarlo por un mensaje de tipo alerta y que sea mediante un dialogo con un solo botón que se llamen OK)
+7. SE espera que el sistema valide la categoria de los clientes, para el caso donde la opcion Aplica a clientes con categoría (opcional), este activado.(Actualmente no cumple con lo esperado)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+**Refinamiento**
+/*12 enero 2026 */
+
+Tómate un tiempo para analizar bien los escenarios y resuelve los errores que aparezcan. Apóyate del MCP de Flutter para investigar y corregir la causa raíz, y asegúrate de cumplir con las rules descritas en el archivo .antigravityrules.md.
+
+CASO 1
+Escenario en flujo del préstamo con Planes de Pago
+
+Caso: Sprint 4 – Distribución de capital + intereses en las cuotas no está funcionando.
+
+Datos del plan de pago creado
+
+Nombre del plan de pago: Iniciantes
+Plazo = 3
+Unidad de plazo = Meses
+Frecuencia de cobro = Quincenal (15 días)
+Total de cuotas = 6
+Moneda del préstamo = NIO
+Tasa de interés = 10%
+Monto mínimo = 1000
+Monto máximo = 10000
+Permitir cambio de moneda = No
+Distribuir capital e interés en cuotas niveladas = Sí
+El período inicia en desembolso = Sí
+Aplica a clientes con categoría (opcional) = Nuevos
+
+
+**Validaciones (lo observado en QA)**
+
+1. El préstamo se creó correctamente (cumple).
+
+2. En Detalle del Préstamo, el sistema sí generó las 6 cuotas/ciclos (cumple).
+
+**Problema principal**: cada cuota quedó con Esperado = 500.00 (y Pendiente = 500.00), lo cual evidencia que el sistema está calculando únicamente el interés por cuota y NO está incorporando capital + interés como lo exige el plan cuando la opción “Distribuir capital e interés en cuotas niveladas = Sí” está activa. (No cumple)
+
+**Problema adicional (nuevo hallazgo)**: al entrar a Registrar Pago, el campo Monto Pago se está precargando automáticamente con C$ 13,000.02, lo cual no corresponde al monto esperado por cuota.
+
+En este escenario, el monto por cuota debería ser aproximadamente C$ 2,166.67 (ajustando la última por redondeo).
+
+13,000.02 parece estar tomando el total a pagar completo (o un saldo total) en lugar del monto de la cuota vigente, y además presenta una diferencia de 0.02 que sugiere un problema de redondeo/acumulación. (No cumple)
+
+**Qué se esperaba (agregado por el nuevo hallazgo)**
+
+En préstamos con plan y con “Distribuir capital e interés en cuotas niveladas = Sí”, la pantalla Registrar Pago debe:
+
+1. Identificar la cuota/ciclo vigente o la más vencida pendiente.
+
+2. Precargar el campo Monto Pago con el monto esperado de ESA cuota (cuota total: capital + interés distribuido).
+
+3. Nunca precargar con el total completo del préstamo.
+
+Corregir la causa del 0.02: el total distribuido debe cerrar exacto (ajuste de última cuota / redondeo controlado).
+
+
+
+
+**Refinamiento**
+/*12 enero 2026 */
+
+Tómate un tiempo para analizar bien los escenarios y resuelve los errores que aparezcan. Apóyate del MCP de Flutter para investigar y corregir la causa raíz, y asegúrate de cumplir con las rules descritas en el archivo .antigravityrules.md.
+
+CASO 1
+Escenario en flujo del préstamo con Planes de Pago en pantalla "Editar Préstamo".
+
+Caso: 
+Cuando se crea un prestamo con un plan de pago y posteriomente se procede a realizar edicion del monto prestado y se le da guardar cambios, en la pantalla "Detalle del Préstamo" se observa solo una cuota.
+
+
+
+
+
+
+
+**Refinamiento**
+/*12 enero 2026 */
+
+Tómate un tiempo para analizar bien los escenarios y resuelve los errores que aparezcan. Apóyate del MCP de Flutter para investigar y corregir la causa raíz, y asegúrate de cumplir con las rules descritas en el archivo .antigravityrules.md.
+
+CASO 1
+Escenario: el pago de los prestamos con planes de pago no se esta aplicando correctamente.
+
+Datos del plan de pago creado
+
+Nombre del plan de pago: Iniciantes
+Plazo = 3
+Unidad de plazo = Meses
+Frecuencia de cobro = Quincenal (15 días)
+Total de cuotas = 6
+Moneda del préstamo = NIO
+Tasa de interés = 10%
+Monto mínimo = 1000
+Monto máximo = 10000
+Permitir cambio de moneda = No
+Distribuir capital e interés en cuotas niveladas = Sí
+El período inicia en desembolso = Sí
+Aplica a clientes con categoría (opcional) = Nuevos
+
+
+**Validaciones (lo observado en QA)**
+1. Se ha observado que los ciclos se generan correctamente
+2. Los montos de las cuotas se distribuyen correctamente
+
+**Al pagar**
+Cuando se realiza el primer pago, el sistema carga el monto de cuota correspondiente y eso esta correcto, pero al aplicar el pago, el sistema me esta cancelando 4 cuotas y abonando a la siguiente cuota, lo cual no es correcto. se observa que el sistema esta suponiendo que la cuota es de 500 cuando es de 2166.67  
+
+Revisar bien todo el proyecto en buscas de este tipo decaso, recordad que ahora tenemos 2 tipos de prestamos 1)el tradicional que ya teniamos y 2)el nuevo que esta usando plan de pago. Por tanto hay que revisar todo el proyecto incluyendo reporteria para indetificar donde hay que aplicar mejoras para que se indentifique que tipo de prestamos es y en base  a eso , mostrar y aplicar la logica correcta para el prestamo . 
+
+
+
+**Refinamiento**
+/*12 enero 2026 */
+
+Tómate un tiempo para analizar bien los escenarios y resuelve los errores que aparezcan. Apóyate del MCP de Flutter para investigar y corregir la causa raíz, y asegúrate de cumplir con las rules descritas en el archivo .antigravityrules.md.
+
+CASO 1
+Escenario: el pago de los prestamos con planes de pago no se esta aplicando correctamente.
+
+Datos del plan de pago creado
+
+Nombre del plan de pago: Iniciantes
+Plazo = 3
+Unidad de plazo = Meses
+Frecuencia de cobro = Quincenal (15 días)
+Total de cuotas = 6
+Moneda del préstamo = NIO
+Tasa de interés = 10%
+Monto mínimo = 1000
+Monto máximo = 10000
+Permitir cambio de moneda = No
+Distribuir capital e interés en cuotas niveladas = Sí
+El período inicia en desembolso = Sí
+Aplica a clientes con categoría (opcional) = Nuevos
+
+**Que pasa cuando se realiza un pago**
+
+1. se procedio a realizar el pago por un monto de 2166.67, lo cual es correcto. pero al registrar el pago. se observo que en la pantalla de detalle del prestamo, los montos sufren una transformacion, la cual es erronea, al parecer el sistema esta volviendo a redistribuir las cuotas, suponiendo que el monto es de 500 cuando es de 2166.67 , esto lo podemos comprabar si miramos el historial de pago, en el podemos ver que el pago fue de 2166.67, pero se hicieron 4 abonos de 500 y uno de 1666.67 ; eso esta mal, revisar ese punto y asegurarse de que todo el flujo se este aplicando correctamente ambos modo de prestamos. 
+
+
+
+
+
+
+**Refinamiento**
+/*13 enero 2026 */
+
+Tómate un tiempo para analizar bien los escenarios y resuelve los errores que aparezcan. Apóyate del MCP de Flutter para investigar y corregir la causa raíz, y asegúrate de cumplir con las rules descritas en el archivo .antigravityrules.md.
+
+CASO 1
+Escenario: Pantalla de Nuevo plan de pago, no tiene validaciones de campos vacios y el nombre de la pantalla no es multi idiomas.
+
+
+Que esta pasando:
+1. al crear un plan de pago, no se validan los campos vacios.
+2. el nombre de la pantalla no es multi idiomas.
+
+Uno de los errores que se visualiza cuando se deja un campo vacio es:
+Error: FormatExeption:Invalid number(at character )
+
+tambien cuando se dejan los campos monto maximo y monto minimo vacios, se visualiza errores.
+
+¿Que hacer?
+
+1. se deben validar los campos como : nombre del plan, plazo, unidad de plazo, frecuencia de cobro, total de cuotas, moneda del prestamo, tasa de interes, estos campos son obligatorios, actualmente se puede guardar un plan de pago con campos como el nombre del plan vacio y eso no es correcto.
+
+2. para el caso de los monto maximo y minimo, como  son campos opcionales , se debe asegurar de que si se dejan vacios no de error a la hora de guardar el plan de pago, actualmente si se dejan vacios, se visualiza error.
+
+3. revisar que otro caso podemos tener ahi que podemos mejorar , sin romper lo que ya existe.
+
+
+
+
+
+**Refinamiento**
+/*13 enero 2026 */
+
+Tómate un tiempo para analizar bien los escenarios y resuelve los errores que aparezcan. Apóyate del MCP de Flutter para investigar y corregir la causa raíz, y asegúrate de cumplir con las rules descritas en el archivo .antigravityrules.md.
+
+**CASO 1**
+Escenario:Pantalla detalle del préstamo, esta mostrando inconsistencia en el campo "pendiente".
+
+**Datos del plan de pago creado**
+
+Nombre del plan de pago: Nuevo
+Plazo = 3
+Unidad de plazo = Meses
+Frecuencia de cobro = Quincenal (15 días)
+Total de cuotas = 6
+Moneda del préstamo = NIO
+Tasa de interés = 10%
+Monto mínimo = 1000
+Monto máximo = 10000
+Permitir cambio de moneda = No
+Distribuir capital e interés en cuotas niveladas = Sí
+El período inicia en desembolso = Sí
+Aplica a clientes con categoría (opcional) = Nuevos
+
+**Datos del prestamo**
+
+se selecciono el plan de pago "Nuevo" y se dio guardar prestamo, con un monto de 10,000 NIO
+
+**Pantalla Detalle del Préstamo**
+1. Se visualizo que se generaron 6 cuotas(esto es correcto)
+2. en los campos vence(la fecha son correctas), Esperado(los datos son correctos), Pendiente(los datos son correctos).
+3. se observo que cada ciclo(cuota) espera 2,166.67 y en pendiente tambien a ecepcion de la ultima cuota que es de 2,166.65 por tema de ajustes (esto esta correcto)
+
+**Al realizar un primer pago**
+1. Al aplicar un primer pago de la cuota numero 1, se visualiza que cancela correctamente los intereses y el capital de la cuota 1, y en el campo "Pendiente" lo deja en 0 y en historia de pago se puede observar que se cobro 500 de intereses y 1666.67 de capital (esto esta correcto)
+2. Al aplicar el segundo pago de la cuota numero 2, se puede visualizar que hay un error, ya que, el campo "Pendiente" no lo deja en 0, si no que lo deja con un valor pendiente de 1,166.67 al parecer a ese campo solo aplico el interes y no el capital, cabe mencionar que en el historial de pago se puede observar que se cobro 500 de intereses y 1666.67 de capital.
+
+**Que hacer**
+1. Analizar bien el flujo de pagos para los creditos con plan de pago, asegurarse de que se comporte de la forma correcta.
+
+2. Realizar pruebas adicionales para los creditos con plan de pago, asegurarse de que todo funcione correctamente.
+
+3. Tomar el mismo escenario y realizar pruebas, realizar pagos de cuotas completas y parciales hasta llegar a la cancelacion total del prestamo, para ver como se comporta el sistema y que funcione correctamente. en caso de que salga alguna incosistencia en los datos de visualizacion o datos de la base de datos, corregirlo de inmediatos.
+
+4. solo si las pruebas fueron exitosas y todo funcione correctamente, proceder a la reconstruccion del apk, para pasarlo a QA.
+
+
+**Refinamiento**
+/*13 enero 2026 */
+
+Tómate un tiempo para analizar bien los escenarios y resuelve los errores que aparezcan. Apóyate del MCP de Flutter para investigar y corregir la causa raíz, y asegúrate de cumplir con las rules descritas en el archivo @file:.antigravityrules.md.
+
+**CASO 1**
+Escenario:Pantalla Registrar Pago.
+
+
+**Datos del plan de pago creado**
+
+Nombre del plan de pago: Nuevo
+Plazo = 3
+Unidad de plazo = Meses
+Frecuencia de cobro = Quincenal (15 días)
+Total de cuotas = 6
+Moneda del préstamo = NIO
+Tasa de interés = 10%
+Monto mínimo = 1000
+Monto máximo = 10000
+Permitir cambio de moneda = No
+Distribuir capital e interés en cuotas niveladas = Sí
+El período inicia en desembolso = Sí
+Aplica a clientes con categoría (opcional) = Nuevos
+
+**Datos del prestamo**
+se selecciono el plan de pago "Nuevo" y se dio guardar prestamo, con un monto de 10,000 NIO
+**Detalle del prestamo**
+1. se crearon 6 cuotas
+2. Cada couta es de 2,166.67 (donde 500 son de intereses y 1666.67 de capital)
+
+**Que esta pasando:**
+1.  Para el caso de los prestamos con plan de pago, en la pantalla de registrar pago, hay un campo que se llama "Ciclos pendientes", ahi se muestran los ciclos pendientes, y a los vencidos los muestra en color rojo. Para el caso de los prestamos con plan de pago y para el escenario que tenemos donde la cuota es de 2,166.67 (itereses mas capital), esta mostrando 500 , cuando lo correcto es que muestre la suma del interes mas el capital, pero no lo hace, actualmente me muestra solo el interes que para este escenario es de 500.
+
+2. Se ha observado que l punto 6 del requerimiento no se ha implementado, acontinuacion te dejo todo el punto 6 para que lo analisis y lo implementes.
+
+**6) Registrar Pago: ajustar comportamiento solo para préstamos con Plan (sin romper el flujo actual)**
+
+La pantalla Registrar Pago debe mantenerse igual para préstamos sin plan (flujo actual), conservando exactamente las opciones existentes como:
+
+1. Mixto
+2. Solo Interés
+3. Solo Capital
+4. Cancelar
+5. Recuperar
+
+6.1 Detección del escenario “Plan con cuotas distribuidas”
+
+Al entrar a Registrar Pago, el sistema debe detectar si el préstamo cumple ambas condiciones:
+
+Fue creado con Plan de Pago (tiene planId o equivalente).
+
+El plan tiene activa la opción “Distribuir capital + interés en las cuotas”.
+
+6.2 Comportamiento UI cuando aplica Plan con cuotas distribuidas
+
+Si el préstamo cumple esas dos condiciones:
+
+Deshabilitar (enable = false) los botones de tipo de pago que hoy existen como:
+
+Mixto
+
+Solo Interés
+
+Solo Capital, etc.
+
+(Mantener disponibles Cancelar y Recuperar; si ya tienen validaciones, respetarlas.)
+
+En lugar de seleccionar tipo de pago, el sistema debe entrar en un modo de pago “Cuota del Plan” (automático):
+
+Identificar la cuota/ciclo vigente o el más vencido pendiente.
+
+Tomar el monto esperado de esa cuota (que ya incluye capital + interés por distribución del plan).
+
+Precargar automáticamente el campo Monto Pago con ese valor.
+
+El campo Monto Pago debe permitir edición manual para soportar:
+
+Pago parcial: el usuario puede bajar el monto.
+
+Pago de más: el usuario puede aumentar el monto.
+
+Blindaje adicional para que no se rompa la lógica actual:
+
+En este modo “Cuota del Plan”, el pago debe aplicarse internamente reutilizando la lógica existente (equivalente a un pago tipo “Mixto” automático), sin inventar reglas nuevas.
+La diferencia es que el usuario no elige el tipo; el sistema aplica el pago a la cuota correspondiente usando el motor actual.
+
+6.3 Reglas de negocio para “Parcial” y “De más”
+
+Para pagos parciales o de más, se debe reutilizar la lógica existente sin inventar nuevas reglas:
+
+Si es parcial:
+Guardar el abono y actualizar los saldos y el estado del ciclo según las reglas actuales (ej. ciclo queda pendiente con saldo restante).
+
+Si es de más:
+Aplicar el excedente a la siguiente cuota/ciclo pendiente, utilizando la misma lógica existente que ya redistribuye el excedente.
+
+6.4 Compatibilidad y no regresión
+
+Si el préstamo no fue creado con plan, o el plan no distribuye capital + interés:
+
+La pantalla debe comportarse exactamente igual que hoy, sin cambios en UI ni en reglas.
+
+Se deben realizar pruebas de:
+
+Plan con cuota completa.
+
+Plan con pago parcial.
+
+Plan con pago de más (excedente a la siguiente cuota).
+
+Préstamos tradicionales (sin plan) para asegurar que no se rompió nada.
+
+Advertencias a considerar en el desarrollo
+
+No dejar nada hardcodeado (textos, etiquetas, colores, reglas, etc.). Todo debe venir de configuración, catálogos o localización.
+
+Hacer pruebas del flujo completo:
+
+Préstamo sin plan (flujo actual)
+
+Préstamo con plan (nuevo flujo)
+
+Pagos (todos los tipos) para ambos casos
+
+Considerar afectaciones en el flujo existente y hacer los ajustes necesarios sin romper funcionalidad.
+
+Si es necesario crear nuevos campos/tablas para soportar el plan, puedes hacerlo, siempre y cuando no afecte la funcionalidad existente.
+
+
+
+
+
+
+
+
+
+
+
+
+
+**Refinamiento**
+/*13 enero 2026 */
+
+Tómate un tiempo para analizar bien los escenarios y resuelve los errores que aparezcan. Apóyate del MCP de Flutter para investigar y corregir la causa raíz, y asegúrate de cumplir con las rules descritas en el archivo @file:.antigravityrules.md.
+
+**CASO 1**
+Escenario:Pantalla Registrar Pago.
+
+
+**Datos del plan de pago creado**
+
+Nombre del plan de pago: Nuevo
+Plazo = 3
+Unidad de plazo = Meses
+Frecuencia de cobro = Quincenal (15 días)
+Total de cuotas = 6
+Moneda del préstamo = NIO
+Tasa de interés = 10%
+Monto mínimo = 1000
+Monto máximo = 10000
+Permitir cambio de moneda = No
+Distribuir capital e interés en cuotas niveladas = Sí
+El período inicia en desembolso = Sí
+Aplica a clientes con categoría (opcional) = Nuevos
+
+**Datos del prestamo**
+se selecciono el plan de pago "Nuevo" y se dio guardar prestamo, con un monto de 10,000 NIO
+**Detalle del prestamo**
+1. se crearon 6 cuotas
+2. Cada couta es de 2,166.67 (donde 500 son de intereses y 1666.67 de capital)
+
+**Que esta pasando:**
+1. Se aplicaron 2 pagos de las 2 primeras cuotas y todo se aplico correctamente.
+2. se procedio a realizar un tercer pago por un monto de 3,000 NIO, donde 2166.67 correspondia a la cuota 3 y 833.33 correspondia a la cuota 4. Hasta aca todo se aplico correctamente. El problema esta cuando se quiere aplicar un cuarto pago, a la hora de ir a la pantalla de Registrar Pago y en el campo Monto Pago me deberia de mostrar el monto de la cuota 4 que en este escenario corresponde a 1,333.34 , ya que, en la cuota 3 se hiso un abono parcial de 833.33, ya que, el pago fue por 3,000 NIO. pero el sistema me esta mostrando un valor de : Monto Pago=2,166.67 , no esta considerando el abono que se hizo en la cuota 3. Esto esta ocurriendo sin importar en que cuota se haga un abono parcial o de mas o de menos.
+
+**Que deberia pasar:**
+1. El sistema deberia de mostrar el monto de la cuota y considerar si ya tiene abonos parciales o de mas o de menos.
+
+**Revisar bien este caso**
+1. Asegurate de que este comportamiento sea corregido y que no se este replicando en los recibos u otros pantallas o reportes.
+
+
+
+
+**Refinamiento**
+/*13 enero 2026 */
+
+Tómate un tiempo para analizar bien los escenarios y resuelve los errores que aparezcan. Apóyate del MCP de Flutter para investigar y corregir la causa raíz, y asegúrate de cumplir con las rules descritas en el archivo @file:.antigravityrules.md.
+
+**CASO 1**
+Escenario:Pantalla Registrar Pago.
+
+
+**Datos del plan de pago creado**
+
+Nombre del plan de pago: Nuevo
+Plazo = 3
+Unidad de plazo = Meses
+Frecuencia de cobro = Quincenal (15 días)
+Total de cuotas = 6
+Moneda del préstamo = NIO
+Tasa de interés = 10%
+Monto mínimo = 1000
+Monto máximo = 10000
+Permitir cambio de moneda = No
+Distribuir capital e interés en cuotas niveladas = Sí
+El período inicia en desembolso = Sí
+Aplica a clientes con categoría (opcional) = Nuevos
+
+**Datos del prestamo**
+se selecciono el plan de pago "Nuevo" y se dio guardar prestamo, con un monto de 10,000 NIO
+**Detalle del prestamo**
+1. se crearon 6 cuotas
+2. Cada couta es de 2,166.67 (donde 500 son de intereses y 1666.67 de capital)
+
+**Que esta pasando:**
+1. Se aplico pago a cada una de las 6 cuotas una a una y en la ultima cuota, salto un mensaje que dice: 
+"
+Mensaje 1 (popup): “Advertencia”
+Monto Otorgado: (C$ 2,166.65) > (C$ 1,666.65). ¿Desea continuar con el préstamo de todas formas?
+Botones: Cancelar | Continuar"
+
+despues de presionar "Confirmar" , muestra este otro mensaje: 
+
+"Mensaje 2 (popup): “Confirmar Pago”
+Monto del Pago: C$ 2,166.65
+Cliente: pedro
+• A capital: C$ 1,666.65
+Botones: Cancelar | Confirmar"
+
+
+Revisar bien la logica implementada en este caso.
+
+**Otra cosa que pasa**
+cuando elimino los pagos desde ajustes y vuelvo a la pantalla detalle del prestamo, el campo Pendiente me sigue saliendo en 0, cuando lo correcto es que muestre el monto de las cuotas, ya que, he borrado los pagos del prestamo.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+**Refinamiento**
+/*13 enero 2026 */
+
+Tómate un tiempo para analizar bien los escenarios y resuelve los errores que aparezcan. Apóyate del MCP de Flutter para investigar y corregir la causa raíz, y asegúrate de cumplir con las rules descritas en el archivo @file:.antigravityrules.md.
+
+
+1. En Ajustes agrega una nueva politica de negocio que indique, cual sera la prioridad de recuperacion para el caso cuando en la pantalla de Registrar Pago se seleccione la opcion de Recuperar, el prestamista debe configurar si al recuperar se priorizara el capital o el interes. esto servira para el punto 1 descrito mas abajo en el apartado **Que esta pasando:**.
+
+
+
+
+**CASO 1**
+Escenario:Pantalla Registrar Pago.
+
+**Datos del plan de pago creado**
+
+Nombre del plan de pago: Nuevo
+Plazo = 3
+Unidad de plazo = Meses
+Frecuencia de cobro = Quincenal (15 días)
+Total de cuotas = 6
+Moneda del préstamo = NIO
+Tasa de interés = 10%
+Monto mínimo = 1000
+Monto máximo = 10000
+Permitir cambio de moneda = No
+Distribuir capital e interés en cuotas niveladas = Sí
+El período inicia en desembolso = Sí
+Aplica a clientes con categoría (opcional) = Nuevos
+
+**Datos del prestamo**
+se selecciono el plan de pago "Nuevo" y se dio guardar prestamo, con un monto de 10,000 NIO
+**Detalle del prestamo**
+1. se crearon 6 cuotas
+2. Cada couta es de 2,166.67 (donde 500 son de intereses y 1666.67 de capital)
+
+**Que esta pasando:**
+1. En la pantalla de registrar pago, cuando se selecciona el boton "Cancelar" el sistema pone en el campo "Monto Pago" 10,500 , cuando lo correcto para este escenario es 13,000. el sistema debe ser capaz de cobrar los intereses totales mas el capital y eso aplica para prestamos con o sin planes de pagos.
+
+
+2. En la pantalla de registrar pago, cuando se selecciona el boton "Recuperar" el sistema toma el monto digitado en el campo "monto pago" y lo aplica como si fuera capital. ejemplo: se hizo la recuperacion del prestamo arriba descrito y al seleccionar la opcion Recuperar el sistema puso un valor =10,000  ; eso esta bien, pero se procedio a digitar 12,000, ya que, en este caso puede pasar 2 casos uno en el que el cliente da una cantidad mayor al capital por que quizas quiere pagar algo de intereses y dos en el  que el cliente paga incluso menos del capital entregado, y el sistema debe ser capaz de saber que hacer. ejemplo: para este caso de Recuperacion, el sistema debe leer la politica de negocio que se configuro en ajustes y segun eso debe aplicar la prioridad de recuperacion. 
+
+
+
+**Logica a implementar**
+1. si la prioridad es el capital y el cliente pago demas y tiene cuotas vencidas, el sistema debe aplicar el sobrante a las cuotas vencidas.
+2. si la prioridad es el interes vencido y el cliente pago demas del valor de los intereses vencidos, el sistema debe aplicar el sobrante al capital
+3. si la prioridad es el capital y el cliente pago con lo completo del capital entregado , las cuotas se deben de la misma forma en la que se esta tratando actualmente.
+
+
+
+
+
+
+
+
+
+
+
+**Refinamiento**
+/*13 enero 2026 */
+
+Tómate un tiempo para analizar bien los escenarios y resuelve los errores que aparezcan. Apóyate del MCP de Flutter para investigar y corregir la causa raíz, y asegúrate de cumplir con las rules descritas en el archivo @file:.antigravityrules.md.
+
+
+**Esceario** : se hizo un escenario para un prestamo  con monto otorgado de 10,000 NIO y con fecha de sembolo 01-12-25 , con frecuencia de cobro quincenal. el prestamo tenia 2 cuotas vencidas y una cuota por corriendo. 
+
+**ajustes**
+en ajustes se configuro la politica de negocio de recuperacion de capital y intereses, y se dejo en prioridad capital.
+
+
+**Cancelac**
+se hizo la recuperacion del prestamo con un monto de 10,600 NIO
+
+**Que esta pasando:**
+el sistema si ovedecio la prioridad guardada en ajustes y el sobrante lo abono a las cuotas vencidas, eso lo puedo ver tanto en los recibos como en el historial de pagos.
+
+**a donde esta el error:**
+El campo "pendiente" en los ciclos de pagos no se actualiza correctamente, para este ejemplo se devio haber cancelado la primer cuota por 500 NIO y se debio haber aplicado un abono a la segunda cuota por 100 NIO y asi devio haber quedado por cuestiones de auditoria. pero no fue asi, todas las cuotas quedaron con el campo pendiente en 500.00.
+
+**Importante**
+1. este escenario sucedio con un prestamo que no tenia plan de pago.
+2. esta misma logica se aplica para prestamos con plan de pago, para el caso cuando se seleccione la opcion de recuperar.
+
+
+
+
+
+
+
+
+
+
+
+
+
+**Refinamiento**
+/*13 enero 2026 */
+
+Tómate un tiempo para analizar bien los escenarios y resuelve los errores que aparezcan. Apóyate del MCP de Flutter para investigar y corregir la causa raíz, y asegúrate de cumplir con las rules descritas en el archivo @file:.antigravityrules.md.
+
+
+**CASO 1**
+Escenario:Pantalla Registrar Pago.
+
+**Esceario** : se hizo un escenario para un prestamo  con monto otorgado de 10,000 NIO y con fecha de sembolo 01-12-25 , con frecuencia de cobro quincenal. el prestamo tenia 2 cuotas vencidas y una cuota por corriendo. 
+
+**Que pasa**
+1. Cuando se selecciona la opcion de cancelar, el sistema debe mostrar el monto total del prestamomas los intereses vencidos mas los intereses parciales en el caso de que exista alguna cuota en estado corriendo y que aun no llegue a su fecha de vencimiento. cabe recarcal que esto ya estaba funcionando correctamente, fue lo primero que se hiso, apenas agregamos el plan de pago ya dejo de funcionar, ya les he dicho que el sistema debe funcionar a como estaba antes, y tambien con la nueva forma que son los planes de pagos.
+
+
+
+
 
 
 

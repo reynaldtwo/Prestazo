@@ -254,6 +254,65 @@ class _MonetarySettingsScreenState
                         _saveSetting('validate_capital', v);
                       },
                     ),
+                    const Divider(height: 1),
+                    // Recovery Priority Selector
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Text(
+                                'Prioridad en Recuperación',
+                                style: AppTypography.bodyMedium,
+                              ),
+                              const SizedBox(width: 8),
+                              _buildInfoButton(
+                                title: 'Prioridad en Recuperación',
+                                func:
+                                    'Define cómo se aplica el pago cuando se utiliza la opción "Recuperar".',
+                                affects:
+                                    'Afecta el orden de reducción de la deuda en pagos de recuperación.',
+                                example:
+                                    'Priorizar Capital: El pago reduce primero el capital prestado. Priorizar Interés: El pago reduce primero los intereses vencidos.',
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          DropdownButtonFormField<String>(
+                            value: settings.recoveryPriority,
+                            decoration: InputDecoration(
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 8,
+                              ),
+                            ),
+                            items: const [
+                              DropdownMenuItem(
+                                value: 'CAPITAL_FIRST',
+                                child: Text('Priorizar Capital (Recomendado)'),
+                              ),
+                              DropdownMenuItem(
+                                value: 'INTEREST_FIRST',
+                                child: Text('Priorizar Interés Vencido'),
+                              ),
+                            ],
+                            onChanged: (value) {
+                              if (value != null) {
+                                _saveSetting('recovery_priority', value);
+                              }
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
                   ],
                 ),
               ),

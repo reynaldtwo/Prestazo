@@ -82,6 +82,7 @@
   "typeInterest": "Solo Interés",
   "typePrincipal": "Solo Capital",
   "typeCancel": "Cancelar",
+  "planInstallmentMode": "Cuota del Plan",
   "collectedToday": "Total Cobrado Hoy",
   "paymentsToday": "Pagos de Hoy",
   "paymentHistory": "Historial de Pagos",
@@ -1030,5 +1031,6 @@
   "principalFirst": "Capital Primero",
   "noBackupsAvailable": "No hay respaldos disponibles",
   "settingsSaved": "Configuración guardada",
-  "invalidExchangeRate": "Tasa de cambio inválida"
+  "invalidExchangeRate": "Tasa de cambio inválida",
+  "selectPlan": "Seleccionar Plan"
 }

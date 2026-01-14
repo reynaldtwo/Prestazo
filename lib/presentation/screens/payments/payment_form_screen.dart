@@ -16,8 +16,8 @@ import '../../../data/models/payment_allocation.dart';
 import '../../../core/localization/locale_provider.dart';
 import '../../../data/models/billing_cycle.dart';
 import '../../../data/providers/providers.dart';
-import '../../../services/services.dart';
 import '../../../services/idempotency_service.dart';
+import '../../../services/services.dart';
 import '../../../data/providers/customer_category_provider.dart';
 
 /// Payment form screen for registering payments
@@ -62,6 +62,12 @@ class _PaymentFormScreenState extends ConsumerState<PaymentFormScreen> {
   double _calculatedTotalDebt = 0;
 
   double _calculatedPartialInterest = 0;
+
+  /// Detects if the selected loan uses Level Installment (cuota nivelada)
+  /// meaning it has a plan with distributeCapitalAndInterest = true
+  bool get _isLevelInstallmentLoan =>
+      _selectedLoan?.planId != null &&
+      (_selectedLoan?.distributeCapitalAndInterest ?? false);
 
   @override
   void initState() {
@@ -138,14 +144,7 @@ class _PaymentFormScreenState extends ConsumerState<PaymentFormScreen> {
     final loan = await loanRepo.getLoanById(loanId);
     if (loan != null && mounted) {
       try {
-        final cycleRepo = ref.read(billingCycleRepositoryProvider);
-        final customerRepo = ref.read(customerRepositoryProvider);
-
-        final cycleService = BillingCycleService(
-          cycleRepository: cycleRepo,
-          customerRepository: customerRepo,
-          loanRepository: loanRepo,
-        );
+        final cycleService = ref.read(billingCycleServiceProvider);
 
         await cycleService.generateMissingCycles(loan);
       } catch (e) {
@@ -179,6 +178,48 @@ class _PaymentFormScreenState extends ConsumerState<PaymentFormScreen> {
     if (mounted) {
       setState(() => _pendingCycles = finalCycles);
       _recalculateDebt();
+
+      // AUTO-FILL AMOUNT FOR PLANS (Level Installment)
+      double suggestedAmount = 0;
+      bool hasPlan = _selectedLoan?.planId != null;
+
+      if (hasPlan) {
+        // Smart Suggestion: Sum of Overdue + First Pending Cycle
+        // Filter cycles with actual pending amount > 0
+        final pendingCyclesWithAmount = finalCycles
+            .where(
+              (c) =>
+                  c.status != 'PAID' &&
+                  (c.installmentPending ?? c.installmentExpected ?? 0) > 0.01,
+            )
+            .toList();
+
+        final now = DateTime.now();
+        final today = DateTime(now.year, now.month, now.day);
+        bool addedFirstPending = false;
+
+        for (final c in pendingCyclesWithAmount) {
+          final amount = c.installmentPending ?? c.installmentExpected ?? 0;
+          bool isOverdue = c.status == 'OVERDUE' || c.dueDate.isBefore(today);
+
+          // Always add overdue cycles
+          if (isOverdue) {
+            suggestedAmount += amount;
+          }
+          // Add the first non-overdue cycle (current/next due) and stop
+          else if (!addedFirstPending) {
+            suggestedAmount += amount;
+            addedFirstPending = true;
+            break;
+          }
+        }
+      }
+
+      if (suggestedAmount > 0) {
+        _amountController.text = _formatMoney(suggestedAmount);
+        // Optionally suggest 'MIXED' type or ensure it relies on standard distribution
+      }
+
       _calculateAllocation();
     }
   }
@@ -245,15 +286,9 @@ class _PaymentFormScreenState extends ConsumerState<PaymentFormScreen> {
       return;
     }
 
-    // For RECOVERY type, force allocation to Principal ONLY
-    if (_declaredType == 'RECOVERY') {
-      setState(() {
-        _toOverdueInterest = 0;
-        _toCurrentInterest = 0;
-        _toPrincipal = amount;
-      });
-      return;
-    }
+    // Load Recovery Priority from settings
+    final settings = ref.read(appSettingsProvider).value;
+    final recoveryPriority = settings?.recoveryPriority ?? 'CAPITAL_FIRST';
 
     // Apply conversion if needed using centralized FxService
     // Fix: Handle comma as decimal separator
@@ -261,8 +296,7 @@ class _PaymentFormScreenState extends ConsumerState<PaymentFormScreen> {
     final rate = double.tryParse(rateRaw);
     final loanCurrency = _selectedLoan!.currencyCode;
     final paymentCurrency = _paymentCurrency ?? loanCurrency;
-    final baseCurrency =
-        ref.read(appSettingsProvider).value?.baseCurrency ?? 'NIO';
+    final baseCurrency = settings?.baseCurrency ?? 'NIO';
 
     double effectiveAmount = amount;
     if (loanCurrency != paymentCurrency && rate != null && rate > 0) {
@@ -287,6 +321,7 @@ class _PaymentFormScreenState extends ConsumerState<PaymentFormScreen> {
           paymentType: _declaredType,
           dailyAccrualEnabled: _dailyAccrualEnabled,
           paymentDate: _paymentDate,
+          recoveryPriority: recoveryPriority,
         );
 
     setState(() {
@@ -688,7 +723,9 @@ class _PaymentFormScreenState extends ConsumerState<PaymentFormScreen> {
                           ),
                         ),
                         Text(
-                          '$_currencySymbol ${_formatMoney(cycle.interestPending)}',
+                          // For Level Installment: show full installment amount
+                          // For Traditional: show only interest
+                          '$_currencySymbol ${_formatMoney(_isLevelInstallmentLoan ? (cycle.installmentPending ?? cycle.interestPending) : cycle.interestPending)}',
                           style: AppTypography.bodySmall.copyWith(
                             fontWeight: FontWeight.w600,
                           ),
@@ -705,97 +742,148 @@ class _PaymentFormScreenState extends ConsumerState<PaymentFormScreen> {
 
   Widget _buildPaymentTypeSelector() {
     // Use pre-calculated state values from _recalculateDebt
+    final l10n = S.of(context);
+
+    // For Level Installment loans: disable MIXED, INTEREST, PRINCIPAL
+    // Keep CANCEL and RECOVERY enabled
+    final disableStandardTypes = _isLevelInstallmentLoan;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(S.of(context).paymentType, style: AppTypography.labelMedium),
+        Text(l10n.paymentType, style: AppTypography.labelMedium),
+
+        // Show Plan Installment indicator for Level Installment loans
+        if (_isLevelInstallmentLoan) ...[
+          const SizedBox(height: 4),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(
+              color: AppColors.info.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(4),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.info_outline, size: 14, color: AppColors.info),
+                const SizedBox(width: 4),
+                Text(
+                  l10n.planInstallmentMode,
+                  style: AppTypography.labelSmall.copyWith(
+                    color: AppColors.info,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+
         const SizedBox(height: 8),
         Wrap(
           spacing: 8,
           runSpacing: 8,
           children: [
             ChoiceChip(
-              label: Text(S.of(context).paymentTypeMixed),
+              label: Text(l10n.paymentTypeMixed),
               selected: _declaredType == 'MIXED',
-              onSelected: (_) {
-                setState(() {
-                  _declaredType = 'MIXED';
-                  _amountController.clear();
-                });
-                _recalculateDebt();
-                _calculateAllocation();
-              },
+              // Disable for Level Installment but auto-select MIXED internally
+              onSelected: disableStandardTypes
+                  ? null
+                  : (_) {
+                      setState(() {
+                        _declaredType = 'MIXED';
+                        _amountController.clear();
+                      });
+                      _recalculateDebt();
+                      _calculateAllocation();
+                    },
             ),
             ChoiceChip(
-              label: Text(S.of(context).typeInterest),
+              label: Text(l10n.typeInterest),
               selected: _declaredType == 'INTEREST',
-              onSelected: (_) {
-                // Calculate explicitly to ensure UI update
-                final result = InterestCalculationService.instance
-                    .calculateTotalDebt(
-                      loan: _selectedLoan!,
-                      pendingCycles: _pendingCycles,
-                      paymentDate: _paymentDate,
-                      paymentType: 'INTEREST', // Force type
-                      dailyAccrualEnabled: _dailyAccrualEnabled,
-                    );
+              onSelected: disableStandardTypes
+                  ? null
+                  : (_) {
+                      // Calculate explicitly to ensure UI update
+                      final result = InterestCalculationService.instance
+                          .calculateTotalDebt(
+                            loan: _selectedLoan!,
+                            pendingCycles: _pendingCycles,
+                            paymentDate: _paymentDate,
+                            paymentType: 'INTEREST', // Force type
+                            dailyAccrualEnabled: _dailyAccrualEnabled,
+                          );
 
-                setState(() {
-                  _declaredType = 'INTEREST';
+                      setState(() {
+                        _declaredType = 'INTEREST';
 
-                  _calculatedPartialInterest = result.proportionalInterest;
-                  _calculatedTotalDebt = result.totalDebt;
+                        _calculatedPartialInterest =
+                            result.proportionalInterest;
+                        _calculatedTotalDebt = result.totalDebt;
 
-                  // Set text explicitly with auto-conversion
-                  final converted = _convertAmountIfNeeded(
-                    result.totalPendingInterest,
-                  );
-                  _amountController.text = _formatMoney(converted);
-                });
-                _calculateAllocation();
-              },
+                        // Set text explicitly with auto-conversion
+                        final converted = _convertAmountIfNeeded(
+                          result.totalPendingInterest,
+                        );
+                        _amountController.text = _formatMoney(converted);
+                      });
+                      _calculateAllocation();
+                    },
             ),
             ChoiceChip(
-              label: Text(S.of(context).typePrincipal),
+              label: Text(l10n.typePrincipal),
               selected: _declaredType == 'PRINCIPAL',
-              onSelected: (_) {
-                final result = InterestCalculationService.instance
-                    .calculateTotalDebt(
-                      loan: _selectedLoan!,
-                      pendingCycles: _pendingCycles,
-                      paymentDate: _paymentDate,
-                      paymentType: 'PRINCIPAL',
-                      dailyAccrualEnabled: _dailyAccrualEnabled,
-                    );
+              onSelected: disableStandardTypes
+                  ? null
+                  : (_) {
+                      final result = InterestCalculationService.instance
+                          .calculateTotalDebt(
+                            loan: _selectedLoan!,
+                            pendingCycles: _pendingCycles,
+                            paymentDate: _paymentDate,
+                            paymentType: 'PRINCIPAL',
+                            dailyAccrualEnabled: _dailyAccrualEnabled,
+                          );
 
-                setState(() {
-                  _declaredType = 'PRINCIPAL';
+                      setState(() {
+                        _declaredType = 'PRINCIPAL';
 
-                  _calculatedPartialInterest = result.proportionalInterest;
-                  _calculatedTotalDebt = result.totalDebt;
+                        _calculatedPartialInterest =
+                            result.proportionalInterest;
+                        _calculatedTotalDebt = result.totalDebt;
 
-                  // Auto-convert principal if needed (optional for Principal mode, but good for UX)
-                  final converted = _convertAmountIfNeeded(
-                    result.principalBalance,
-                  );
-                  _amountController.text = _formatMoney(converted);
-                });
-                _calculateAllocation();
-              },
+                        // Auto-convert principal if needed
+                        final converted = _convertAmountIfNeeded(
+                          result.principalBalance,
+                        );
+                        _amountController.text = _formatMoney(converted);
+                      });
+                      _calculateAllocation();
+                    },
             ),
+            // CANCEL - Always enabled
             ChoiceChip(
               label: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   const Icon(Icons.check_circle, size: 16),
                   const SizedBox(width: 4),
-                  Text(S.of(context).typeCancel),
+                  Text(l10n.typeCancel),
                 ],
               ),
               selected: _declaredType == 'CANCEL',
               selectedColor: AppColors.success.withValues(alpha: 0.2),
               onSelected: (_) {
+                // DEBUG: Trace Cancel calculation
+                debugPrint(
+                  'CANCEL_PRESSED: _pendingCycles.length=${_pendingCycles.length}',
+                );
+                for (final c in _pendingCycles) {
+                  debugPrint(
+                    '  Cycle ${c.cycleNumber}: interestPending=${c.interestPending}, dueDate=${c.dueDate}',
+                  );
+                }
+
                 final result = InterestCalculationService.instance
                     .calculateTotalDebt(
                       loan: _selectedLoan!,
@@ -804,6 +892,10 @@ class _PaymentFormScreenState extends ConsumerState<PaymentFormScreen> {
                       paymentType: 'CANCEL', // Force type
                       dailyAccrualEnabled: _dailyAccrualEnabled,
                     );
+
+                debugPrint(
+                  'CANCEL_RESULT: totalDebt=${result.totalDebt}, overdueInterest=${result.overdueInterest}, currentCycleInterest=${result.currentCycleInterest}',
+                );
 
                 setState(() {
                   _declaredType = 'CANCEL';
@@ -817,13 +909,14 @@ class _PaymentFormScreenState extends ConsumerState<PaymentFormScreen> {
                 _calculateAllocation();
               },
             ),
+            // RECOVERY - Always enabled
             ChoiceChip(
               label: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   const Icon(Icons.handshake, size: 16),
                   const SizedBox(width: 4),
-                  Text(S.of(context).paymentTypeRecovery),
+                  Text(l10n.paymentTypeRecovery),
                 ],
               ),
               selected: _declaredType == 'RECOVERY',
@@ -1100,27 +1193,55 @@ class _PaymentFormScreenState extends ConsumerState<PaymentFormScreen> {
 
       if (secondConfirmation != true) return;
 
-      // 3. EXECUTE RECOVERY
+      // 3. EXECUTE RECOVERY (Dynamic Allocation)
       setState(() => _isLoading = true);
       try {
         final now = DateTime.now();
         final paymentId = const Uuid().v4();
         final idempotencyKey = const Uuid().v4();
+
+        // Calculate amounts (Loan vs Base)
         final amountMinor = (amount * 100).round();
-        final baseCurrency =
-            ref.read(appSettingsProvider).value?.baseCurrency ?? 'NIO';
+        final settingsValue = ref.read(appSettingsProvider).value;
+        final baseCurrency = settingsValue?.baseCurrency ?? 'NIO';
         final loanCurrency = _selectedLoan!.currencyCode;
         final payCurrency = _paymentCurrency ?? loanCurrency;
+
+        final appliedRate =
+            (_paymentCurrency != null && _paymentCurrency != loanCurrency)
+            ? double.tryParse(_exchangeRateController.text.replaceAll(',', '.'))
+            : null;
+
+        int amountLoanMinor = amountMinor;
+        int amountBaseMinor =
+            amountMinor; // Approx if conversion not applied yet
+        int fxProfitMinor = 0;
+
+        if (appliedRate != null &&
+            appliedRate > 0 &&
+            payCurrency != loanCurrency) {
+          amountLoanMinor = FxService.convertMinor(
+            amountMinor: amountMinor,
+            rate: appliedRate,
+            fromCurrency: payCurrency,
+            toCurrency: loanCurrency,
+            baseCurrency: baseCurrency,
+          );
+          amountBaseMinor = amountLoanMinor;
+        }
 
         final payment = Payment(
           paymentId: paymentId,
           loanId: _selectedLoan!.loanId,
           amountPaymentMinor: amountMinor,
-          amountBaseMinor: amountMinor,
-          amountLoanMinor: amountMinor,
+          amountBaseMinor: amountBaseMinor,
+          amountLoanMinor: amountLoanMinor,
           paymentCurrency: payCurrency,
           loanCurrency: loanCurrency,
           baseCurrency: baseCurrency,
+          rateValueUsed: appliedRate,
+          rateTypeUsed: appliedRate != null ? 'MANUAL' : null,
+          fxProfitBaseMinor: fxProfitMinor,
           idempotencyKey: idempotencyKey,
           payloadHash: IdempotencyService.computePayloadHash(
             loanId: _selectedLoan!.loanId,
@@ -1141,17 +1262,52 @@ class _PaymentFormScreenState extends ConsumerState<PaymentFormScreen> {
               : 'Recuperación de Capital',
         );
 
-        // Single allocation to Principal
-        final allocations = [
-          PaymentAllocation(
-            allocationId: const Uuid().v4(),
-            paymentId: paymentId,
-            loanId: _selectedLoan!.loanId,
-            allocationType: 'PRINCIPAL',
-            amountLoanMinor: amountMinor,
-            createdAt: now,
-          ),
-        ];
+        // CREATE ALLOCATIONS dynamically based on _calculateAllocation results
+        final allocations = <PaymentAllocation>[];
+
+        void addAllocation(String type, double val, {String? cycleId}) {
+          if (val >= 0.01) {
+            allocations.add(
+              PaymentAllocation(
+                allocationId: const Uuid().v4(),
+                paymentId: paymentId,
+                loanId: _selectedLoan!.loanId,
+                allocationType: type,
+                amountLoanMinor: (val * 100).round(),
+                billingCycleId: cycleId,
+                createdAt: now,
+              ),
+            );
+          }
+        }
+
+        // 1. Overdue Interest
+        double remainingForRecovery = _toOverdueInterest;
+        for (final cycle in _pendingCycles.where((c) => c.isOverdue)) {
+          if (remainingForRecovery <= 0) break;
+          final toPay = remainingForRecovery >= cycle.interestPending
+              ? cycle.interestPending
+              : remainingForRecovery;
+          addAllocation('INTEREST', toPay, cycleId: cycle.billingCycleId);
+          remainingForRecovery -= toPay;
+        }
+
+        // 2. Current Interest
+        remainingForRecovery = _toCurrentInterest;
+        if (remainingForRecovery > 0) {
+          final currentCycle = _pendingCycles.firstWhere(
+            (c) => !c.isOverdue && c.status != 'PAID',
+            orElse: () => _pendingCycles.last,
+          );
+          addAllocation(
+            'INTEREST',
+            remainingForRecovery,
+            cycleId: currentCycle.billingCycleId,
+          );
+        }
+
+        // 3. Principal (Generic)
+        addAllocation('PRINCIPAL', _toPrincipal, cycleId: null);
 
         final createdPayment = await ref
             .read(paymentRepositoryProvider)
@@ -1201,7 +1357,28 @@ class _PaymentFormScreenState extends ConsumerState<PaymentFormScreen> {
     // For excess amount when dailyAccrual is disabled, show warning
     final totalApplicable =
         _toOverdueInterest + _toCurrentInterest + _toPrincipal;
-    if (!_dailyAccrualEnabled && amount > totalApplicable + 0.01) {
+
+    // Fix: For Level Installment, if Amount matches/is close to Full Installment, allow it.
+    // This handles cases where _toCurrentInterest logic might erroneously be 0 due to data flags.
+    bool skipWarning = false;
+    if (_isLevelInstallmentLoan) {
+      // Find current pending installment amount
+      final currentPending = _pendingCycles
+          .firstWhere(
+            (c) => c.status != 'PAID' && (c.installmentPending ?? 0) > 0,
+            orElse: () => _pendingCycles.first,
+          )
+          .installmentPending;
+
+      // If user is paying exactly the installment (or close), don't warn
+      if (currentPending != null && (amount - currentPending).abs() < 1.0) {
+        skipWarning = true;
+      }
+    }
+
+    if (!_dailyAccrualEnabled &&
+        !skipWarning &&
+        amount > totalApplicable + 0.01) {
       final proceed = await showConfirmDialog(
         context: context,
         title: S.of(context).warning,
@@ -1354,10 +1531,21 @@ class _PaymentFormScreenState extends ConsumerState<PaymentFormScreen> {
       // Calculate total owed based on declaredType to cap allocations
       // This prevents FX conversion excess from being applied to future debt
       final today = DateTime(now.year, now.month, now.day);
-      final overdueCycles = _pendingCycles
+
+      // IMPORTANT: Filter out PAID cycles and cycles with zero pending
+      // This prevents stale data from being processed on consecutive payments
+      final activePendingCycles = _pendingCycles
+          .where(
+            (c) =>
+                c.status != 'PAID' &&
+                (c.installmentPending ?? c.interestPending) > 0.01,
+          )
+          .toList();
+
+      final overdueCycles = activePendingCycles
           .where((c) => c.dueDate.isBefore(today))
           .toList();
-      final currentCycles = _pendingCycles
+      final currentCycles = activePendingCycles
           .where((c) => !c.dueDate.isBefore(today))
           .toList();
 
@@ -1404,34 +1592,87 @@ class _PaymentFormScreenState extends ConsumerState<PaymentFormScreen> {
       final fxExcess = remaining > totalOwed ? remaining - totalOwed : 0.0;
       remaining = effectiveRemaining;
 
-      // Allocate to overdue cycles first
-      for (final cycle in overdueCycles) {
-        if (remaining <= 0) break;
-        final toApply = remaining >= cycle.interestPending
-            ? cycle.interestPending
-            : remaining;
+      // --- LEVEL INSTALLMENT DETECTION ---
+      // A loan uses Level Installment (cuota nivelada) if it has a plan
+      // with distributeCapitalAndInterest = true
+      final isLevelInstallment =
+          _selectedLoan!.planId != null &&
+          (_selectedLoan!.distributeCapitalAndInterest ?? false);
 
-        // Ensure toApply is significant enough to be represented in 2 decimals
-        if (toApply >= 0.01) {
-          allocations.add(
-            PaymentAllocation(
-              allocationId: const Uuid().v4(),
-              paymentId: paymentId,
-              loanId: _selectedLoan!.loanId,
-              allocationType: 'INTEREST',
-              amountLoanMinor: (toApply * 100).round(),
-              billingCycleId: cycle.billingCycleId,
-              createdAt: now,
-            ),
-          );
-          remaining -= toApply;
+      // For Level Installment: pay each cycle COMPLETELY (Interest + Principal)
+      // before moving to the next cycle.
+      // For Traditional: pay all Interest first, then Principal globally.
+
+      if (isLevelInstallment) {
+        // --- LEVEL INSTALLMENT ALLOCATION ---
+        // Sort all pending cycles by due date (oldest first)
+        final sortedCycles = [...overdueCycles, ...currentCycles]
+          ..sort((a, b) => a.dueDate.compareTo(b.dueDate));
+
+        for (final cycle in sortedCycles) {
+          if (remaining <= 0) break;
+
+          // 1. Pay Interest for this cycle
+          final interestPending = cycle.interestPending;
+          if (interestPending > 0 && remaining > 0) {
+            final toApply = remaining >= interestPending
+                ? interestPending
+                : remaining;
+            if (toApply >= 0.01) {
+              allocations.add(
+                PaymentAllocation(
+                  allocationId: const Uuid().v4(),
+                  paymentId: paymentId,
+                  loanId: _selectedLoan!.loanId,
+                  allocationType: 'INTEREST',
+                  amountLoanMinor: (toApply * 100).round(),
+                  billingCycleId: cycle.billingCycleId,
+                  createdAt: now,
+                ),
+              );
+              remaining -= toApply;
+            }
+          }
+
+          // 2. Pay Principal PORTION for this cycle
+          // Principal portion = installmentPending - interestPending
+          // Or use cycle.principalPortion if available
+          final installmentPending =
+              cycle.installmentPending ?? interestPending;
+          double principalPortion = (installmentPending - interestPending)
+              .clamp(0.0, double.infinity);
+
+          // Fallback: Use stored principalPortion if calculation returns 0
+          if (principalPortion <= 0 && (cycle.principalPortion ?? 0) > 0) {
+            principalPortion = cycle.principalPortion!;
+          }
+
+          if (principalPortion > 0 && remaining > 0) {
+            final toApply = remaining >= principalPortion
+                ? principalPortion
+                : remaining;
+            if (toApply >= 0.01) {
+              allocations.add(
+                PaymentAllocation(
+                  allocationId: const Uuid().v4(),
+                  paymentId: paymentId,
+                  loanId: _selectedLoan!.loanId,
+                  allocationType: 'PRINCIPAL',
+                  amountLoanMinor: (toApply * 100).round(),
+                  billingCycleId: cycle.billingCycleId,
+                  createdAt: now,
+                ),
+              );
+              remaining -= toApply;
+            }
+          }
         }
-      }
+      } else {
+        // --- TRADITIONAL LOAN ALLOCATION ---
+        // (Original logic: pay all interest first, then principal globally)
 
-      // Allocate to current cycles ONLY for non-CANCEL types or when dailyAccrual is disabled
-      // For CANCEL with dailyAccrual, we use proportional partial interest instead
-      if (_declaredType != 'CANCEL' || !_dailyAccrualEnabled) {
-        for (final cycle in currentCycles) {
+        // Allocate to overdue cycles first
+        for (final cycle in overdueCycles) {
           if (remaining <= 0) break;
           final toApply = remaining >= cycle.interestPending
               ? cycle.interestPending
@@ -1452,48 +1693,73 @@ class _PaymentFormScreenState extends ConsumerState<PaymentFormScreen> {
             remaining -= toApply;
           }
         }
-      }
 
-      // Allocate partial interest (proportional for days in current cycle) for CANCEL with daily accrual
-      if (_dailyAccrualEnabled &&
-          _calculatedPartialInterest > 0 &&
-          remaining > 0 &&
-          _declaredType == 'CANCEL') {
-        final partialToApply = remaining >= _calculatedPartialInterest
-            ? _calculatedPartialInterest
-            : remaining;
-        if (partialToApply >= 0.01) {
-          allocations.add(
-            PaymentAllocation(
-              allocationId: const Uuid().v4(),
-              paymentId: paymentId,
-              loanId: _selectedLoan!.loanId,
-              allocationType: 'INTEREST',
-              amountLoanMinor: (partialToApply * 100).round(),
-              billingCycleId: null,
-              createdAt: now,
-            ),
-          );
-          remaining -= partialToApply;
+        // Allocate to current cycles (only for non-CANCEL or when dailyAccrual disabled)
+        if (_declaredType != 'CANCEL' || !_dailyAccrualEnabled) {
+          for (final cycle in currentCycles) {
+            if (remaining <= 0) break;
+            final toApply = remaining >= cycle.interestPending
+                ? cycle.interestPending
+                : remaining;
+
+            if (toApply >= 0.01) {
+              allocations.add(
+                PaymentAllocation(
+                  allocationId: const Uuid().v4(),
+                  paymentId: paymentId,
+                  loanId: _selectedLoan!.loanId,
+                  allocationType: 'INTEREST',
+                  amountLoanMinor: (toApply * 100).round(),
+                  billingCycleId: cycle.billingCycleId,
+                  createdAt: now,
+                ),
+              );
+              remaining -= toApply;
+            }
+          }
         }
-      }
 
-      // Allocate to principal if allowed
-      if (_declaredType != 'INTEREST' && remaining >= 0.01) {
-        final toPrincipal = remaining > _selectedLoan!.principalBalance
-            ? _selectedLoan!.principalBalance
-            : remaining;
-        if (toPrincipal >= 0.01) {
-          allocations.add(
-            PaymentAllocation(
-              allocationId: const Uuid().v4(),
-              paymentId: paymentId,
-              loanId: _selectedLoan!.loanId,
-              allocationType: 'PRINCIPAL',
-              amountLoanMinor: (toPrincipal * 100).round(),
-              createdAt: now,
-            ),
-          );
+        // Allocate partial interest (proportional for days) for CANCEL with daily accrual
+        if (_dailyAccrualEnabled &&
+            _calculatedPartialInterest > 0 &&
+            remaining > 0 &&
+            _declaredType == 'CANCEL') {
+          final partialToApply = remaining >= _calculatedPartialInterest
+              ? _calculatedPartialInterest
+              : remaining;
+          if (partialToApply >= 0.01) {
+            allocations.add(
+              PaymentAllocation(
+                allocationId: const Uuid().v4(),
+                paymentId: paymentId,
+                loanId: _selectedLoan!.loanId,
+                allocationType: 'INTEREST',
+                amountLoanMinor: (partialToApply * 100).round(),
+                billingCycleId: null,
+                createdAt: now,
+              ),
+            );
+            remaining -= partialToApply;
+          }
+        }
+
+        // Allocate to principal (global, not per-cycle)
+        if (_declaredType != 'INTEREST' && remaining >= 0.01) {
+          final toPrincipal = remaining > _selectedLoan!.principalBalance
+              ? _selectedLoan!.principalBalance
+              : remaining;
+          if (toPrincipal >= 0.01) {
+            allocations.add(
+              PaymentAllocation(
+                allocationId: const Uuid().v4(),
+                paymentId: paymentId,
+                loanId: _selectedLoan!.loanId,
+                allocationType: 'PRINCIPAL',
+                amountLoanMinor: (toPrincipal * 100).round(),
+                createdAt: now,
+              ),
+            );
+          }
         }
       }
 
@@ -1543,6 +1809,10 @@ class _PaymentFormScreenState extends ConsumerState<PaymentFormScreen> {
       if (_selectedLoan != null) {
         ref.invalidate(loanByIdProvider(_selectedLoan!.loanId));
         ref.invalidate(pendingBillingCyclesProvider(_selectedLoan!.loanId));
+
+        // CRITICAL: Refresh local _pendingCycles to prevent stale data
+        // on consecutive payments within the same session
+        await _loadPendingCycles(_selectedLoan!.loanId);
       }
 
       // TRIGGER AUTO BACKUP

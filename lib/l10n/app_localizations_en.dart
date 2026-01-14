@@ -256,6 +256,9 @@ class SEn extends S {
   String get typeCancel => 'Payoff';
 
   @override
+  String get planInstallmentMode => 'Plan Installment';
+
+  @override
   String get collectedToday => 'Total Collected Today';
 
   @override
@@ -2502,4 +2505,7 @@ class SEn extends S {
 
   @override
   String get invalidExchangeRate => 'Tasa de cambio inválida';
+
+  @override
+  String get selectPlan => 'Select Plan';
 }

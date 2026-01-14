@@ -366,6 +366,31 @@ class DatabaseHelper {
     } catch (e) {
       debugPrint('Error checking/adding payment_frequency_days to loans: $e');
     }
+
+    // Safety Check: Ensure Plan columns exist in loans table (Critical for Level Installment)
+    try {
+      final loanPlanColumns = [
+        {'name': 'plan_id', 'def': 'TEXT'},
+        {'name': 'plan_installments_total', 'def': 'INTEGER'},
+        {'name': 'distribute_capital_and_interest', 'def': 'INTEGER DEFAULT 0'},
+        {'name': 'end_date_calculated', 'def': 'TEXT'},
+      ];
+
+      for (final col in loanPlanColumns) {
+        final result = await db.rawQuery(
+          "SELECT COUNT(*) as cnt FROM pragma_table_info('loans') WHERE name='${col['name']}'",
+        );
+        final hasColumn = (result.first['cnt'] as int) > 0;
+        if (!hasColumn) {
+          debugPrint('Adding missing column to loans: ${col['name']}');
+          await db.execute(
+            'ALTER TABLE loans ADD COLUMN ${col['name']} ${col['def']}',
+          );
+        }
+      }
+    } catch (e) {
+      debugPrint('Error checking/adding Plan columns to loans: $e');
+    }
     // V25 Schema Repair: Ensure payments table has _minor columns
     try {
       final paymentsInfo = await db.rawQuery(
@@ -404,6 +429,86 @@ class DatabaseHelper {
       }
     } catch (e) {
       debugPrint('Error adding term fields to payment_plans: $e');
+    }
+
+    // Fix payment_plans min_amount/max_amount NULL constraint (was NOT NULL, should allow NULL)
+    // This recreates the table with correct schema if it has the old schema
+    try {
+      // Check if payment_plans table exists
+      final tableCheck = await db.rawQuery(
+        "SELECT name FROM sqlite_master WHERE type='table' AND name='payment_plans'",
+      );
+      if (tableCheck.isNotEmpty) {
+        // Check if min_amount has NOT NULL constraint by trying to insert NULL
+        // If it fails, we need to recreate the table
+        try {
+          // Create a temporary record to test NULL insertion
+          await db.rawInsert('''
+            INSERT INTO payment_plans (
+              plan_id, name, payment_frequency_id, payment_frequency_days,
+              term_value, term_unit, installments_total, monthly_interest_rate,
+              currency_code, allow_currency_change, min_amount, max_amount,
+              distribute_capital_and_interest, period_starts_on_disbursement,
+              applicable_category_ids, is_active, created_at, updated_at
+            ) VALUES (
+              '__test_null__', 'test', 'test', 30, 1, 'Months', 1, 10,
+              'NIO', 0, NULL, NULL, 0, 1, NULL, 0, '2020-01-01', '2020-01-01'
+            )
+          ''');
+          // If we got here, NULL is allowed - delete test record
+          await db.rawDelete(
+            "DELETE FROM payment_plans WHERE plan_id = '__test_null__'",
+          );
+        } catch (e) {
+          // NULL insertion failed, need to recreate table with correct schema
+          debugPrint('Fixing payment_plans table schema (NULL constraint)...');
+
+          // Backup existing data
+          await db.execute('''
+            CREATE TABLE payment_plans_backup AS SELECT * FROM payment_plans
+          ''');
+
+          // Drop old table
+          await db.execute('DROP TABLE payment_plans');
+
+          // Create new table with correct schema
+          await db.execute('''
+            CREATE TABLE payment_plans (
+              plan_id TEXT PRIMARY KEY,
+              name TEXT NOT NULL,
+              payment_frequency_id TEXT NOT NULL,
+              payment_frequency_days INTEGER NOT NULL,
+              term_value INTEGER NOT NULL DEFAULT 0,
+              term_unit TEXT NOT NULL DEFAULT 'Months',
+              installments_total INTEGER NOT NULL,
+              monthly_interest_rate REAL NOT NULL,
+              currency_code TEXT NOT NULL DEFAULT 'NIO',
+              allow_currency_change INTEGER NOT NULL DEFAULT 0,
+              min_amount REAL,
+              max_amount REAL,
+              distribute_capital_and_interest INTEGER NOT NULL DEFAULT 0,
+              period_starts_on_disbursement INTEGER NOT NULL DEFAULT 1,
+              applicable_category_ids TEXT,
+              is_active INTEGER NOT NULL DEFAULT 1,
+              created_at TEXT NOT NULL,
+              updated_at TEXT NOT NULL,
+              FOREIGN KEY (payment_frequency_id) REFERENCES payment_frequencies(id)
+            )
+          ''');
+
+          // Restore data from backup
+          await db.execute('''
+            INSERT INTO payment_plans SELECT * FROM payment_plans_backup
+          ''');
+
+          // Drop backup table
+          await db.execute('DROP TABLE payment_plans_backup');
+
+          debugPrint('payment_plans table schema fixed successfully');
+        }
+      }
+    } catch (e) {
+      debugPrint('Error fixing payment_plans schema: $e');
     }
   }
 
@@ -480,6 +585,7 @@ class DatabaseHelper {
         backup_custom_name TEXT,
         backup_retries INTEGER DEFAULT 3,
         company_country_code TEXT,
+        recovery_priority TEXT NOT NULL DEFAULT 'CAPITAL_FIRST',
         disbursement_rate_type TEXT NOT NULL DEFAULT 'SELL',
         payment_rate_type TEXT NOT NULL DEFAULT 'BUY',
         allow_manual_exchange_rate INTEGER NOT NULL DEFAULT 0,
@@ -624,8 +730,8 @@ class DatabaseHelper {
         monthly_interest_rate REAL NOT NULL,
         currency_code TEXT NOT NULL DEFAULT 'NIO',
         allow_currency_change INTEGER NOT NULL DEFAULT 0,
-        min_amount REAL NOT NULL,
-        max_amount REAL NOT NULL,
+        min_amount REAL,
+        max_amount REAL,
         distribute_capital_and_interest INTEGER NOT NULL DEFAULT 0,
         period_starts_on_disbursement INTEGER NOT NULL DEFAULT 1,
         applicable_category_ids TEXT,
@@ -1340,12 +1446,14 @@ class DatabaseHelper {
             name TEXT NOT NULL,
             payment_frequency_id TEXT NOT NULL,
             payment_frequency_days INTEGER NOT NULL,
+            term_value INTEGER NOT NULL DEFAULT 0,
+            term_unit TEXT NOT NULL DEFAULT 'Months',
             installments_total INTEGER NOT NULL,
             monthly_interest_rate REAL NOT NULL,
             currency_code TEXT NOT NULL DEFAULT 'NIO',
             allow_currency_change INTEGER NOT NULL DEFAULT 0,
-            min_amount REAL NOT NULL,
-            max_amount REAL NOT NULL,
+            min_amount REAL,
+            max_amount REAL,
             distribute_capital_and_interest INTEGER NOT NULL DEFAULT 0,
             period_starts_on_disbursement INTEGER NOT NULL DEFAULT 1,
             applicable_category_ids TEXT,
@@ -1410,6 +1518,77 @@ class DatabaseHelper {
 
     // Run data fix on upgrade
     await fixInterestCalculations();
+
+    // Migration V30: Fix missing payment_plans columns AND billing_cycles columns
+    if (oldVersion < 30) {
+      debugPrint('Running V30 migration: Fix missing columns');
+
+      // 1. Fix Payment Plans table
+      final missingColumns = [
+        {'name': 'term_value', 'def': 'INTEGER NOT NULL DEFAULT 0'},
+        {'name': 'term_unit', 'def': "TEXT NOT NULL DEFAULT 'Months'"},
+        {
+          'name': 'distribute_capital_and_interest',
+          'def': 'INTEGER NOT NULL DEFAULT 0',
+        },
+        {'name': 'allow_currency_change', 'def': 'INTEGER NOT NULL DEFAULT 0'},
+      ];
+
+      for (final col in missingColumns) {
+        try {
+          final result = await db.rawQuery(
+            "SELECT COUNT(*) as cnt FROM pragma_table_info('payment_plans') WHERE name='${col['name']}'",
+          );
+          final hasColumn = (result.first['cnt'] as int) > 0;
+          if (!hasColumn) {
+            await db.execute(
+              'ALTER TABLE payment_plans ADD COLUMN ${col['name']} ${col['def']}',
+            );
+          }
+        } catch (e) {
+          debugPrint('Error adding ${col['name']} to payment_plans: $e');
+        }
+      }
+
+      // 2. Fix Billing Cycles table (Safety check for missed V29 logic)
+      final cycleInstallmentColumns = [
+        {'name': 'installment_expected', 'def': 'REAL'},
+        {'name': 'installment_paid', 'def': 'REAL DEFAULT 0'},
+        {'name': 'installment_pending', 'def': 'REAL'},
+        {'name': 'principal_portion', 'def': 'REAL'},
+      ];
+
+      for (final col in cycleInstallmentColumns) {
+        try {
+          final result = await db.rawQuery(
+            "SELECT COUNT(*) as cnt FROM pragma_table_info('billing_cycles') WHERE name='${col['name']}'",
+          );
+          final hasColumn = (result.first['cnt'] as int) > 0;
+          if (!hasColumn) {
+            debugPrint(
+              'V30: Adding missing column ${col['name']} to billing_cycles',
+            );
+            await db.execute(
+              'ALTER TABLE billing_cycles ADD COLUMN ${col['name']} ${col['def']}',
+            );
+          }
+        } catch (e) {
+          debugPrint('Error adding ${col['name']} to billing_cycles: $e');
+        }
+      }
+    }
+
+    // Migration V31: Add recovery_priority (Recovery Priority Feature)
+    if (oldVersion < 31) {
+      debugPrint('Running V31 migration: Add recovery_priority');
+      try {
+        await db.execute(
+          "ALTER TABLE app_settings ADD COLUMN recovery_priority TEXT NOT NULL DEFAULT 'CAPITAL_FIRST'",
+        );
+      } catch (e) {
+        debugPrint('Error adding recovery_priority column: $e');
+      }
+    }
   }
 
   /// Perform V25 Migration for Multi-Currency Refactor
@@ -1915,6 +2094,8 @@ class DatabaseHelper {
         UPDATE billing_cycles 
         SET interest_paid = 0,
             interest_pending = interest_expected,
+            installment_paid = 0,
+            installment_pending = installment_expected,
             closed_at = NULL,
             status = CASE 
               WHEN due_date < date('now') THEN '${AppStatus.cycleOverdue}'
