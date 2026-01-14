@@ -8,8 +8,6 @@
 /// - Cycle interest calculations
 library;
 
-import 'package:flutter/foundation.dart';
-
 import '../data/models/billing_cycle.dart';
 import '../data/models/loan.dart';
 
@@ -293,11 +291,6 @@ class InterestCalculationService {
       }
     }
 
-    // DEBUG: Trace Cancel calculation
-    debugPrint(
-      'CANCEL_DEBUG: pendingCycles.length=${pendingCycles.length}, overdueCycles=${overdueCycles.length}, currentCycle=${currentCycle?.billingCycleId}',
-    );
-
     // Sum all OVERDUE cycle interest (full interest for completed cycles)
     final overdueInterest = overdueCycles.fold<double>(
       0,
@@ -314,22 +307,26 @@ class InterestCalculationService {
         currentCycle.periodStartDate.day,
       );
 
-      // For CANCEL with dailyAccrualEnabled: calculate proportional interest
-      if (paymentType == 'CANCEL' && dailyAccrualEnabled) {
+      // For CANCEL: ALWAYS calculate proportional interest for current cycle
+      // This ensures fair billing when cancelling mid-cycle
+      if (paymentType == 'CANCEL') {
         // Days elapsed in current cycle (from cycle start to payment date)
-        partialDays = paymentDateOnly.difference(cycleStart).inDays + 1;
+        partialDays = paymentDateOnly.difference(cycleStart).inDays;
         if (partialDays < 1) partialDays = 1;
 
-        // Calculate daily interest and multiply by days
-        final monthlyInterest =
-            loan.principalBalance * (loan.monthlyInterestRate / 100);
-        final dailyInterest = monthlyInterest / 30;
+        // Calculate cycle length in days
+        final cycleEnd = DateTime(
+          currentCycle.periodEndDate.year,
+          currentCycle.periodEndDate.month,
+          currentCycle.periodEndDate.day,
+        );
+        final cycleLengthDays = cycleEnd.difference(cycleStart).inDays;
+        final effectiveCycleLength = cycleLengthDays > 0 ? cycleLengthDays : 15;
 
-        partialInterest = dailyInterest * partialDays;
-        currentCycleInterest = partialInterest;
-      } else if (paymentType == 'CANCEL') {
-        // CANCEL without dailyAccrualEnabled: charge full current cycle
-        currentCycleInterest = currentCycle.interestPending;
+        // Proportional interest = expected interest * (days elapsed / cycle length)
+        final expectedInterest = currentCycle.interestExpected;
+        partialInterest = expectedInterest * partialDays / effectiveCycleLength;
+        currentCycleInterest = _roundMoney(partialInterest);
       } else if (paymentType == 'INTEREST') {
         // INTEREST (Solo Interés): DO NOT include current cycle per fix.md #3A
         // "excepto intereses de los días del ciclo corriente"
@@ -358,13 +355,11 @@ class InterestCalculationService {
     double? totalOverrideAmount;
 
     if (paymentType == 'CANCEL') {
-      // Check if we have a defined schedule with expected installments
-      // We look at ALL pending cycles (overdue + current + future)
-      final hasInstallmentSchedule =
-          pendingCycles.isNotEmpty &&
-          pendingCycles.every((c) => (c.installmentExpected ?? 0) > 0);
+      // FIX: Check if loan has a payment plan (planId) NOT just cycle fields
+      // Cycles may have installmentExpected set even for non-plan loans
+      final hasPlanId = loan.planId != null;
 
-      if (hasInstallmentSchedule) {
+      if (hasPlanId && pendingCycles.isNotEmpty) {
         // Sum of all pending installments (This includes Principal + Interest for the whole term)
         totalOverrideAmount = pendingCycles.fold<double>(
           0,

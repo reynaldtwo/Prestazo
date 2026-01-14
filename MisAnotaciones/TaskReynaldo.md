@@ -1890,3 +1890,93 @@ Escenario:Pantalla Registrar Pago.
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+**------------------------------------------>**
+**------------------------------------------>**
+**------------------------------------------>**
+**------------------------------------------>**
+**------------------------------------------>**
+**------------------------------------------>**
+**------------------------------------------>**
+**------------------------------------------>**
+**------------------------------------------>**
+**------------------------------------------>**
+
+
+
+
+
+
+
+
+
+
+
+
+
+**14  enero 2026**
+**ESCENARIO 1**
+**PLAN DE PRUEBAS FINALES**
+**REFINAMIENTO**
+**CASOS DE PRUEBAS FUNCIONALES**
+
+
+Tómate un tiempo para analizar la siguiente mejora y haz el desarrollo considerando las reglas descritas en el archivo @file:.antigravityrules y apóyate del @mcp:dart-mcp-server: de Flutter para resolver los errores que aparezcan, así como para investigar sobre las buenas prácticas a la hora de escribir código.
+
+No dejes nada harcodeado y lo que vas a hacer que no afecte a las funcionalidades existentes, ya que, tambien tenemos prestamos con planes de pagos y ambos deben funcionar correctamente. para el caso de se necesario que hagas un ajuste en el codigo, asegurate de que el ajuste que hagas no afecte a la funcionalidad de los prestamos con planes de pagos.
+
+**CASO 1:**
+**Escenario en flujo del prestamo, para un prestamo sin un plan de pago:**
+
+**Datos del prestamo:**
+
+1. Prestamo por 10,000 en moneda NIO.
+2. fecha de desembolso 01-12-2025
+3. fecha actual 14-01-2026
+4. Interes=10%
+5. Frecuencia=Quincenal
+6. valor de cada cuota vencida 500 NIO
+7. valor de cada cuota corriendo 500 NIO 
+
+**Ciclos de pagos, al ir a la pantalla de registrar pago :**
+1. Primer ciclo: 01-12-2025 - 15-12-2025 monto de 500 NIO
+2. Segundo ciclo: 16-12-2025 - 31-12-2025 monto de 500 NIO
+3. Tercer ciclo: 01-01-2026 - 15-01-2026 monto de 466.67 NIO
+
+Nota: Al día 14-01-2026 el tercer ciclo aún no ha vencido, por lo tanto el interés a cobrar debe ser parcial y prorrateado.
+
+
+**Como deberia de funcionar el calculo si se presiona el boton cancelar:**
+la prueba consiste en que si el cliente decide cancelar el prestamo, el sistema debe mostrar el monto total del prestamo mas los intereses vencidos mas los intereses parciales en el caso de que exista alguna cuota en estado corriendo y que aun no llegue a su fecha de vencimiento.
+
+en este escenario lo que se debe cobra es:
+capital = 10,000
+intereses vencidos = 1,000 (correspondientes a la 2 cuotas vencidas)
+intereses parciales =466.67
+Total a cancelar= capital + intereses vencidos + intereses parciales, entonces el total a cancelar es 11,466.67 NIO
+
+**Aclaración importante**
+El sistema NO debe modificar el valor esperado del ciclo completo (500 NIO).
+El valor de 466.67 NIO corresponde únicamente al cálculo parcial para cancelación anticipada.
