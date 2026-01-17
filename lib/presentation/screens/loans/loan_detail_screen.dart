@@ -1,21 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
-import '../../../core/theme/app_colors.dart';
-import '../../../core/theme/app_typography.dart';
-import '../../../core/widgets/widgets.dart';
-import '../../../data/models/loan.dart';
-import '../../../data/models/billing_cycle.dart';
-import '../../../data/models/payment.dart';
-import '../../../data/providers/providers.dart';
 import 'package:go_router/go_router.dart';
-
-import '../../../core/constants/app_status.dart';
-import '../../../core/localization/locale_provider.dart';
-import '../../../services/whatsapp_service.dart';
-import '../../../data/providers/payment_frequency_provider.dart';
-
-import '../../../core/utils/currency_utils.dart';
+import 'package:intl/intl.dart';
+import 'package:prestamos_app/core/constants/app_status.dart';
+import 'package:prestamos_app/core/localization/locale_provider.dart';
+import 'package:prestamos_app/core/theme/app_colors.dart';
+import 'package:prestamos_app/core/theme/app_typography.dart';
+import 'package:prestamos_app/core/utils/currency_utils.dart';
+import 'package:prestamos_app/core/widgets/widgets.dart';
+import 'package:prestamos_app/data/models/billing_cycle.dart';
+import 'package:prestamos_app/data/models/loan.dart';
+import 'package:prestamos_app/data/models/payment.dart';
+import 'package:prestamos_app/data/providers/providers.dart';
+import 'package:prestamos_app/services/whatsapp_service.dart';
 
 /// Handle edit loan action with validation
 Future<void> _handleEditLoan(
@@ -30,13 +27,13 @@ Future<void> _handleEditLoan(
     if (!context.mounted) return;
 
     if (hasValidPayments) {
-      showDialog(
+      await showDialog<void>(
         context: context,
         builder: (ctx) => AlertDialog(
           title: Row(
             children: [
-              Icon(Icons.lock_clock, color: AppColors.warning),
-              SizedBox(width: 8),
+              const Icon(Icons.lock_clock, color: AppColors.warning),
+              const SizedBox(width: 8),
               Text(S.of(context).restrictedEditTitle),
             ],
           ),
@@ -52,8 +49,8 @@ Future<void> _handleEditLoan(
       return;
     }
 
-    context.pushNamed('edit-loan', pathParameters: {'id': loanId});
-  } catch (e) {
+    await context.pushNamed('edit-loan', pathParameters: {'id': loanId});
+  } on Exception catch (e) {
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(S.of(context).errorCheckingPayments(e))),
@@ -77,13 +74,13 @@ Future<void> _showDeleteConfirmation(
 
     if (hasPayments) {
       // Cannot delete loan with payments
-      showDialog(
+      await showDialog<void>(
         context: context,
         builder: (ctx) => AlertDialog(
           title: Row(
             children: [
-              Icon(Icons.warning_amber, color: AppColors.warning),
-              SizedBox(width: 8),
+              const Icon(Icons.warning_amber, color: AppColors.warning),
+              const SizedBox(width: 8),
               Text(S.of(context).cannotDeleteTitle),
             ],
           ),
@@ -105,8 +102,8 @@ Future<void> _showDeleteConfirmation(
       builder: (ctx) => AlertDialog(
         title: Row(
           children: [
-            Icon(Icons.delete_forever, color: AppColors.danger),
-            SizedBox(width: 8),
+            const Icon(Icons.delete_forever, color: AppColors.danger),
+            const SizedBox(width: 8),
             Text(S.of(context).deleteLoanTitle),
           ],
         ),
@@ -125,7 +122,7 @@ Future<void> _showDeleteConfirmation(
       ),
     );
 
-    if (confirmed == true && context.mounted) {
+    if ((confirmed ?? false) && context.mounted) {
       try {
         // Capture customerId for refresh
         final loan = ref.read(loanByIdProvider(loanId)).valueOrNull;
@@ -137,16 +134,18 @@ Future<void> _showDeleteConfirmation(
 
         if (success && context.mounted) {
           // Force refresh of all related lists
-          ref.invalidate(loansProvider);
-          ref.invalidate(loansWithCustomerProvider);
-          ref.invalidate(loanCountProvider);
-          ref.invalidate(totalPrincipalBalanceProvider);
-          ref.invalidate(dashboardProvider);
+          ref
+            ..invalidate(loansProvider)
+            ..invalidate(loansWithCustomerProvider)
+            ..invalidate(loanCountProvider)
+            ..invalidate(totalPrincipalBalanceProvider)
+            ..invalidate(dashboardProvider);
 
           if (customerId != null) {
-            ref.invalidate(loansByCustomerProvider(customerId));
-            ref.invalidate(activeLoansByCustomerProvider(customerId));
-            ref.invalidate(customerByIdProvider(customerId));
+            ref
+              ..invalidate(loansByCustomerProvider(customerId))
+              ..invalidate(activeLoansByCustomerProvider(customerId))
+              ..invalidate(customerByIdProvider(customerId));
           }
 
           ScaffoldMessenger.of(context).showSnackBar(
@@ -164,7 +163,7 @@ Future<void> _showDeleteConfirmation(
             ),
           );
         }
-      } catch (e) {
+      } on Exception catch (e) {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -175,7 +174,7 @@ Future<void> _showDeleteConfirmation(
         }
       }
     }
-  } catch (e) {
+  } on Exception catch (e) {
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -230,7 +229,7 @@ Future<void> _shareStatement(
       locale: locale,
       currencySymbol: currencySymbol,
     );
-  } catch (e) {
+  } on Exception catch (e) {
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -284,7 +283,7 @@ Future<void> _shareDisbursementReceipt(
       currencySymbol: currencySymbol,
       frequencyName: frequency?.name,
     );
-  } catch (e) {
+  } on Exception catch (e) {
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -339,7 +338,7 @@ Future<void> _shareReceipt(
           locale: locale,
           currencySymbol: currencySymbol,
         );
-  } catch (e) {
+  } on Exception catch (e) {
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -351,11 +350,13 @@ Future<void> _shareReceipt(
   }
 }
 
-/// Loan detail screen
+/// Pantalla de detalle de préstamo.
 class LoanDetailScreen extends ConsumerStatefulWidget {
-  final String loanId;
+  /// Crea una instancia de [LoanDetailScreen].
+  const LoanDetailScreen({required this.loanId, super.key});
 
-  const LoanDetailScreen({super.key, required this.loanId});
+  /// Identificador único del préstamo a mostrar.
+  final String loanId;
 
   @override
   ConsumerState<LoanDetailScreen> createState() => _LoanDetailScreenState();
@@ -390,17 +391,18 @@ class _LoanDetailScreenState extends ConsumerState<LoanDetailScreen> {
             ),
           );
           // Invalidate ALL cycle-related providers to ensure fresh data
-          ref.invalidate(billingCyclesByLoanProvider(widget.loanId));
-          ref.invalidate(pendingBillingCyclesProvider(widget.loanId));
-          // Update loan status if it changed to overdue
-          ref.invalidate(loanByIdProvider(widget.loanId));
-          ref.invalidate(loansProvider); // Refresh main list too
+          ref
+            ..invalidate(billingCyclesByLoanProvider(widget.loanId))
+            ..invalidate(pendingBillingCyclesProvider(widget.loanId))
+            // Update loan status if it changed to overdue
+            ..invalidate(loanByIdProvider(widget.loanId))
+            ..invalidate(loansProvider); // Refresh main list too
           // Force recalculation of interest with fresh cycle data
           ref.read(refreshTriggerProvider.notifier).state++;
         }
       }
-    } catch (e) {
-      debugPrint('Error checking cycles: $e');
+    } on Exception catch (_) {
+      // Ignore error checking cycles
     }
   }
 
@@ -418,9 +420,10 @@ class _LoanDetailScreenState extends ConsumerState<LoanDetailScreen> {
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: () {
-              ref.invalidate(loanByIdProvider(widget.loanId));
-              ref.invalidate(billingCyclesByLoanProvider(widget.loanId));
-              ref.invalidate(paymentsByLoanProvider(widget.loanId));
+              ref
+                ..invalidate(loanByIdProvider(widget.loanId))
+                ..invalidate(billingCyclesByLoanProvider(widget.loanId))
+                ..invalidate(paymentsByLoanProvider(widget.loanId));
             },
           ),
         ],
@@ -434,9 +437,10 @@ class _LoanDetailScreenState extends ConsumerState<LoanDetailScreen> {
           }
           return RefreshIndicator(
             onRefresh: () async {
-              ref.invalidate(loanByIdProvider(widget.loanId));
-              ref.invalidate(billingCyclesByLoanProvider(widget.loanId));
-              ref.invalidate(paymentsByLoanProvider(widget.loanId));
+              ref
+                ..invalidate(loanByIdProvider(widget.loanId))
+                ..invalidate(billingCyclesByLoanProvider(widget.loanId))
+                ..invalidate(paymentsByLoanProvider(widget.loanId));
             },
             child: ListView(
               padding: const EdgeInsets.all(16),
@@ -449,7 +453,6 @@ class _LoanDetailScreenState extends ConsumerState<LoanDetailScreen> {
                 AppButton(
                   label: S.of(context).registerPayment,
                   icon: Icons.payment,
-                  variant: AppButtonVariant.primary,
                   isFullWidth: true,
                   onPressed: () {
                     // Navigate to payment form if loan is active
@@ -642,7 +645,7 @@ class _LoanDetailScreenState extends ConsumerState<LoanDetailScreen> {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    '${loan.monthlyInterestRate.toStringAsFixed(0)}%',
+                    '${loan.monthlyInterestRate.toStringAsFixed(2)}%',
                     style: AppTypography.titleMedium,
                   ),
                 ],
@@ -676,13 +679,12 @@ class _LoanDetailScreenState extends ConsumerState<LoanDetailScreen> {
 }
 
 class _PendingInterestLabel extends ConsumerWidget {
-  final String loanId;
-  final String currencySymbol;
-
   const _PendingInterestLabel({
     required this.loanId,
     required this.currencySymbol,
   });
+  final String loanId;
+  final String currencySymbol;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -692,7 +694,6 @@ class _PendingInterestLabel extends ConsumerWidget {
     // Use CENTRALIZED calculation provider - SINGLE SOURCE OF TRUTH
     final calcParams = LoanCalculationParams(
       loanId: loanId,
-      paymentType: 'VIEW', // Just viewing, not making a payment
       refreshTrigger: refreshTrigger,
     );
     final calcAsync = ref.watch(loanCalculationProvider(calcParams));
@@ -716,9 +717,8 @@ class _PendingInterestLabel extends ConsumerWidget {
 }
 
 class _BillingCyclesList extends ConsumerWidget {
-  final String loanId;
-
   const _BillingCyclesList({required this.loanId});
+  final String loanId;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -731,7 +731,7 @@ class _BillingCyclesList extends ConsumerWidget {
         if (cycles.isEmpty) {
           return Center(
             child: Padding(
-              padding: EdgeInsets.all(16.0),
+              padding: const EdgeInsets.all(16),
               child: Text(S.of(context).noBillingCycles),
             ),
           );
@@ -757,9 +757,8 @@ class _BillingCyclesList extends ConsumerWidget {
 }
 
 class _PaymentsList extends ConsumerWidget {
-  final String loanId;
-
   const _PaymentsList({required this.loanId});
+  final String loanId;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -772,7 +771,7 @@ class _PaymentsList extends ConsumerWidget {
         if (payments.isEmpty) {
           return Center(
             child: Padding(
-              padding: EdgeInsets.all(16.0),
+              padding: const EdgeInsets.all(16),
               child: Text(S.of(context).noPaymentsRegistered),
             ),
           );
@@ -794,9 +793,8 @@ class _PaymentsList extends ConsumerWidget {
 }
 
 class _CycleCard extends StatelessWidget {
-  final BillingCycle cycle;
-
   const _CycleCard({required this.cycle});
+  final BillingCycle cycle;
 
   @override
   Widget build(BuildContext context) {
@@ -881,9 +879,8 @@ class _CycleCard extends StatelessWidget {
 }
 
 class _PaymentCard extends ConsumerWidget {
-  final Payment payment;
-
   const _PaymentCard({required this.payment});
+  final Payment payment;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -928,7 +925,6 @@ class _PaymentCard extends ConsumerWidget {
               ),
               MoneyDisplay(
                 amount: payment.amount,
-                size: MoneyDisplaySize.medium,
                 color: AppColors.accent,
                 currencySymbol: CurrencyUtils.getCurrencySymbol(
                   payment.paymentCurrency,
@@ -963,11 +959,11 @@ class _PaymentCard extends ConsumerWidget {
                         a.allocationType == 'INTEREST' ||
                         a.allocationType == 'MORA',
                   )
-                  .fold(0.0, (sum, a) => sum + a.amount);
+                  .fold<double>(0, (sum, a) => sum + a.amount);
 
               final principalTotal = allocations
                   .where((a) => a.allocationType == 'PRINCIPAL')
-                  .fold(0.0, (sum, a) => sum + a.amount);
+                  .fold<double>(0, (sum, a) => sum + a.amount);
 
               // Check for other types (e.g. Fees)
               final otherAllocations = allocations

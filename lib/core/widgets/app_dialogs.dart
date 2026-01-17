@@ -4,7 +4,7 @@
 library;
 
 import 'package:flutter/material.dart';
-import '../theme/app_colors.dart';
+import 'package:prestamos_app/core/theme/app_colors.dart';
 
 /// Show a confirmation dialog with Yes/No options
 ///

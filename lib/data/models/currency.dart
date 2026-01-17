@@ -2,22 +2,15 @@ import 'package:equatable/equatable.dart';
 
 /// Currency model - Master table for supported currencies
 class Currency extends Equatable {
-  final String currencyCode; // ISO 4217 code (e.g., USD, NIO, EUR)
-  final int fractionDigits; // Decimal places (usually 2)
-  final String? symbol; // Display symbol (e.g., $, C$, €)
-  final String nameKey; // i18n key for currency name
-  final bool isActive;
-  final DateTime createdAt;
-  final DateTime updatedAt;
-
+  /// Crea una instancia de [Currency] para representar una moneda soportada.
   const Currency({
     required this.currencyCode,
     required this.fractionDigits,
-    this.symbol,
     required this.nameKey,
-    this.isActive = true,
     required this.createdAt,
     required this.updatedAt,
+    this.symbol,
+    this.isActive = true,
   });
 
   /// Create from database map
@@ -32,6 +25,27 @@ class Currency extends Equatable {
       updatedAt: DateTime.parse(map['updated_at'] as String),
     );
   }
+
+  /// Código ISO 4217 de la moneda (ej: USD, NIO).
+  final String currencyCode;
+
+  /// Cantidad de decimales (ej: 2).
+  final int fractionDigits;
+
+  /// Símbolo de visualización (ej: $, C$).
+  final String? symbol;
+
+  /// Clave de traducción para el nombre de la moneda.
+  final String nameKey;
+
+  /// Indica si la moneda está habilitada.
+  final bool isActive;
+
+  /// Fecha de creación del registro.
+  final DateTime createdAt;
+
+  /// Fecha de última actualización.
+  final DateTime updatedAt;
 
   /// Convert to database map
   Map<String, dynamic> toMap() {

@@ -1,20 +1,21 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:share_plus/share_plus.dart';
+import 'package:intl/intl.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
-import 'dart:io';
-import 'package:path_provider/path_provider.dart';
-import 'package:intl/intl.dart';
+import 'package:prestamos_app/core/localization/locale_provider.dart';
+import 'package:prestamos_app/core/theme/app_colors.dart';
+import 'package:prestamos_app/core/theme/app_typography.dart';
+import 'package:prestamos_app/data/providers/providers.dart';
 import 'package:sealed_currencies/sealed_currencies.dart';
+import 'package:share_plus/share_plus.dart';
 
-import '../../../core/theme/app_colors.dart';
-import '../../../core/theme/app_typography.dart';
-import '../../../data/providers/providers.dart';
-import '../../../core/localization/locale_provider.dart';
-
-/// Screen for displaying FX Differential (exchange rate profit) reports.
+/// Pantalla para mostrar reportes de diferencial FX (ganancia por tasa de cambio).
 class FxDifferentialReportScreen extends ConsumerStatefulWidget {
+  /// Crea una instancia de [FxDifferentialReportScreen].
   const FxDifferentialReportScreen({super.key});
 
   @override
@@ -39,7 +40,7 @@ class _FxDifferentialReportScreenState
   @override
   void initState() {
     super.initState();
-    _startDate = DateTime(DateTime.now().year, DateTime.now().month, 1);
+    _startDate = DateTime(DateTime.now().year, DateTime.now().month);
     _loadData();
   }
 
@@ -108,8 +109,8 @@ class _FxDifferentialReportScreenState
           _totalDifferential = totalDiff;
         });
       }
-    } catch (e) {
-      debugPrint('Error loading FX data: $e');
+    } on Exception catch (_) {
+      // Ignore error loading FX data
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -124,7 +125,7 @@ class _FxDifferentialReportScreenState
     try {
       final date = DateTime.parse(isoDate);
       return DateFormat('dd/MM/yyyy').format(date);
-    } catch (_) {
+    } on Exception catch (_) {
       return isoDate;
     }
   }
@@ -144,7 +145,7 @@ class _FxDifferentialReportScreenState
           _endDate = picked;
         }
       });
-      _loadData();
+      await _loadData();
     }
   }
 
@@ -179,116 +180,116 @@ class _FxDifferentialReportScreenState
     final baseCurrencyLabel = l10n.baseCurrency;
 
     try {
-      final pdf = pw.Document();
-
-      pdf.addPage(
-        pw.MultiPage(
-          pageFormat: PdfPageFormat.a4.landscape,
-          margin: const pw.EdgeInsets.all(32),
-          build: (context) => [
-            // Header
-            pw.Header(
-              level: 0,
-              child: pw.Text(
-                pdfTitle,
-                style: pw.TextStyle(
-                  fontSize: 20,
-                  fontWeight: pw.FontWeight.bold,
+      final pdf = pw.Document()
+        ..addPage(
+          pw.MultiPage(
+            pageFormat: PdfPageFormat.a4.landscape,
+            margin: const pw.EdgeInsets.all(32),
+            build: (context) => [
+              // Header
+              pw.Header(
+                level: 0,
+                child: pw.Text(
+                  pdfTitle,
+                  style: pw.TextStyle(
+                    fontSize: 20,
+                    fontWeight: pw.FontWeight.bold,
+                  ),
                 ),
               ),
-            ),
-            pw.SizedBox(height: 8),
-            pw.Text(periodLabel, style: const pw.TextStyle(fontSize: 12)),
-            pw.SizedBox(height: 16),
+              pw.SizedBox(height: 8),
+              pw.Text(periodLabel, style: const pw.TextStyle(fontSize: 12)),
+              pw.SizedBox(height: 16),
 
-            // Summary Table
-            pw.TableHelper.fromTextArray(
-              headers: [indicatorLabel, valueLabel],
-              data: [
-                [totalFxPaymentsLabel, '$_totalPayments'],
-                [
-                  totalEquivalentLabel,
-                  '${_formatMoney(_totalEquivalent)} ($baseCurrencyLabel)',
+              // Summary Table
+              pw.TableHelper.fromTextArray(
+                headers: [indicatorLabel, valueLabel],
+                data: [
+                  [totalFxPaymentsLabel, '$_totalPayments'],
+                  [
+                    totalEquivalentLabel,
+                    '${_formatMoney(_totalEquivalent)} ($baseCurrencyLabel)',
+                  ],
+                  [
+                    totalAppliedLabel,
+                    '${_formatMoney(_totalApplied)} ($baseCurrencyLabel)',
+                  ],
+                  [
+                    differentialProfitLabel,
+                    '${_formatMoney(_totalDifferential)} ($baseCurrencyLabel)',
+                  ],
                 ],
-                [
-                  totalAppliedLabel,
-                  '${_formatMoney(_totalApplied)} ($baseCurrencyLabel)',
-                ],
-                [
-                  differentialProfitLabel,
-                  '${_formatMoney(_totalDifferential)} ($baseCurrencyLabel)',
-                ],
-              ],
-              headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold),
-              cellAlignment: pw.Alignment.centerLeft,
-            ),
-            pw.SizedBox(height: 24),
+                headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+                cellAlignment: pw.Alignment.centerLeft,
+              ),
+              pw.SizedBox(height: 24),
 
-            // Detail Header
-            pw.Header(
-              level: 1,
-              child: pw.Text(
-                operationsDetailLabel,
-                style: pw.TextStyle(
-                  fontSize: 14,
-                  fontWeight: pw.FontWeight.bold,
+              // Detail Header
+              pw.Header(
+                child: pw.Text(
+                  operationsDetailLabel,
+                  style: pw.TextStyle(
+                    fontSize: 14,
+                    fontWeight: pw.FontWeight.bold,
+                  ),
                 ),
               ),
-            ),
-            pw.SizedBox(height: 8),
+              pw.SizedBox(height: 8),
 
-            // Detail Table
-            pw.TableHelper.fromTextArray(
-              headers: [
-                dateLabel,
-                clientLabel,
-                loanLabel,
-                receiptNoLabel,
-                paymentCurrencyLabel,
-                paymentAmountLabel,
-                appliedRateLabel,
-                equivalentCalculatedLabel,
-                amountAppliedLabel,
-                fxDifferentialLabel,
-              ],
-              data: _fxPayments.map((p) {
-                final amountPayment =
-                    ((p['amount_payment_minor'] as int?) ?? 0) / 100.0;
-                final amountLoan =
-                    ((p['amount_loan_minor'] as int?) ?? 0) / 100.0;
-                final unapplied = ((p['unapplied_minor'] as int?) ?? 0) / 100.0;
-                final applied = amountLoan - unapplied;
-                final rate = (p['rate_value_used'] as num?)?.toDouble() ?? 0;
-                final currency = p['payment_currency']?.toString() ?? '';
-                final customerName = p['customer_name']?.toString() ?? '';
-                final loanNumber = p['loan_number']?.toString() ?? '';
-                final receiptNumber = p['receipt_number']?.toString() ?? '';
+              // Detail Table
+              pw.TableHelper.fromTextArray(
+                headers: [
+                  dateLabel,
+                  clientLabel,
+                  loanLabel,
+                  receiptNoLabel,
+                  paymentCurrencyLabel,
+                  paymentAmountLabel,
+                  appliedRateLabel,
+                  equivalentCalculatedLabel,
+                  amountAppliedLabel,
+                  fxDifferentialLabel,
+                ],
+                data: _fxPayments.map((p) {
+                  final amountPayment =
+                      ((p['amount_payment_minor'] as int?) ?? 0) / 100.0;
+                  final amountLoan =
+                      ((p['amount_loan_minor'] as int?) ?? 0) / 100.0;
+                  final unapplied =
+                      ((p['unapplied_minor'] as int?) ?? 0) / 100.0;
+                  final applied = amountLoan - unapplied;
+                  final rate = (p['rate_value_used'] as num?)?.toDouble() ?? 0;
+                  final currency = p['payment_currency']?.toString() ?? '';
+                  final customerName = p['customer_name']?.toString() ?? '';
+                  final loanNumber = p['loan_number']?.toString() ?? '';
+                  final receiptNumber = p['receipt_number']?.toString() ?? '';
 
-                return [
-                  _formatDate(p['created_at'] ?? ''),
-                  customerName.length > 15
-                      ? '${customerName.substring(0, 15)}...'
-                      : customerName,
-                  loanNumber,
-                  receiptNumber,
-                  currency,
-                  _formatMoney(amountPayment),
-                  rate.toStringAsFixed(2),
-                  _formatMoney(amountLoan),
-                  _formatMoney(applied),
-                  '+${_formatMoney(unapplied)}',
-                ];
-              }).toList(),
-              headerStyle: pw.TextStyle(
-                fontWeight: pw.FontWeight.bold,
-                fontSize: 7,
+                  return [
+                    _formatDate((p['created_at'] as String?) ?? ''),
+                    if (customerName.length > 15)
+                      '${customerName.substring(0, 15)}...'
+                    else
+                      customerName,
+                    loanNumber,
+                    receiptNumber,
+                    currency,
+                    _formatMoney(amountPayment),
+                    rate.toStringAsFixed(2),
+                    _formatMoney(amountLoan),
+                    _formatMoney(applied),
+                    '+${_formatMoney(unapplied)}',
+                  ];
+                }).toList(),
+                headerStyle: pw.TextStyle(
+                  fontWeight: pw.FontWeight.bold,
+                  fontSize: 7,
+                ),
+                cellStyle: const pw.TextStyle(fontSize: 7),
+                cellAlignment: pw.Alignment.centerLeft,
               ),
-              cellStyle: const pw.TextStyle(fontSize: 7),
-              cellAlignment: pw.Alignment.centerLeft,
-            ),
-          ],
-        ),
-      );
+            ],
+          ),
+        );
 
       // Save PDF
       final output = await getTemporaryDirectory();
@@ -299,7 +300,7 @@ class _FxDifferentialReportScreenState
 
       // Share
       await Share.shareXFiles([XFile(file.path)], text: shareText);
-    } catch (e) {
+    } on Exception catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(
           context,
@@ -360,138 +361,6 @@ class _FxDifferentialReportScreenState
               : _fxPayments.isEmpty
               ? _buildEmptyState()
               : _buildDetailList(),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildSummaryBullets() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildBulletPoint(
-          'Total pagos en moneda extranjera:',
-          '$_totalPayments',
-        ),
-        _buildBulletPoint(
-          'Total diferencial cambiario ganado:',
-          'NIO ${_formatMoney(_totalDifferential)}',
-          isHighlight: true,
-        ),
-        _buildBulletPoint('Moneda extranjera utilizada:', 'USD'),
-      ],
-    );
-  }
-
-  Widget _buildBulletPoint(
-    String label,
-    String value, {
-    bool isHighlight = false,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 2),
-      child: Row(
-        children: [
-          const Text('• ', style: TextStyle(fontWeight: FontWeight.bold)),
-          Text('$label ', style: AppTypography.bodySmall),
-          Text(
-            value,
-            style: AppTypography.bodySmall.copyWith(
-              color: isHighlight ? AppColors.success : AppColors.primary,
-              fontWeight: isHighlight ? FontWeight.bold : FontWeight.normal,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDataTable() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Detalle de operaciones',
-          style: AppTypography.titleMedium.copyWith(
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        const SizedBox(height: 8),
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: DataTable(
-            columnSpacing: 16,
-            headingRowColor: WidgetStateProperty.all(
-              Theme.of(context).colorScheme.surfaceContainerHighest,
-            ),
-            columns: const [
-              DataColumn(label: Text('Fecha')),
-              DataColumn(label: Text('Cliente')),
-              DataColumn(label: Text('Préstamo')),
-              DataColumn(label: Text('Moneda\nPago')),
-              DataColumn(label: Text('Monto Pago')),
-              DataColumn(label: Text('Tasa\nAplicada')),
-              DataColumn(label: Text('Equivalente\nCalculado')),
-              DataColumn(label: Text('Monto\nAplicado')),
-              DataColumn(label: Text('Diferencial\nCambiario')),
-            ],
-            rows: _fxPayments.map((p) {
-              final amountPayment =
-                  ((p['amount_payment_minor'] as int?) ?? 0) / 100.0;
-              final amountLoan =
-                  ((p['amount_loan_minor'] as int?) ?? 0) / 100.0;
-              final unapplied = ((p['unapplied_minor'] as int?) ?? 0) / 100.0;
-              final applied = amountLoan - unapplied;
-              final rate = (p['rate_value_used'] as num?)?.toDouble() ?? 0;
-              final paymentCurrency = p['payment_currency']?.toString() ?? '';
-              final customerName = p['customer_name']?.toString() ?? '';
-              final loanNumber = p['loan_number']?.toString() ?? '';
-
-              return DataRow(
-                cells: [
-                  DataCell(Text(_formatDate(p['created_at'] ?? ''))),
-                  DataCell(
-                    Text(
-                      customerName.length > 12
-                          ? '${customerName.substring(0, 12)}...'
-                          : customerName,
-                      style: TextStyle(color: AppColors.primary),
-                    ),
-                  ),
-                  DataCell(
-                    Text(
-                      loanNumber,
-                      style: TextStyle(color: AppColors.primary),
-                    ),
-                  ),
-                  DataCell(Text(paymentCurrency)),
-                  DataCell(Text(_formatMoney(amountPayment))),
-                  DataCell(Text(rate.toStringAsFixed(2))),
-                  DataCell(
-                    Text(
-                      _formatMoney(amountLoan),
-                      style: TextStyle(color: AppColors.primary),
-                    ),
-                  ),
-                  DataCell(
-                    Text(
-                      _formatMoney(applied),
-                      style: TextStyle(color: AppColors.primary),
-                    ),
-                  ),
-                  DataCell(
-                    Text(
-                      '+${_formatMoney(unapplied)}',
-                      style: TextStyle(
-                        color: AppColors.success,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ],
-              );
-            }).toList(),
-          ),
         ),
       ],
     );
@@ -797,7 +666,7 @@ class _FxDifferentialReportScreenState
               children: [
                 _buildDetailChip(
                   Icons.calendar_today,
-                  _formatDate(payment['created_at'] ?? ''),
+                  _formatDate((payment['created_at'] as String?) ?? ''),
                 ),
                 const SizedBox(width: 8),
                 _buildDetailChip(Icons.receipt_long, loanNumber),

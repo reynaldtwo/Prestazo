@@ -7,7 +7,7 @@ class Formatters {
   // Currency formatter for Nicaragua (NIO)
   static final NumberFormat _currencyFormatter = NumberFormat.currency(
     locale: 'es_NI',
-    symbol: 'C\$',
+    symbol: r'C$',
     decimalDigits: 2,
   );
 

@@ -2,60 +2,7 @@ import 'package:equatable/equatable.dart';
 
 /// Payment Plan model - Preconfigured loan plan
 class PaymentPlan extends Equatable {
-  /// Unique identifier
-  final String planId;
-
-  /// Plan name (required)
-  final String name;
-
-  /// Reference to payment_frequencies table
-  final String paymentFrequencyId;
-
-  /// Cached days interval from frequency
-  final int paymentFrequencyDays;
-
-  /// Term Value (e.g. 12)
-  final int termValue;
-
-  /// Term Unit (e.g. Months)
-  final String termUnit;
-
-  /// Number of installments in the plan
-  final int installmentsTotal;
-
-  /// Monthly interest rate (%)
-  final double monthlyInterestRate;
-
-  /// Base currency for this plan
-  final String currencyCode;
-
-  /// Allow changing currency when creating loan
-  final bool allowCurrencyChange;
-
-  /// Minimum loan amount
-  final double? minAmount;
-
-  /// Maximum loan amount
-  final double? maxAmount;
-
-  /// Distribute capital + interest across installments
-  final bool distributeCapitalAndInterest;
-
-  /// Period starts on disbursement date
-  final bool periodStartsOnDisbursement;
-
-  /// Comma-separated category IDs (null = all categories)
-  final String? applicableCategoryIds;
-
-  /// Whether the plan is active
-  final bool isActive;
-
-  /// Creation timestamp
-  final DateTime createdAt;
-
-  /// Last update timestamp
-  final DateTime updatedAt;
-
+  /// Crea un [PaymentPlan] que define las condiciones de un tipo de préstamo.
   const PaymentPlan({
     required this.planId,
     required this.name,
@@ -66,6 +13,8 @@ class PaymentPlan extends Equatable {
     required this.installmentsTotal,
     required this.monthlyInterestRate,
     required this.currencyCode,
+    required this.createdAt,
+    required this.updatedAt,
     this.allowCurrencyChange = false,
     this.minAmount,
     this.maxAmount,
@@ -73,8 +22,6 @@ class PaymentPlan extends Equatable {
     this.periodStartsOnDisbursement = true,
     this.applicableCategoryIds,
     this.isActive = true,
-    required this.createdAt,
-    required this.updatedAt,
   });
 
   /// Create from database map
@@ -102,6 +49,61 @@ class PaymentPlan extends Equatable {
       updatedAt: DateTime.parse(map['updated_at'] as String),
     );
   }
+
+  /// Unique identifier
+  /// Identificador único del plan.
+  final String planId;
+
+  /// Nombre del plan (ej: 'Plan Comercial').
+  final String name;
+
+  /// Referencia a la frecuencia de pago.
+  final String paymentFrequencyId;
+
+  /// Cantidad de días del intervalo de pago extraído de la frecuencia.
+  final int paymentFrequencyDays;
+
+  /// Valor del plazo (ej: 12).
+  final int termValue;
+
+  /// Unidad del plazo (ej: 'Months').
+  final String termUnit;
+
+  /// Número total de cuotas del plan.
+  final int installmentsTotal;
+
+  /// Tasa de interés mensual (%).
+  final double monthlyInterestRate;
+
+  /// Moneda base para este plan.
+  final String currencyCode;
+
+  /// Permite cambiar la moneda al crear un préstamo basado en este plan.
+  final bool allowCurrencyChange;
+
+  /// Monto mínimo del préstamo para este plan.
+  final double? minAmount;
+
+  /// Monto máximo del préstamo para este plan.
+  final double? maxAmount;
+
+  /// Indica si se debe distribuir capital e interés en las cuotas.
+  final bool distributeCapitalAndInterest;
+
+  /// Indica si el periodo inicia en la fecha de desembolso.
+  final bool periodStartsOnDisbursement;
+
+  /// IDs de categorías de clientes aplicables separated por comas (nulo = todas).
+  final String? applicableCategoryIds;
+
+  /// Indica si el plan está activo.
+  final bool isActive;
+
+  /// Fecha de creación del registro.
+  final DateTime createdAt;
+
+  /// Fecha de última actualización.
+  final DateTime updatedAt;
 
   /// Convert to database map
   Map<String, dynamic> toMap() {

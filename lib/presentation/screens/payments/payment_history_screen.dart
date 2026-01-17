@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../../core/theme/app_colors.dart';
-import '../../../core/theme/app_typography.dart';
-import '../../../core/widgets/widgets.dart';
-import '../../../data/providers/providers.dart';
-import '../../../core/localization/locale_provider.dart';
-import '../../../core/utils/currency_utils.dart';
+import 'package:prestamos_app/core/localization/locale_provider.dart';
+import 'package:prestamos_app/core/theme/app_colors.dart';
+import 'package:prestamos_app/core/theme/app_typography.dart';
+import 'package:prestamos_app/core/utils/currency_utils.dart';
+import 'package:prestamos_app/core/widgets/widgets.dart';
+import 'package:prestamos_app/data/providers/providers.dart';
 
-/// Payment history screen - Shows all registered payments
+/// Pantalla de historial de pagos - Muestra todos los pagos registrados.
 class PaymentHistoryScreen extends ConsumerWidget {
+  /// Crea una instancia de [PaymentHistoryScreen].
   const PaymentHistoryScreen({super.key});
 
   @override
@@ -71,13 +72,12 @@ class PaymentHistoryScreen extends ConsumerWidget {
 }
 
 class _PaymentCard extends StatelessWidget {
-  final Map<String, dynamic> payment;
-
   const _PaymentCard({required this.payment});
+  final Map<String, dynamic> payment;
 
   @override
   Widget build(BuildContext context) {
-    var amount = (payment['amount'] as num?)?.toDouble() ?? 0.0;
+    final amount = (payment['amount'] as num?)?.toDouble() ?? 0.0;
     final interestPaid = (payment['interest_paid'] as num?)?.toDouble() ?? 0.0;
     final principalPaid =
         (payment['principal_paid'] as num?)?.toDouble() ?? 0.0;
@@ -135,11 +135,7 @@ class _PaymentCard extends StatelessWidget {
                   ],
                 ),
               ),
-              MoneyDisplay(
-                amount: amount,
-                size: MoneyDisplaySize.medium,
-                currencySymbol: currencySymbol,
-              ),
+              MoneyDisplay(amount: amount, currencySymbol: currencySymbol),
             ],
           ),
           const SizedBox(height: 12),

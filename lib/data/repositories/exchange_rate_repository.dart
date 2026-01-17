@@ -1,13 +1,13 @@
+import 'package:prestamos_app/data/database/database_helper.dart';
+import 'package:prestamos_app/data/models/exchange_rate.dart';
 import 'package:uuid/uuid.dart';
-import '../database/database_helper.dart';
-import '../models/exchange_rate.dart';
 
 /// Repository for ExchangeRate CRUD operations
 class ExchangeRateRepository {
-  final DatabaseHelper _dbHelper;
-
+  /// Crea un [ExchangeRateRepository] con el [DatabaseHelper] proporcionado.
   ExchangeRateRepository({DatabaseHelper? dbHelper})
     : _dbHelper = dbHelper ?? DatabaseHelper();
+  final DatabaseHelper _dbHelper;
 
   /// Get all exchange rates
   Future<List<ExchangeRate>> getAllRates() async {
@@ -16,7 +16,7 @@ class ExchangeRateRepository {
       'exchange_rates',
       orderBy: 'rate_date DESC, source_currency, target_currency',
     );
-    return maps.map((m) => ExchangeRate.fromMap(m)).toList();
+    return maps.map(ExchangeRate.fromMap).toList();
   }
 
   /// Get rates for a specific currency pair
@@ -31,7 +31,7 @@ class ExchangeRateRepository {
       whereArgs: [source, target],
       orderBy: 'rate_date DESC',
     );
-    return maps.map((m) => ExchangeRate.fromMap(m)).toList();
+    return maps.map(ExchangeRate.fromMap).toList();
   }
 
   /// Get rate for a specific date and currency pair

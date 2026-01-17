@@ -1,7 +1,11 @@
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  String? validateDni(String? value, String? dniMask, bool validateDniFormat) {
+  String? validateDni(
+    String? value, {
+    required String? dniMask,
+    required bool validateDniFormat,
+  }) {
     if (value == null || value.trim().isEmpty) {
       return 'El DNI es requerido';
     }
@@ -16,7 +20,7 @@ void main() {
       }
 
       // Character check
-      for (int i = 0; i < mask.length; i++) {
+      for (var i = 0; i < mask.length; i++) {
         final maskChar = mask[i];
         final inputChar = input[i];
 
@@ -25,7 +29,7 @@ void main() {
             return 'Posición ${i + 1} debe ser un dígito';
           }
         } else if (maskChar == '@') {
-          if (!RegExp(r'[a-zA-Z]').hasMatch(inputChar)) {
+          if (!RegExp('[a-zA-Z]').hasMatch(inputChar)) {
             return 'Posición ${i + 1} debe ser una letra';
           }
         } else if (maskChar == '*') {
@@ -46,35 +50,35 @@ void main() {
 
     // Valid case
     expect(
-      validateDni('123-123456-1234A', mask, true),
+      validateDni('123-123456-1234A', dniMask: mask, validateDniFormat: true),
       null,
       reason: 'Should match valid input',
     );
 
     // Invalid length
     expect(
-      validateDni('123', mask, true),
+      validateDni('123', dniMask: mask, validateDniFormat: true),
       isNotNull,
       reason: 'Should fail length check',
     );
 
     // Invalid format (letter where number expected)
     expect(
-      validateDni('A23-123456-1234A', mask, true),
+      validateDni('A23-123456-1234A', dniMask: mask, validateDniFormat: true),
       isNotNull,
       reason: 'Should fail digit check',
     );
 
     // Invalid format (separator missing)
     expect(
-      validateDni('1230123456-1234A', mask, true),
+      validateDni('1230123456-1234A', dniMask: mask, validateDniFormat: true),
       isNotNull,
       reason: 'Should fail separator check',
     );
 
     // Mismatch mask
     expect(
-      validateDni('123-123456-12345', mask, true),
+      validateDni('123-123456-12345', dniMask: mask, validateDniFormat: true),
       isNotNull,
       reason: 'Last char should be letter',
     );

@@ -2,22 +2,7 @@ import 'package:equatable/equatable.dart';
 
 /// PaymentFxLeg model - FX transaction leg for multi-currency payments
 class PaymentFxLeg extends Equatable {
-  final String legId;
-  final String paymentId;
-  final int stepOrder; // 1 or 2
-  final String baseCurrency;
-  final String fromCurrency;
-  final String toCurrency;
-  final String rateTypeUsed; // BUY, SELL, MID, MANUAL
-  final double rateValueUsed;
-  final String? referenceRateType; // MID, PROVIDER_MID, MANUAL_REF
-  final double? referenceRateValue;
-  final int amountFromMinor;
-  final int amountToCustomerMinor;
-  final int? amountToReferenceMinor;
-  final int? fxProfitBaseMinor;
-  final DateTime createdAt;
-
+  /// Crea un [PaymentFxLeg] para registrar una etapa de una transacción multimoneda.
   const PaymentFxLeg({
     required this.legId,
     required this.paymentId,
@@ -27,22 +12,14 @@ class PaymentFxLeg extends Equatable {
     required this.toCurrency,
     required this.rateTypeUsed,
     required this.rateValueUsed,
-    this.referenceRateType,
-    this.referenceRateValue,
     required this.amountFromMinor,
     required this.amountToCustomerMinor,
+    required this.createdAt,
+    this.referenceRateType,
+    this.referenceRateValue,
     this.amountToReferenceMinor,
     this.fxProfitBaseMinor,
-    required this.createdAt,
   });
-
-  /// Get amounts in major units (for display)
-  double get amountFrom => amountFromMinor / 100.0;
-  double get amountToCustomer => amountToCustomerMinor / 100.0;
-  double? get amountToReference =>
-      amountToReferenceMinor != null ? amountToReferenceMinor! / 100.0 : null;
-  double? get fxProfitBase =>
-      fxProfitBaseMinor != null ? fxProfitBaseMinor! / 100.0 : null;
 
   /// Create from database map
   factory PaymentFxLeg.fromMap(Map<String, dynamic> map) {
@@ -64,6 +41,66 @@ class PaymentFxLeg extends Equatable {
       createdAt: DateTime.parse(map['created_at'] as String),
     );
   }
+
+  /// Identificador único de la etapa.
+  final String legId;
+
+  /// Identificador del pago asociado.
+  final String paymentId;
+
+  /// Orden de la etapa en la transacción (1 o 2).
+  final int stepOrder;
+
+  /// Código de la moneda base.
+  final String baseCurrency;
+
+  /// Código de la moneda de origen.
+  final String fromCurrency;
+
+  /// Código de la moneda de destino.
+  final String toCurrency;
+
+  /// Tipo de tasa utilizada ('BUY', 'SELL', 'MID', 'MANUAL').
+  final String rateTypeUsed;
+
+  /// Valor nominal de la tasa de cambio utilizada.
+  final double rateValueUsed;
+
+  /// Tipo de tasa de referencia (opcional).
+  final String? referenceRateType;
+
+  /// Valor nominal de la tasa de referencia (opcional).
+  final double? referenceRateValue;
+
+  /// Monto de origen en unidades menores.
+  final int amountFromMinor;
+
+  /// Monto destinado al cliente en unidades menores.
+  final int amountToCustomerMinor;
+
+  /// Monto equivalente usando la tasa de referencia (opcional).
+  final int? amountToReferenceMinor;
+
+  /// Ganancia por diferencial cambiario en moneda base (opcional).
+  final int? fxProfitBaseMinor;
+
+  /// Fecha de creación del registro.
+  final DateTime createdAt;
+
+  /// Get amounts in major units (for display)
+  /// Obtiene el monto de origen en unidades principales.
+  double get amountFrom => amountFromMinor / 100.0;
+
+  /// Obtiene el monto destinado al cliente en unidades principales.
+  double get amountToCustomer => amountToCustomerMinor / 100.0;
+
+  /// Obtiene el monto de referencia en unidades principales.
+  double? get amountToReference =>
+      amountToReferenceMinor != null ? amountToReferenceMinor! / 100.0 : null;
+
+  /// Obtiene la ganancia cambiaria en unidades principales.
+  double? get fxProfitBase =>
+      fxProfitBaseMinor != null ? fxProfitBaseMinor! / 100.0 : null;
 
   /// Convert to database map
   Map<String, dynamic> toMap() {

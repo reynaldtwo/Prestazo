@@ -1,13 +1,14 @@
-import 'package:test/test.dart';
+// ignore_for_file: avoid_print // Tests use print for financial validation output
 import 'package:mockito/mockito.dart';
-import 'package:prestamos_app/services/billing_cycle_service.dart';
-import 'package:prestamos_app/data/models/payment_plan.dart'; // Add implicit import for mock types if needed
-import 'package:prestamos_app/services/interest_calculation_service.dart';
-import 'package:prestamos_app/data/models/loan.dart';
 import 'package:prestamos_app/data/models/billing_cycle.dart';
 import 'package:prestamos_app/data/models/customer.dart';
-import 'package:prestamos_app/data/repositories/repositories.dart';
+import 'package:prestamos_app/data/models/loan.dart';
+import 'package:prestamos_app/data/models/payment_plan.dart'; // Add implicit import for mock types if needed
 import 'package:prestamos_app/data/repositories/payment_plan_repository.dart';
+import 'package:prestamos_app/data/repositories/repositories.dart';
+import 'package:prestamos_app/services/billing_cycle_service.dart';
+import 'package:prestamos_app/services/interest_calculation_service.dart';
+import 'package:test/test.dart';
 
 // Mock classes
 class MockLoanRepository extends Mock implements LoanRepository {}
@@ -84,8 +85,8 @@ void main() {
       'Debe generar 3 ciclos para préstamo quincenal Retroactivo (01-11-25) al revisar hoy (01-12-25)',
       () async {
         // Setup: Préstamo creado el 01-11-2025
-        final start = DateTime(2025, 11, 1);
-        final checkDate = DateTime(2025, 12, 1);
+        final start = DateTime(2025, 11);
+        final checkDate = DateTime(2025, 12);
 
         final loan = Loan(
           loanId: 'loan-repro-2',
@@ -96,7 +97,6 @@ void main() {
           disbursementDate: start,
           createdAt: start,
           updatedAt: start,
-          status: 'ACTIVE',
           billingFrequency: 'BIWEEKLY',
         );
 
@@ -108,7 +108,7 @@ void main() {
           updatedAt: start,
         );
 
-        (customerRepo).addCustomer(customer);
+        customerRepo.addCustomer(customer);
 
         // Act: Corremos la lógica simulando que HOY es 01-12-2025
         final cycles = await service.generateMissingCycles(
@@ -152,10 +152,9 @@ void main() {
           principalOriginal: 5000,
           principalBalance: 5000,
           monthlyInterestRate: 20,
-          disbursementDate: DateTime(2025, 12, 1),
-          rateUnit: 'MONTHLY',
-          createdAt: DateTime(2025, 12, 1),
-          updatedAt: DateTime(2025, 12, 1),
+          disbursementDate: DateTime(2025, 12),
+          createdAt: DateTime(2025, 12),
+          updatedAt: DateTime(2025, 12),
         );
 
         // Ciclo 1 quincenal: 01-12 al 15-12. Vencido.
@@ -165,11 +164,10 @@ void main() {
           loanId: '1',
           cycleNumber: 1,
           frequency: 'BIWEEKLY',
-          periodStartDate: DateTime(2025, 12, 1),
+          periodStartDate: DateTime(2025, 12),
           periodEndDate: DateTime(2025, 12, 15),
           dueDate: DateTime(2025, 12, 15),
           interestExpected: 500,
-          interestPaid: 0,
           interestPending: 500,
           status: 'OVERDUE',
           createdAt: DateTime(2025, 12, 15),
@@ -189,11 +187,9 @@ void main() {
           periodEndDate: DateTime(2025, 12, 30),
           dueDate: DateTime(2025, 12, 30),
           interestExpected: 500,
-          interestPaid: 0,
           interestPending: 500,
-          status: 'PENDING',
-          createdAt: DateTime(2025, 12, 1),
-          updatedAt: DateTime(2025, 12, 1),
+          createdAt: DateTime(2025, 12),
+          updatedAt: DateTime(2025, 12),
         );
 
         final result = calcService.calculateTotalDebt(
@@ -235,11 +231,9 @@ void main() {
           principalOriginal: 10000,
           principalBalance: 10000,
           monthlyInterestRate: 10,
-          rateUnit: 'MONTHLY',
-          billingFrequency: 'MONTHLY',
-          disbursementDate: DateTime(2026, 1, 1),
-          createdAt: DateTime(2026, 1, 1),
-          updatedAt: DateTime(2026, 1, 1),
+          disbursementDate: DateTime(2026),
+          createdAt: DateTime(2026),
+          updatedAt: DateTime(2026),
         );
 
         // 2 Ciclos Vencidos (Interest Only) + 1 Corriente
@@ -250,26 +244,16 @@ void main() {
             loanId: 'loan-cancel-noplan',
             cycleNumber: index + 1,
             status: index < 2 ? 'OVERDUE' : 'PENDING',
-            installmentExpected: null, // NO CAPITAL SCHEDULE
             installmentPaid: 0,
             installmentPending: 0,
             interestExpected: 1000,
             interestPending: 1000,
-            interestPaid: 0,
-            periodStartDate: DateTime(
-              2026,
-              1,
-              1,
-            ).add(Duration(days: 30 * index)),
-            periodEndDate: DateTime(
-              2026,
-              1,
-              1,
-            ).add(Duration(days: 30 * (index + 1))),
-            dueDate: DateTime(2026, 1, 1).add(Duration(days: 30 * (index + 1))),
+            periodStartDate: DateTime(2026).add(Duration(days: 30 * index)),
+            periodEndDate: DateTime(2026).add(Duration(days: 30 * (index + 1))),
+            dueDate: DateTime(2026).add(Duration(days: 30 * (index + 1))),
             frequency: 'MONTHLY',
-            createdAt: DateTime(2026, 1, 1),
-            updatedAt: DateTime(2026, 1, 1),
+            createdAt: DateTime(2026),
+            updatedAt: DateTime(2026),
           );
         });
 
@@ -277,7 +261,7 @@ void main() {
         final result = calcService.calculateTotalDebt(
           loan: loan,
           pendingCycles: cycles,
-          paymentDate: DateTime(2026, 2, 1), // During 2nd or 3rd cycle?
+          paymentDate: DateTime(2026, 2), // During 2nd or 3rd cycle?
           paymentType: 'CANCEL',
           dailyAccrualEnabled: false,
         );
@@ -321,18 +305,17 @@ void main() {
         principalOriginal: 10000,
         principalBalance: 10000,
         monthlyInterestRate: 10, // 10% mensual = 5% quincenal = 500 por ciclo
-        rateUnit: 'MONTHLY',
         billingFrequency: 'BIWEEKLY',
-        disbursementDate: DateTime(2025, 12, 1),
-        createdAt: DateTime(2025, 12, 1),
-        updatedAt: DateTime(2025, 12, 1),
+        disbursementDate: DateTime(2025, 12),
+        createdAt: DateTime(2025, 12),
+        updatedAt: DateTime(2025, 12),
       );
 
       // Ciclos Quincenales:
       // Ciclo 1: 01-12-25 a 15-12-25, vence 16-12-25 (OVERDUE)
       // Ciclo 2: 16-12-25 a 31-12-25, vence 01-01-26 (OVERDUE)
       // Ciclo 3: 01-01-26 a 15-01-26, vence 16-01-26 (CURRENT - estamos en 13-01-26)
-      final biweeklyInterest = 10000 * 0.10 / 2; // 500 por ciclo quincenal
+      const biweeklyInterest = 10000 * 0.10 / 2; // 500 por ciclo quincenal
 
       final cycles = [
         BillingCycle(
@@ -342,13 +325,12 @@ void main() {
           status: 'OVERDUE',
           interestExpected: biweeklyInterest,
           interestPending: biweeklyInterest, // 500
-          interestPaid: 0,
-          periodStartDate: DateTime(2025, 12, 1),
+          periodStartDate: DateTime(2025, 12),
           periodEndDate: DateTime(2025, 12, 15),
           dueDate: DateTime(2025, 12, 16), // Vencido
           frequency: 'BIWEEKLY',
-          createdAt: DateTime(2025, 12, 1),
-          updatedAt: DateTime(2025, 12, 1),
+          createdAt: DateTime(2025, 12),
+          updatedAt: DateTime(2025, 12),
         ),
         BillingCycle(
           billingCycleId: 'c-biweek-2',
@@ -357,28 +339,25 @@ void main() {
           status: 'OVERDUE',
           interestExpected: biweeklyInterest,
           interestPending: biweeklyInterest, // 500
-          interestPaid: 0,
           periodStartDate: DateTime(2025, 12, 16),
           periodEndDate: DateTime(2025, 12, 31),
-          dueDate: DateTime(2026, 1, 1), // Vencido
+          dueDate: DateTime(2026), // Vencido
           frequency: 'BIWEEKLY',
-          createdAt: DateTime(2025, 12, 1),
-          updatedAt: DateTime(2025, 12, 1),
+          createdAt: DateTime(2025, 12),
+          updatedAt: DateTime(2025, 12),
         ),
         BillingCycle(
           billingCycleId: 'c-biweek-3',
           loanId: 'loan-user-scenario',
           cycleNumber: 3,
-          status: 'PENDING', // Corriente
           interestExpected: biweeklyInterest,
           interestPending: biweeklyInterest, // 500
-          interestPaid: 0,
-          periodStartDate: DateTime(2026, 1, 1),
+          periodStartDate: DateTime(2026),
           periodEndDate: DateTime(2026, 1, 15),
           dueDate: DateTime(2026, 1, 16), // Aún no vence (estamos en 13-01)
           frequency: 'BIWEEKLY',
-          createdAt: DateTime(2025, 12, 1),
-          updatedAt: DateTime(2025, 12, 1),
+          createdAt: DateTime(2025, 12),
+          updatedAt: DateTime(2025, 12),
         ),
       ];
 

@@ -1,21 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../../core/theme/app_colors.dart';
-import '../../../core/theme/app_text_styles.dart';
-import '../../../core/widgets/widgets.dart';
-import '../../../data/models/customer.dart';
-import '../../../data/models/loan.dart';
-import '../../../data/providers/providers.dart';
-import '../../../core/constants/app_status.dart';
-import '../../../core/localization/locale_provider.dart';
-import '../../../core/utils/currency_utils.dart';
+import 'package:prestamos_app/core/constants/app_status.dart';
+import 'package:prestamos_app/core/localization/locale_provider.dart';
+import 'package:prestamos_app/core/theme/app_colors.dart';
+import 'package:prestamos_app/core/theme/app_text_styles.dart';
+import 'package:prestamos_app/core/utils/currency_utils.dart';
+import 'package:prestamos_app/core/widgets/widgets.dart';
+import 'package:prestamos_app/data/models/customer.dart';
+import 'package:prestamos_app/data/models/loan.dart';
+import 'package:prestamos_app/data/providers/providers.dart';
 
-/// Customer detail screen - Consolidated account view with real data
+/// Pantalla de detalle del cliente - Vista consolidada de la cuenta con datos reales.
 class CustomerDetailScreen extends ConsumerWidget {
-  final String customerId;
+  /// Crea una instancia de [CustomerDetailScreen].
+  const CustomerDetailScreen({required this.customerId, super.key});
 
-  const CustomerDetailScreen({super.key, required this.customerId});
+  /// Identificador único del cliente.
+  final String customerId;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -320,7 +322,6 @@ class CustomerDetailScreen extends ConsumerWidget {
           child: AppButton(
             label: S.of(context).newLoan,
             icon: Icons.add_card,
-            variant: AppButtonVariant.primary,
             onPressed: () => context.push('/customer/$customerId/loan/new'),
           ),
         ),
@@ -406,7 +407,7 @@ class CustomerDetailScreen extends ConsumerWidget {
                         if (!context.mounted) return false;
 
                         // 2. Confirmation Dialog
-                        return await showDialog(
+                        return showDialog(
                           context: context,
                           builder: (context) => AlertDialog(
                             title: Text(S.of(context).confirmDelete),
@@ -437,8 +438,9 @@ class CustomerDetailScreen extends ConsumerWidget {
                               .read(loanRepositoryProvider)
                               .deleteLoan(loan.loanId);
                           // Refresh data
-                          ref.invalidate(loansByCustomerProvider(customerId));
-                          ref.invalidate(customerByIdProvider(customerId));
+                          ref
+                            ..invalidate(loansByCustomerProvider(customerId))
+                            ..invalidate(customerByIdProvider(customerId));
 
                           if (context.mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
@@ -447,7 +449,7 @@ class CustomerDetailScreen extends ConsumerWidget {
                               ),
                             );
                           }
-                        } catch (e) {
+                        } on Exception catch (e) {
                           // Force refresh to "undo" visual removal
                           ref.invalidate(loansByCustomerProvider(customerId));
                           if (context.mounted) {
@@ -494,12 +496,6 @@ class CustomerDetailScreen extends ConsumerWidget {
 }
 
 class _SummaryItem extends StatelessWidget {
-  final String label;
-  final double value;
-  final IconData icon;
-  final Color iconColor;
-  final String? currencySymbol;
-
   const _SummaryItem({
     required this.label,
     required this.value,
@@ -507,6 +503,11 @@ class _SummaryItem extends StatelessWidget {
     required this.iconColor,
     this.currencySymbol,
   });
+  final String label;
+  final double value;
+  final IconData icon;
+  final Color iconColor;
+  final String? currencySymbol;
 
   @override
   Widget build(BuildContext context) {
@@ -521,21 +522,16 @@ class _SummaryItem extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 4),
-        MoneyDisplay(
-          amount: value,
-          size: MoneyDisplaySize.medium,
-          currencySymbol: currencySymbol,
-        ),
+        MoneyDisplay(amount: value, currencySymbol: currencySymbol),
       ],
     );
   }
 }
 
 class _LoanCard extends StatelessWidget {
+  const _LoanCard({required this.loan, required this.onTap});
   final Loan loan;
   final VoidCallback onTap;
-
-  const _LoanCard({required this.loan, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -569,7 +565,7 @@ class _LoanCard extends StatelessWidget {
                       ],
                     ),
                     Text(
-                      '${S.of(context).rate}: ${loan.monthlyInterestRate.toStringAsFixed(0)}% ${S.of(context).monthly}',
+                      '${S.of(context).rate}: ${loan.monthlyInterestRate.toStringAsFixed(2)}% ${S.of(context).monthly}',
                       style: context.textStyles.bodySmall,
                     ),
                   ],

@@ -1980,3 +1980,653 @@ Total a cancelar= capital + intereses vencidos + intereses parciales, entonces e
 **Aclaración importante**
 El sistema NO debe modificar el valor esperado del ciclo completo (500 NIO).
 El valor de 466.67 NIO corresponde únicamente al cálculo parcial para cancelación anticipada.
+
+
+
+
+
+
+
+
+
+
+Tómate un tiempo para analizar la siguiente mejora y haz el desarrollo considerando las reglas descritas en el archivo @file:.antigravityrules y apóyate del @mcp:dart-mcp-server: de Flutter para resolver los errores que aparezcan, así como para investigar sobre las buenas prácticas a la hora de escribir código.
+
+
+Siguiente mejora
+
+Configuración de Convención Financiera de Intereses (Day Count Convention)
+Ubicación: Ajustes → Políticas del Negocio
+
+Objetivo de negocio
+
+El sistema debe permitir que el prestamista defina, desde configuración, cómo se calculan los intereses en el tiempo, sin que exista ninguna regla financiera quemada en el código.
+
+Esta configuración será la autoridad única para todos los cálculos financieros del sistema:
+
+Intereses vencidos
+
+Intereses parciales
+
+Cálculo de cuotas
+
+Cancelaciones anticipadas
+
+Planes de pago
+
+Préstamos tradicionales
+
+El sistema debe adaptarse automáticamente según la política configurada por el prestamista.
+
+1) Nueva sección en Ajustes → Políticas del Negocio
+
+Crear una nueva pantalla:
+
+Ajustes → Políticas del Negocio → Convención Financiera de Intereses
+
+Con los siguientes campos configurables:
+
+1.1 Convención de conteo de días (Day Count Convention)
+
+Selector obligatorio:
+
+30/360 (Estándar comercial)
+
+Actual/360
+
+Actual/365
+
+30/365
+
+(Permitir agregar nuevas convenciones en el futuro)
+
+Este valor define cómo se calcula el interés diario.
+
+1.2 Días por mes
+
+Campo numérico obligatorio.
+
+Ejemplo:
+
+30 (para convención 30/360)
+
+31 (si el prestamista así lo desea)
+
+Este valor NO debe depender del calendario real.
+
+1.3 Días por año
+
+Campo numérico obligatorio.
+
+Ejemplo:
+
+360
+
+365
+
+1.4 Regla de prorrateo
+
+Selector obligatorio:
+
+Prorrateo por días exactos
+
+Prorrateo por proporción del ciclo
+
+(Este valor define cómo se calcula el interés parcial dentro de un ciclo.)
+
+1.5 Política de redondeo monetario
+
+Campos configurables:
+
+Cantidad de decimales (ej. 2, 3, 4)
+
+Tipo de redondeo:
+
+HALF_UP
+
+HALF_EVEN (bancario)
+
+DOWN
+
+UP
+
+2) Reglas obligatorias
+
+Ninguna fórmula financiera puede usar valores quemados como:
+
+30
+
+360
+
+365
+
+15
+
+7
+
+Todos los cálculos deben leer:
+
+Convención seleccionada
+
+Días por mes
+
+Días por año
+
+Regla de prorrateo
+
+Política de redondeo
+
+Desde Ajustes → Políticas del Negocio.
+
+Si el usuario cambia esta configuración, los nuevos préstamos deben usar la nueva política, pero los préstamos existentes deben conservar el snapshot de la política con la que fueron creados.
+
+3) Persistencia en Base de Datos
+
+Crear una nueva tabla o entidad:
+
+BusinessFinancialPolicy
+
+Campos mínimos:
+
+id
+
+dayCountConvention
+
+daysPerMonth
+
+daysPerYear
+
+prorationRule
+
+roundingDecimals
+
+roundingMode
+
+isActive
+
+createdAt
+
+updatedAt
+
+Solo puede existir una política activa a la vez.
+
+4) Snapshot en Préstamos
+
+Al crear un préstamo, se debe copiar la política activa a los campos del préstamo:
+
+loanDayCountConvention
+
+loanDaysPerMonth
+
+loanDaysPerYear
+
+loanProrationRule
+
+loanRoundingDecimals
+
+loanRoundingMode
+
+Esto garantiza que un préstamo nunca cambie su lógica financiera por cambios futuros en configuración.
+
+5) Impacto en el motor financiero
+
+Todo el sistema financiero debe leer estas políticas desde el préstamo, nunca desde constantes.
+
+Esto incluye:
+
+Generación de ciclos
+
+Cálculo de interés
+
+Interés parcial
+
+Cancelación
+
+Planes de pago
+
+Refinanciamientos
+
+Reportes
+
+6) Validaciones
+
+No permitir guardar políticas con valores inconsistentes.
+
+No permitir días por año menores a días por mes * 12.
+
+No permitir valores cero o negativos.
+
+Mostrar advertencia clara cuando se cambie la política.
+
+7) UI / UX
+
+La pantalla debe explicar en texto claro qué hace cada convención.
+
+Debe mostrarse un ejemplo automático de cálculo según la configuración seleccionada.
+
+Debe permitir previsualizar cómo quedaría una cuota ejemplo.
+
+8) Documentación obligatoria
+
+El desarrollador debe:
+
+Documentar la política financiera en el proyecto.
+
+Documentar cómo impacta en el cálculo.
+
+Documentar que no existen reglas quemadas.
+
+Documentar cómo extender nuevas convenciones en el futuro.
+
+Resultado esperado
+
+El sistema deja de tener reglas financieras rígidas y pasa a ser un motor financiero parametrizable, donde:
+
+El prestamista controla la matemática del negocio, no el código.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+REFINAMIENTO – VALIDACIÓN DE LECTURA DE CONVENCIÓN FINANCIERA DESDE AJUSTES
+Objetivo
+
+Verificar y garantizar que el sistema lea correctamente la Convención Financiera configurada en Ajustes y que esta política se aplique de forma real y efectiva en todos los cálculos financieros del préstamo, en especial en el cálculo de Cancelar Préstamo.
+
+Contexto
+
+Actualmente, al cambiar la Convención Financiera en:
+
+Ajustes → Políticas del Negocio → Convención Financiera
+(ejemplo: 30/360, Actual/360, Actual/365, 30/365)
+
+el resultado del cálculo de cancelación no varía, lo cual indica que:
+
+O la configuración no se está leyendo.
+
+O se está leyendo, pero no se está aplicando.
+
+O el préstamo no está usando correctamente el snapshot de política financiera.
+
+Escenario de Prueba Reproducible
+Paso 1
+
+Configurar en Ajustes:
+
+Convención: Actual/365
+Regla de prorrateo: Días Exactos
+Redondeo: 2 decimales – Hacia Arriba
+
+Guardar configuración.
+
+Paso 2
+
+Crear un préstamo nuevo con:
+
+Capital: 10,000 NIO
+
+Tasa mensual: 10%
+
+Fecha de desembolso: hoy
+
+Paso 3
+
+Ir a la opción Cancelar Préstamo y registrar el total sugerido.
+
+Paso 4
+
+Volver a Ajustes y cambiar la Convención a:
+
+Convención: 30/360
+
+Guardar configuración.
+
+Paso 5
+
+Crear otro préstamo nuevo con los mismos datos.
+
+Paso 6
+
+Ir nuevamente a Cancelar Préstamo.
+
+Resultado Esperado
+
+Los resultados de cancelación deben ser distintos entre ambos préstamos, ya que la convención financiera utilizada es diferente.
+
+Resultado Actual
+
+El sistema muestra el mismo monto en la cancelación sin importar la convención configurada.
+
+Validaciones que se deben realizar en código
+
+El sistema debe validar y documentar:
+
+Que la Convención Financiera se lee desde Ajustes correctamente.
+
+Que dicha política se guarda como snapshot en el préstamo al momento de crearlo.
+
+Que todos los cálculos financieros usan exclusivamente la política almacenada en el préstamo, no valores hardcodeados.
+
+Que no exista ninguna fórmula con:
+
+/360
+
+/365
+
+30
+
+15
+sin provenir de la política configurada.
+
+Que el cálculo de:
+
+Interés vencido
+
+Interés parcial
+
+Cancelación total
+dependan estrictamente de la política financiera del préstamo.
+
+Regla obligatoria
+
+Ningún cálculo financiero debe usar valores fijos.
+Todo debe provenir de la política financiera configurada y del snapshot almacenado en el préstamo.
+
+Objetivo del refinamiento
+
+Garantizar que:
+
+La configuración en Ajustes no sea solo visual.
+
+El sistema sea auditable financieramente.
+
+El comportamiento sea equivalente a un sistema bancario real.
+
+
+
+
+
+
+
+
+
+
+
+
+**escenario de prueba**
+
+ESCENARIO A — SIN PLAN — Convención 30/360 — CANCELAR con 2 vencidas + 1 corriendo
+
+1) Ajustes
+
+Ajustes → Políticas del Negocio → Convención Financiera: 30/360
+
+2) Datos del préstamo (sin plan)
+
+Capital: 10,000.00 NIO
+
+Tasa: 10% mensual
+
+Frecuencia: Quincenal (15 días)
+
+Fecha desembolso: 05-12-2025
+
+Fecha actual de prueba: 14-01-2026
+
+Plan de pago: NO
+
+3) Ciclos de pago esperados
+
+Ciclo 1: 05-12-2025 – 19-12-2025 (15 días) → Vencido
+
+Ciclo 2: 20-12-2025 – 03-01-2026 (15 días) → Vencido
+
+Ciclo 3: 04-01-2026 – 18-01-2026 (15 días) → Corriendo (porque hoy 14-01 está dentro)
+
+4) Ir a pagar
+
+Acción: Cancelar (fecha hoy 14-01-2026)
+
+5) Resultado esperado (qué debe mostrar al cancelar)
+
+Con 30/360, la fórmula esperada para interés diario (derivada de 10% mensual) es:
+
+Tasa anual = 10% × 12 = 120% anual
+
+Interés periodo = Capital × 1.20 × (días devengados / 360)
+
+Entonces:
+
+Intereses vencidos: 2 periodos completos de 15 días:
+
+Interés 15 días = 10,000 × 1.20 × (15/360) = 500.00
+
+Vencidos = 2 × 500.00 = 1,000.00
+
+Interés parcial del ciclo corriendo: desde 04-01-2026 hasta 14-01-2026
+
+Días devengados = lo que el sistema defina internamente (esto es justamente lo que hay que validar con tu convención elegida).
+
+Por eso el total esperado debe ser uno de estos, dependiendo de si el motor cuenta 10 o 11 días:
+
+Si son 10 días: parcial = 10,000 × 1.20 × (10/360) = 333.33 → Total cancelar 11,333.33
+
+Si son 11 días: parcial = 10,000 × 1.20 × (11/360) = 366.67 → Total cancelar 11,366.67
+
+Qué valida este escenario
+
+Que 30/360 esté aplicando 360 en el denominador y que el interés por 15 días sea 500.
+
+Que el “parcial” se calcule con la misma convención.
+
+ESCENARIO B — SIN PLAN — Convención Actual/365 — MISMO PRÉSTAMO — CANCELAR (debe dar DIFERENTE)
+
+1) Ajustes
+
+Convención Financiera: Actual/365
+
+2) Datos del préstamo
+
+Exactamente los mismos del Escenario A.
+
+3) Ciclos
+
+Exactamente los mismos del Escenario A.
+
+4) Ir a pagar
+
+Acción: Cancelar
+
+5) Resultado esperado
+
+Interés vencido para 15 días con Actual/365:
+
+Interés 15 días = 10,000 × 1.20 × (15/365) = 493.15
+
+Vencidos (2 ciclos) = 2 × 493.15 = 986.30
+
+Interés parcial (04-01 a 14-01):
+
+Si 10 días: 10,000 × 1.20 × (10/365) = 328.77
+
+Si 11 días: 10,000 × 1.20 × (11/365) = 361.64
+
+Total cancelar esperado:
+
+Con 10 días: 10,000 + 986.30 + 328.77 = 11,315.07
+
+Con 11 días: 10,000 + 986.30 + 361.64 = 11,347.94
+
+Qué valida este escenario
+
+Que al cambiar de 30/360 a Actual/365, el total de “Cancelar” cambie (si no cambia, no está leyendo ajustes o no está aplicando convención).
+
+ESCENARIO C — CON PLAN — Cuotas niveladas capital+interés — ajuste de redondeo (última cuota)
+
+1) Ajustes
+
+Convención Financiera: cualquiera (este escenario es de “cuotas” y redondeo)
+
+2) Datos del plan
+
+Plan: Iniciantes
+
+Plazo: 3 Meses
+
+Frecuencia: Quincenal (15 días)
+
+Total cuotas: 6
+
+Tasa: 10% mensual
+
+Distribuir capital + interés en cuotas niveladas: Sí
+
+3) Datos del préstamo
+
+Seleccionar Plan: Iniciantes
+
+Capital: 10,000.00
+
+Crear préstamo
+
+4) Ciclos de pago esperados
+
+Interés total: 10,000 × 10% × 3 = 3,000
+
+Total: 13,000
+
+6 cuotas: 13,000 / 6 = 2,166.666…
+
+Esperado “a lo bancario” (cierre exacto)
+
+Las cuotas deben sumar exactamente 13,000.00
+
+Ejemplo válido:
+
+Cuotas 1–5 = 2,166.67
+
+Cuota 6 = 2,166.65
+
+No debe quedar 13,000.02
+
+Qué valida este escenario
+
+Que el ajuste por redondeo se haga dinámico en la última cuota.
+
+ESCENARIO D — PRUEBA CLAVE: que los ajustes sí afectan (verificación rápida)
+
+1) Ajustes
+
+Poner Convención: 30/360
+
+2) Préstamo
+
+Usar Escenario A (sin plan)
+
+3) Resultado
+
+Guardar el total “Cancelar”
+
+4) Ajustes
+
+Cambiar Convención: Actual/365
+
+5) Mismo préstamo / misma fecha
+
+Volver a “Cancelar”
+
+6) Resultado esperado
+
+El total debe ser diferente.
+
+
+
+
+Agrega un campo a la tabla de clientes que se llame "lacero" de tipo string y hace la migracion de Sqflite y usa el MCP de dart para apoyarte en el desarrollo, y asegurate de usar la ultima version de la libreria SqfLite, tanto la documentacion como la implementacion y tambien verifica que cuando inicie el app no tenga ningun conflicto con mis tablas
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+**Siguiente mejora**
+/* 17 enero 2026 */
+
+Tómate un tiempo para analizar la siguiente mejora y haz el desarrollo considerando las reglas descritas en el archivo code-rules.md y apóyate del MCP de Dart para resolver los errores que aparezcan, así como para investigar sobre las buenas prácticas a la hora de escribir código.
+
+**PANTALLA QUE SE ABRE AL SELECCIONAR UN CLIENTE EN CLIENTES**
+
+En la parte de historial de préstamos, el campo que muestra la tasa de interes del préstamo, cuando la tasa es un numero con decimal , ejemplo: 12.40 , el sistema solo muestra la parte entera y no la parde decimal, ese campo debe ser de tipo de decimal para soportar ambos tipos de numeros.
+
+
+**PANTALLA Detalles del Préstamo**
+
+Aca tenemos el mismo problema, el campo que muestra la tasa de interes del prestamo, cuando la tasa es un numero con decimal , ejemplo: 12.40 , el sistema solo muestra la parte entera y no la parde decimal, ese campo debe ser de tipo de decimal para soportar ambos tipos de numeros.
+
+Repara ambos fix y hay nomas hacete una busqueda en todo el proyecto incluyendo pantallas y reportes en busca de casos similares y corrige todos los problemas relacionado con el tema arriba descrito.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

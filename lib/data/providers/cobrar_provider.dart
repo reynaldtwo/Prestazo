@@ -1,49 +1,71 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'database_providers.dart';
+import 'package:prestamos_app/data/providers/database_providers.dart';
 
 /// Model for customer due data in "A Cobrar" screen
 class CustomerDueInfo {
-  final String customerId;
-  final String customerName;
-  final String? alias;
-  final String? phone;
-  final String billingFrequency;
-  final double totalCapitalBalance;
-  final double totalInterestExpected;
-  final double totalInterestPending;
-  final double totalInterestPaid;
-  final DateTime? lastPaymentDate;
-  final int daysOverdue;
-  final bool isInMora;
-  final List<LoanDueInfo> loans;
-
+  /// Crea una instancia de [CustomerDueInfo] con la información de deuda del cliente.
   const CustomerDueInfo({
     required this.customerId,
     required this.customerName,
-    this.alias,
-    this.phone,
     required this.billingFrequency,
     required this.totalCapitalBalance,
     required this.totalInterestExpected,
     required this.totalInterestPending,
     required this.totalInterestPaid,
-    this.lastPaymentDate,
     required this.daysOverdue,
     required this.isInMora,
     required this.loans,
+    this.alias,
+    this.phone,
+    this.lastPaymentDate,
   });
 
+  /// Identificador único del cliente.
+  final String customerId;
+
+  /// Nombre completo del cliente.
+  final String customerName;
+
+  /// Alias o nombre corto (opcional).
+  final String? alias;
+
+  /// Teléfono de contacto.
+  final String? phone;
+
+  /// Frecuencia de facturación.
+  final String billingFrequency;
+
+  /// Saldo total de capital pendiente.
+  final double totalCapitalBalance;
+
+  /// Interés total esperado.
+  final double totalInterestExpected;
+
+  /// Interés total pendiente de pago.
+  final double totalInterestPending;
+
+  /// Interés total ya pagado.
+  final double totalInterestPaid;
+
+  /// Fecha del último pago realizado.
+  final DateTime? lastPaymentDate;
+
+  /// Cantidad de días de retraso.
+  final int daysOverdue;
+
+  /// Indica si el cliente está legalmente en mora (ej: > 7 días).
+  final bool isInMora;
+
+  /// Lista de deudas individuales por préstamo.
+  final List<LoanDueInfo> loans;
+
+  /// Nombre a mostrar (alias si existe, si no el nombre real).
   String get displayName => alias ?? customerName;
 }
 
 /// Model for loan due data
 class LoanDueInfo {
-  final String loanId;
-  final double principalBalance;
-  final double interestExpected;
-  final double interestPending;
-  final DateTime? nextDueDate;
-
+  /// Crea información detallada de deuda para un préstamo específico.
   const LoanDueInfo({
     required this.loanId,
     required this.principalBalance,
@@ -51,20 +73,42 @@ class LoanDueInfo {
     required this.interestPending,
     this.nextDueDate,
   });
+
+  /// ID del préstamo.
+  final String loanId;
+
+  /// Saldo actual de capital.
+  final double principalBalance;
+
+  /// Interés total esperado para este préstamo.
+  final double interestExpected;
+
+  /// Interés pendiente de pago.
+  final double interestPending;
+
+  /// Fecha del próximo vencimiento (si aplica).
+  final DateTime? nextDueDate;
 }
 
 /// Filter type for A Cobrar screen
-enum CobrarFilter { biweekly, monthly, next7Days, overdue }
+/// Filtros disponibles para la pantalla "A Cobrar".
+enum CobrarFilter {
+  /// Préstamos quincenales vencidos.
+  biweekly,
+
+  /// Préstamos mensuales vencidos.
+  monthly,
+
+  /// Vencimientos en los próximos 7 días.
+  next7Days,
+
+  /// Todos los préstamos en mora real.
+  overdue,
+}
 
 /// State for A Cobrar screen
 class CobrarState {
-  final List<CustomerDueInfo> customers;
-  final List<CustomerDueInfo> filteredCustomers;
-  final bool isLoading;
-  final String? error;
-  final CobrarFilter activeFilter;
-  final String searchQuery;
-
+  /// Crea un estado inicial para la pantalla "A Cobrar".
   const CobrarState({
     this.customers = const [],
     this.filteredCustomers = const [],
@@ -74,6 +118,25 @@ class CobrarState {
     this.searchQuery = '',
   });
 
+  /// Lista completa de clientes con deudas según el filtro.
+  final List<CustomerDueInfo> customers;
+
+  /// Lista filtrada por la búsqueda del usuario.
+  final List<CustomerDueInfo> filteredCustomers;
+
+  /// Indica si los datos se están cargando.
+  final bool isLoading;
+
+  /// Mensaje de error si la carga falló.
+  final String? error;
+
+  /// Filtro actualmente activo.
+  final CobrarFilter activeFilter;
+
+  /// Texto de búsqueda actual.
+  final String searchQuery;
+
+  /// Crea una copia de este estado con los campos proporcionados actualizados.
   CobrarState copyWith({
     List<CustomerDueInfo>? customers,
     List<CustomerDueInfo>? filteredCustomers,
@@ -105,15 +168,15 @@ class CobrarState {
 
 /// Notifier for A Cobrar screen data
 class CobrarNotifier extends StateNotifier<CobrarState> {
-  final Ref _ref;
-
+  /// Crea un [CobrarNotifier] e inicia la carga de datos.
   CobrarNotifier(this._ref) : super(const CobrarState()) {
     loadData();
   }
+  final Ref _ref;
 
   /// Load data based on current filter
   Future<void> loadData() async {
-    state = state.copyWith(isLoading: true, error: null);
+    state = state.copyWith(isLoading: true);
     try {
       final customers = await _fetchCustomersWithDueInfo(state.activeFilter);
       final filtered = _applySearch(customers, state.searchQuery);
@@ -122,7 +185,7 @@ class CobrarNotifier extends StateNotifier<CobrarState> {
         filteredCustomers: filtered,
         isLoading: false,
       );
-    } catch (e) {
+    } on Exception catch (e) {
       state = state.copyWith(isLoading: false, error: e.toString());
     }
   }
@@ -171,7 +234,7 @@ class CobrarNotifier extends StateNotifier<CobrarState> {
     final todayStr = today.toIso8601String().split('T')[0];
 
     // Get moratorium days from settings for overdue calculation
-    int moratoriumDays = 0;
+    var moratoriumDays = 0;
     if (filter == CobrarFilter.overdue) {
       final settingsResult = await db.query(
         'app_settings',
@@ -186,7 +249,7 @@ class CobrarNotifier extends StateNotifier<CobrarState> {
 
     // Build query based on filter
     String query;
-    List<dynamic> args = [];
+    final args = <dynamic>[];
 
     switch (filter) {
       case CobrarFilter.overdue:
@@ -218,7 +281,6 @@ class CobrarNotifier extends StateNotifier<CobrarState> {
           ORDER BY bc.due_date ASC, c.full_name ASC
         ''';
         args.add(cutoffDateStr);
-        break;
 
       case CobrarFilter.biweekly:
         // Biweekly loans with OVERDUE cycles only (due_date < today)
@@ -246,7 +308,6 @@ class CobrarNotifier extends StateNotifier<CobrarState> {
           ORDER BY bc.due_date ASC, c.full_name ASC
         ''';
         args.add(todayStr);
-        break;
 
       case CobrarFilter.next7Days:
         // Cycles due in next 7 days
@@ -276,7 +337,6 @@ class CobrarNotifier extends StateNotifier<CobrarState> {
           ORDER BY bc.due_date ASC, c.full_name ASC
         ''';
         args.addAll([todayStr, next7Str]);
-        break;
 
       case CobrarFilter.monthly:
         // Monthly loans with OVERDUE cycles only (due_date < today)
@@ -304,20 +364,19 @@ class CobrarNotifier extends StateNotifier<CobrarState> {
           ORDER BY bc.due_date ASC, c.full_name ASC
         ''';
         args.add(todayStr);
-        break;
     }
 
     final results = await db.rawQuery(query, args);
 
     // Group by customer
-    final Map<String, CustomerDueInfo> customerMap = {};
+    final customerMap = <String, CustomerDueInfo>{};
 
     for (final row in results) {
-      final customerId = row['customer_id'] as String;
+      final customerId = row['customer_id']! as String;
 
       if (!customerMap.containsKey(customerId)) {
         // Calculate days overdue from billing cycle due date
-        int daysOverdue = 0;
+        var daysOverdue = 0;
         final dueDateStr = row['due_date'] as String?;
         if (dueDateStr != null) {
           final dueDate = DateTime.parse(dueDateStr);
@@ -334,10 +393,10 @@ class CobrarNotifier extends StateNotifier<CobrarState> {
 
         customerMap[customerId] = CustomerDueInfo(
           customerId: customerId,
-          customerName: row['full_name'] as String,
+          customerName: row['full_name']! as String,
           alias: row['alias'] as String?,
           phone: row['phone'] as String?,
-          billingFrequency: row['billing_frequency'] as String,
+          billingFrequency: row['billing_frequency']! as String,
           totalCapitalBalance: 0,
           totalInterestExpected: 0,
           totalInterestPending: 0,

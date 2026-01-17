@@ -11,7 +11,7 @@ library;
 String incrementStringCode(String code) {
   if (code.isEmpty) return '1';
 
-  final RegExp regex = RegExp(r'(\d+)$');
+  final regex = RegExp(r'(\d+)$');
   final match = regex.firstMatch(code);
 
   if (match != null) {
@@ -21,7 +21,7 @@ String incrementStringCode(String code) {
     final newNumber = number + 1;
 
     // Preserve padding if number length didn't increase
-    String newNumberStr = newNumber.toString();
+    var newNumberStr = newNumber.toString();
     if (newNumberStr.length < numberStr.length) {
       newNumberStr = newNumberStr.padLeft(numberStr.length, '0');
     }

@@ -11,7 +11,7 @@ void main() {
 
       final result = FxService.convertMinor(
         amountMinor: 500, // 5.00
-        rate: 37.0,
+        rate: 37,
         fromCurrency: 'USD',
         toCurrency: 'NIO',
         baseCurrency: 'NIO',
@@ -26,7 +26,7 @@ void main() {
 
       final result = FxService.convertMinor(
         amountMinor: 18500, // 185.00
-        rate: 37.0,
+        rate: 37,
         fromCurrency: 'NIO',
         toCurrency: 'USD',
         baseCurrency: 'NIO',
@@ -53,9 +53,9 @@ void main() {
 
     test('Input with Comma Sanitization Logic (Simulation)', () {
       // User inputs "37,00"
-      String input = "37,00";
-      String sanitized = input.replaceAll(',', '.');
-      double? rate = double.tryParse(sanitized);
+      const input = '37,00';
+      final sanitized = input.replaceAll(',', '.');
+      final rate = double.tryParse(sanitized);
 
       expect(rate, 37.0);
 

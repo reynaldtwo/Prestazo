@@ -1,31 +1,9 @@
 import 'package:equatable/equatable.dart';
-import '../../core/constants/app_status.dart';
+import 'package:prestamos_app/core/constants/app_status.dart';
 
 /// BillingCycle model - Interest cycle per loan
 class BillingCycle extends Equatable {
-  final String billingCycleId;
-  final String loanId;
-  final int cycleNumber;
-  final String frequency;
-  final DateTime periodStartDate;
-  final DateTime periodEndDate;
-  final DateTime dueDate;
-  final double interestExpected;
-  final double interestPaid;
-  final double interestPending;
-  final String status;
-  final DateTime? closedAt;
-  final bool isCapitalized;
-  final double capitalizedAmount;
-  final DateTime? capitalizedAt;
-  final DateTime createdAt;
-  final DateTime updatedAt;
-  // V29: Installment fields for plan distribution
-  final double? installmentExpected;
-  final double? installmentPaid;
-  final double? installmentPending;
-  final double? principalPortion;
-
+  /// Crea un [BillingCycle] que representa un periodo de cobro de intereses.
   const BillingCycle({
     required this.billingCycleId,
     required this.loanId,
@@ -35,42 +13,20 @@ class BillingCycle extends Equatable {
     required this.periodEndDate,
     required this.dueDate,
     required this.interestExpected,
-    this.interestPaid = 0,
     required this.interestPending,
+    required this.createdAt,
+    required this.updatedAt,
+    this.interestPaid = 0,
     this.status = AppStatus.cyclePending,
     this.closedAt,
     this.isCapitalized = false,
     this.capitalizedAmount = 0,
     this.capitalizedAt,
-    required this.createdAt,
-    required this.updatedAt,
     this.installmentExpected,
     this.installmentPaid,
     this.installmentPending,
     this.principalPortion,
   });
-
-  /// Check if cycle is overdue
-  bool get isOverdue =>
-      status == AppStatus.cycleOverdue ||
-      (status == AppStatus.cyclePending && dueDate.isBefore(DateTime.now()));
-
-  /// Check if cycle is fully paid
-  bool get isPaid => status == AppStatus.cyclePaid || interestPending <= 0;
-
-  /// Check if cycle is closed
-  bool get isClosed => status == AppStatus.cycleClosed; // Mapped to CLOSED
-
-  /// Days until due (negative if overdue)
-  int get daysUntilDue {
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final due = DateTime(dueDate.year, dueDate.month, dueDate.day);
-    return due.difference(today).inDays;
-  }
-
-  /// Days overdue (0 if not overdue)
-  int get daysOverdue => daysUntilDue < 0 ? daysUntilDue.abs() : 0;
 
   /// Create from database map
   factory BillingCycle.fromMap(Map<String, dynamic> map) {
@@ -102,6 +58,92 @@ class BillingCycle extends Equatable {
       principalPortion: (map['principal_portion'] as num?)?.toDouble(),
     );
   }
+
+  /// Identificador único del ciclo de facturación.
+  final String billingCycleId;
+
+  /// Identificador del préstamo asociado.
+  final String loanId;
+
+  /// Número correlativo del ciclo dentro del préstamo.
+  final int cycleNumber;
+
+  /// Frecuencia del ciclo (ej: 'MONTHLY').
+  final String frequency;
+
+  /// Fecha de inicio del periodo que cubre este ciclo.
+  final DateTime periodStartDate;
+
+  /// Fecha de fin del periodo que cubre este ciclo.
+  final DateTime periodEndDate;
+
+  /// Fecha de vencimiento para el pago de este ciclo.
+  final DateTime dueDate;
+
+  /// Monto de interés esperado para este ciclo.
+  final double interestExpected;
+
+  /// Monto de interés pagado hasta ahora.
+  final double interestPaid;
+
+  /// Monto de interés pendiente de pago.
+  final double interestPending;
+
+  /// Estado actual del ciclo (PENDING, PAID, OVERDUE, etc).
+  final String status;
+
+  /// Fecha en la que el ciclo fue cerrado.
+  final DateTime? closedAt;
+
+  /// Indica si el interés de este ciclo fue capitalizado.
+  final bool isCapitalized;
+
+  /// Monto total capitalizado en este ciclo.
+  final double capitalizedAmount;
+
+  /// Fecha en la que ocurrió la capitalización.
+  final DateTime? capitalizedAt;
+
+  /// Fecha de creación del registro.
+  final DateTime createdAt;
+
+  /// Fecha de última actualización.
+  final DateTime updatedAt;
+
+  // V29: Installment fields for plan distribution
+  /// Cuota total esperada (Capital + Interés) (V29).
+  final double? installmentExpected;
+
+  /// Cuota total pagada (V29).
+  final double? installmentPaid;
+
+  /// Cuota total pendiente (V29).
+  final double? installmentPending;
+
+  /// Porción del capital incluida en la cuota (V29).
+  final double? principalPortion;
+
+  /// Check if cycle is overdue
+  bool get isOverdue =>
+      status == AppStatus.cycleOverdue ||
+      (status == AppStatus.cyclePending && dueDate.isBefore(DateTime.now()));
+
+  /// Check if cycle is fully paid
+  bool get isPaid => status == AppStatus.cyclePaid || interestPending <= 0;
+
+  /// Check if cycle is closed
+  bool get isClosed => status == AppStatus.cycleClosed; // Mapped to CLOSED
+
+  /// Days until due (negative if overdue)
+  int get daysUntilDue {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final due = DateTime(dueDate.year, dueDate.month, dueDate.day);
+    return due.difference(today).inDays;
+  }
+
+  /// Days overdue (0 if not overdue)
+  int get daysOverdue => daysUntilDue < 0 ? daysUntilDue.abs() : 0;
 
   /// Convert to database map
   Map<String, dynamic> toMap() {

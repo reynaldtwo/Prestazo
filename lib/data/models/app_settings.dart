@@ -2,76 +2,10 @@ import 'package:equatable/equatable.dart';
 
 /// AppSettings model - Global configuration (1 row)
 class AppSettings extends Equatable {
-  final String settingsId;
-  final String baseCurrency;
-  final bool capitalizeUnpaidInterest;
-  final int moratoriumDays;
-  final String paymentApplyOrder;
-  final bool deriveBiweeklyRate;
-  final String receiptNextNumber;
-  final String loanNextNumber;
-  final double availableCapital;
-  final bool validateCapital;
-  final bool dailyAccrualEnabled;
-  final bool allowMultipleLoans;
-  final bool validateDni;
-  final bool validateDniFormat;
-  final String? dniMask;
-  final String? companyName;
-  final bool showCompanyName;
-  final String? companyRuc;
-  final bool showCompanyRuc;
-  final String? companyPhone;
-  final bool showCompanyPhone;
-  final String? companyCell;
-  final bool showCompanyCell;
-  final String? companyWhatsapp;
-  final bool showCompanyWhatsapp;
-  final String? companyAddress;
-  final bool showCompanyAddress;
-  final String? companyLogoPath;
-  final bool showCompanyLogo;
-  final String? backupPath;
-  final bool shareReceiptsWhatsApp;
-  final String? companyCountryCode;
-
-  // Report settings
-  final bool showDisbursementSignatures;
-  final bool showPaymentSignatures;
-  final String? disbursementLegend;
-  final bool showDisbursementLegend;
-  final String? paymentLegend;
-  final bool showPaymentLegend;
-
-  // Capital Payment Restriction
-  final bool enableCapitalRestriction;
-  final int capitalRestrictionDays;
-
-  // Report Currency Settings (for prestamista reports)
-  final String reportCurrency; // Currency code for reports (e.g., 'USD')
-  final double exchangeRate; // Exchange rate: 1 reportCurrency = X baseCurrency
-
-  // Scheduled Backup Settings
-  final String backupFrequency; // 'DAILY', 'WEEKLY', 'MONTHLY', 'NONE'
-  final int backupRetentionDays; // Days to keep old backups
-  final bool backupOnLoanCreation;
-  final bool backupOnPayment;
-  final String? backupScheduleTime; // HH:MM
-  final String? backupCustomName; // Prefix for file name
-  final int backupRetries;
-  final bool allowManualExchangeRate;
-
-  // Rate Type Configuration (Buy vs Sell)
-  final String disbursementRateType; // 'BUY', 'SELL', 'MID'
-  final String paymentRateType; // 'BUY', 'SELL', 'MID'
-
-  // Recovery Priority
-  final String recoveryPriority; // 'CAPITAL_FIRST', 'INTEREST_FIRST'
-
-  final DateTime createdAt;
-  final DateTime updatedAt;
-
+  /// Crea una instancia de [AppSettings] con la configuración global.
   const AppSettings({
+    required this.createdAt,
+    required this.updatedAt,
     this.settingsId = 'global',
     this.baseCurrency = 'NIO',
     this.capitalizeUnpaidInterest = false,
@@ -125,8 +59,6 @@ class AppSettings extends Equatable {
     this.disbursementRateType = 'SELL',
     this.paymentRateType = 'BUY',
     this.recoveryPriority = 'CAPITAL_FIRST',
-    required this.createdAt,
-    required this.updatedAt,
   });
 
   /// Create default settings
@@ -201,6 +133,177 @@ class AppSettings extends Equatable {
       updatedAt: DateTime.parse(map['updated_at'] as String),
     );
   }
+
+  /// Identificador único de los ajustes (normalmente 'global').
+  final String settingsId;
+
+  /// Código de la moneda base del sistema (ej: 'NIO').
+  final String baseCurrency;
+
+  /// Indica si se debe capitalizar el interés no pagado al final del ciclo.
+  final bool capitalizeUnpaidInterest;
+
+  /// Días de gracia antes de considerar un pago en mora.
+  final int moratoriumDays;
+
+  /// Orden de aplicación de los pagos (ej: 'INTEREST_FIRST').
+  final String paymentApplyOrder;
+
+  /// Indica si la tasa quincenal se deriva simplemente dividiendo la mensual.
+  final bool deriveBiweeklyRate;
+
+  /// Siguiente número de recibo a generar.
+  final String receiptNextNumber;
+
+  /// Siguiente número de préstamo a generar.
+  final String loanNextNumber;
+
+  /// Capital total disponible para prestar.
+  final double availableCapital;
+
+  /// Indica si se debe validar que haya capital disponible antes de prestar.
+  final bool validateCapital;
+
+  /// Indica si el devengo de intereses es diario.
+  final bool dailyAccrualEnabled;
+
+  /// Permite que un cliente tenga más de un préstamo activo.
+  final bool allowMultipleLoans;
+
+  /// Indica si es obligatorio validar el DNI del cliente.
+  final bool validateDni;
+
+  /// Indica si se debe validar el formato del DNI.
+  final bool validateDniFormat;
+
+  /// Máscara de formato para el DNI.
+  final String? dniMask;
+
+  /// Nombre de la empresa o prestamista.
+  final String? companyName;
+
+  /// Indica si se muestra el nombre de la empresa en documentos.
+  final bool showCompanyName;
+
+  /// RUC de la empresa.
+  final String? companyRuc;
+
+  /// Indica si se muestra el RUC en documentos.
+  final bool showCompanyRuc;
+
+  /// Teléfono fijo de la empresa.
+  final String? companyPhone;
+
+  /// Indica si se muestra el teléfono fijo en documentos.
+  final bool showCompanyPhone;
+
+  /// Celular de la empresa.
+  final String? companyCell;
+
+  /// Indica si se muestra el celular en documentos.
+  final bool showCompanyCell;
+
+  /// WhatsApp de contacto de la empresa.
+  final String? companyWhatsapp;
+
+  /// Indica si se muestra el WhatsApp en documentos.
+  final bool showCompanyWhatsapp;
+
+  /// Dirección física de la empresa.
+  final String? companyAddress;
+
+  /// Indica si se muestra la dirección en documentos.
+  final bool showCompanyAddress;
+
+  /// Ruta al logo de la empresa.
+  final String? companyLogoPath;
+
+  /// Indica si se muestra el logo en documentos.
+  final bool showCompanyLogo;
+
+  /// Ruta base para los respaldos de base de datos.
+  final String? backupPath;
+
+  /// Indica si se deben compartir los recibos por WhatsApp automáticamente.
+  final bool shareReceiptsWhatsApp;
+
+  /// Código de país de la empresa (para WhatsApp/formatos).
+  final String? companyCountryCode;
+
+  // Report settings
+  /// Indica si se muestran firmas en el documento de desembolso.
+  final bool showDisbursementSignatures;
+
+  /// Indica si se muestran firmas en el recibo de pago.
+  final bool showPaymentSignatures;
+
+  /// Leyenda legal o aclaratoria para desembolsos.
+  final String? disbursementLegend;
+
+  /// Indica si se muestra la leyenda en desembolsos.
+  final bool showDisbursementLegend;
+
+  /// Leyenda legal para recibos de pago.
+  final String? paymentLegend;
+
+  /// Indica si se muestra la leyenda en pagos.
+  final bool showPaymentLegend;
+
+  // Capital Payment Restriction
+  /// Indica si está habilitada la restricción de pagos a capital.
+  final bool enableCapitalRestriction;
+
+  /// Días mínimos de antigüedad del préstamo para permitir abonos a capital.
+  final int capitalRestrictionDays;
+
+  // Report Currency Settings (for prestamista reports)
+  /// Código de moneda para reportes financieros (ej: 'USD').
+  final String reportCurrency;
+
+  /// Tasa de cambio: 1 unidad de [reportCurrency] equivale a X unidades de base.
+  final double exchangeRate;
+
+  // Scheduled Backup Settings
+  /// Frecuencia de respaldos automáticos ('DAILY', 'WEEKLY', etc).
+  final String backupFrequency;
+
+  /// Días de retención para archivos de respaldo antiguos.
+  final int backupRetentionDays;
+
+  /// Indica si se debe respaldar al crear un nuevo préstamo.
+  final bool backupOnLoanCreation;
+
+  /// Indica si se debe respaldar al registrar un pago.
+  final bool backupOnPayment;
+
+  /// Hora programada para el respaldo automático (HH:MM).
+  final String? backupScheduleTime;
+
+  /// Prefijo para el nombre de los archivos de respaldo.
+  final String? backupCustomName;
+
+  /// Cantidad de reintentos en caso de fallo del respaldo.
+  final int backupRetries;
+
+  /// Permite ingresar una tasa de cambio manual en transacciones.
+  final bool allowManualExchangeRate;
+
+  // Rate Type Configuration (Buy vs Sell)
+  /// Tipo de tasa para desembolsos ('BUY', 'SELL', 'MID').
+  final String disbursementRateType;
+
+  /// Tipo de tasa para cobros de pagos ('BUY', 'SELL', 'MID').
+  final String paymentRateType;
+
+  // Recovery Priority
+  /// Prioridad de recuperación de saldo ('CAPITAL_FIRST' o 'INTEREST_FIRST').
+  final String recoveryPriority;
+
+  /// Fecha de creación de la configuración.
+  final DateTime createdAt;
+
+  /// Fecha de última modificación de los ajustes.
+  final DateTime updatedAt;
 
   /// Convert to database map
   Map<String, dynamic> toMap() {
@@ -387,6 +490,7 @@ class AppSettings extends Equatable {
   }
 
   /// Get remaining capital (available - used)
+  /// Calcula el capital restante disponible para prestar.
   double getRemainingCapital(double capitalColocado) {
     if (availableCapital <= 0) return double.infinity;
     return availableCapital - capitalColocado;

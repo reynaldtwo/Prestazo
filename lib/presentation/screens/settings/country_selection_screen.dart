@@ -1,10 +1,12 @@
 import 'package:country_picker/country_picker.dart';
 import 'package:flutter/material.dart';
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_typography.dart';
-import '../../../../core/localization/locale_provider.dart';
+import 'package:prestamos_app/core/localization/locale_provider.dart';
+import 'package:prestamos_app/core/theme/app_colors.dart';
+import 'package:prestamos_app/core/theme/app_typography.dart';
 
+/// Pantalla de selección de país.
 class CountrySelectionScreen extends StatefulWidget {
+  /// Crea una instancia de [CountrySelectionScreen].
   const CountrySelectionScreen({super.key});
 
   @override

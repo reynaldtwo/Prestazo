@@ -1,57 +1,10 @@
 import 'package:equatable/equatable.dart';
-import '../../core/constants/app_status.dart';
+import 'package:prestamos_app/core/constants/app_status.dart';
 
 /// Payment model - Matches V25 schema with minor units (Int64)
 /// Includes backward-compatible fields for smooth migration
 class Payment extends Equatable {
-  final String paymentId;
-  final String loanId;
-
-  // Amounts in minor units (centavos)
-  final int amountPaymentMinor; // What customer paid in payment currency
-  final int amountBaseMinor; // Equivalent in base currency
-  final int amountLoanMinor; // Equivalent in loan currency
-
-  // Currencies (all required)
-  final String paymentCurrency;
-  final String loanCurrency;
-  final String baseCurrency;
-
-  // FX tracking
-  final String? rateId;
-  final String? rateTypeUsed; // BUY, SELL, MID, MANUAL
-  final double? rateValueUsed;
-  final String? rateDateUsed;
-  final double? referenceRateValue;
-  final int fxProfitBaseMinor;
-  final String fxStatus; // NONE, APPLIED, PENDING
-
-  // Status & VOID
-  final String status; // VALID, VOIDED
-  final String? voidReasonKey;
-  final DateTime? voidedAt;
-
-  // Idempotency
-  final String idempotencyKey;
-  final String payloadHash;
-
-  // Legacy migration
-  final DateTime? legacyMigratedAt;
-  final bool legacyAmbiguous;
-
-  // Unapplied amount (overpayment)
-  final int unappliedMinor;
-
-  // Timestamps
-  final DateTime createdAt;
-  final DateTime updatedAt;
-
-  // === DEPRECATED FIELDS (for backward compatibility) ===
-  final String? _customerId;
-  final String? _receiptNumber;
-  final String? _declaredType;
-  final String? _notes;
-
+  /// Crea un [Payment] que representa un abono o cancelación de préstamo.
   const Payment({
     required this.paymentId,
     required this.loanId,
@@ -61,6 +14,10 @@ class Payment extends Equatable {
     required this.paymentCurrency,
     required this.loanCurrency,
     required this.baseCurrency,
+    required this.idempotencyKey,
+    required this.payloadHash,
+    required this.createdAt,
+    required this.updatedAt,
     this.rateId,
     this.rateTypeUsed,
     this.rateValueUsed,
@@ -71,13 +28,9 @@ class Payment extends Equatable {
     this.status = AppStatus.paymentValid,
     this.voidReasonKey,
     this.voidedAt,
-    required this.idempotencyKey,
-    required this.payloadHash,
     this.legacyMigratedAt,
     this.legacyAmbiguous = false,
     this.unappliedMinor = 0,
-    required this.createdAt,
-    required this.updatedAt,
     // Deprecated params
     String? customerId,
     String? receiptNumber,
@@ -87,48 +40,6 @@ class Payment extends Equatable {
        _receiptNumber = receiptNumber,
        _declaredType = declaredType,
        _notes = notes;
-
-  /// Check if payment is valid
-  bool get isValid => status == AppStatus.paymentValid;
-
-  /// Check if payment is voided
-  bool get isVoided => status == AppStatus.paymentVoided;
-
-  /// Get amount in major units (for display)
-  double get amountPayment => amountPaymentMinor / 100.0;
-  double get amountBase => amountBaseMinor / 100.0;
-  double get amountLoan => amountLoanMinor / 100.0;
-  double get fxProfitBase => fxProfitBaseMinor / 100.0;
-  double get unapplied => unappliedMinor / 100.0;
-
-  // === BACKWARD COMPATIBILITY GETTERS ===
-
-  /// @deprecated Use amountPayment instead
-  double get amount => amountPayment;
-
-  /// @deprecated Customer ID is now derived from loan
-  String? get customerId => _customerId;
-
-  /// @deprecated Use createdAt for payment date
-  DateTime get paymentDate => createdAt;
-
-  /// @deprecated Receipt number
-  String? get receiptNumber => _receiptNumber;
-
-  /// @deprecated Use voidReasonKey instead
-  String? get voidReason => voidReasonKey;
-
-  /// @deprecated Use fxProfitBase
-  double? get exchangeProfit => fxProfitBaseMinor != 0 ? fxProfitBase : null;
-
-  /// @deprecated Use rateValueUsed
-  double? get exchangeRateApplied => rateValueUsed;
-
-  /// @deprecated Declared type - no longer used
-  String get declaredType => _declaredType ?? 'MIXED';
-
-  /// @deprecated Notes field
-  String? get notes => _notes;
 
   /// Create from database map
   factory Payment.fromMap(Map<String, dynamic> map) {
@@ -167,6 +78,147 @@ class Payment extends Equatable {
       receiptNumber: map['receipt_number']?.toString(),
     );
   }
+
+  /// Identificador único del pago.
+  final String paymentId;
+
+  /// Identificador del préstamo al que se aplica el pago.
+  final String loanId;
+
+  // Amounts in minor units (centavos)
+  /// Monto pagado en unidades menores (centavos) de la moneda de pago.
+  final int amountPaymentMinor;
+
+  /// Monto equivalente en unidades menores de la moneda base.
+  final int amountBaseMinor;
+
+  /// Monto equivalente en unidades menores de la moneda del préstamo.
+  final int amountLoanMinor;
+
+  // Currencies (all required)
+  /// Código de la moneda en la que se realizó el pago.
+  final String paymentCurrency;
+
+  /// Código de la moneda del préstamo.
+  final String loanCurrency;
+
+  /// Código de la moneda base de la aplicación.
+  final String baseCurrency;
+
+  // FX tracking
+  /// Identificador de la tasa de cambio utilizada (opcional).
+  final String? rateId;
+
+  /// Tipo de tasa utilizada (BUY, SELL, MID, MANUAL).
+  final String? rateTypeUsed;
+
+  /// Valor nominal de la tasa de cambio aplicada.
+  final double? rateValueUsed;
+
+  /// Fecha de la tasa de cambio utilizada.
+  final String? rateDateUsed;
+
+  /// Valor de referencia de la tasa de cambio.
+  final double? referenceRateValue;
+
+  /// Ganancia por diferencial cambiario en moneda base (V25).
+  final int fxProfitBaseMinor;
+
+  /// Estado de la transacción cambiaria (NONE, APPLIED, PENDING).
+  final String fxStatus;
+
+  // Status & VOID
+  /// Estado del pago (VALID, VOIDED).
+  final String status;
+
+  /// Razón de la anulación (si aplica).
+  final String? voidReasonKey;
+
+  /// Fecha y hora de la anulación.
+  final DateTime? voidedAt;
+
+  // Idempotency
+  /// Clave única para prevenir pagos duplicados.
+  final String idempotencyKey;
+
+  /// Hash del contenido para verificar integridad.
+  final String payloadHash;
+
+  // Legacy migration
+  /// Fecha de migración desde sistemas anteriores.
+  final DateTime? legacyMigratedAt;
+
+  /// Indica si el registro migrado tiene ambigüedades.
+  final bool legacyAmbiguous;
+
+  // Unapplied amount (overpayment)
+  /// Monto no aplicado (excedente) en unidades menores.
+  final int unappliedMinor;
+
+  // Timestamps
+  /// Fecha de creación del registro.
+  final DateTime createdAt;
+
+  /// Fecha de última actualización.
+  final DateTime updatedAt;
+
+  // === DEPRECATED FIELDS (for backward compatibility) ===
+  final String? _customerId;
+  final String? _receiptNumber;
+  final String? _declaredType;
+  final String? _notes;
+
+  /// Check if payment is valid
+  bool get isValid => status == AppStatus.paymentValid;
+
+  /// Check if payment is voided
+  bool get isVoided => status == AppStatus.paymentVoided;
+
+  /// Get amount in major units (for display)
+  /// Obtiene el monto pagado en unidades principales (ej: 100.00).
+  double get amountPayment => amountPaymentMinor / 100.0;
+
+  /// Obtiene el monto en moneda base en unidades principales.
+  double get amountBase => amountBaseMinor / 100.0;
+
+  /// Obtiene el monto aplicado al préstamo en unidades principales.
+  double get amountLoan => amountLoanMinor / 100.0;
+
+  /// Obtiene la ganancia cambiaria en unidades principales.
+  double get fxProfitBase => fxProfitBaseMinor / 100.0;
+
+  /// Obtiene el monto no aplicado en unidades principales.
+  double get unapplied => unappliedMinor / 100.0;
+
+  // === BACKWARD COMPATIBILITY GETTERS ===
+
+  /// @deprecated Use amountPayment instead
+  /// @deprecated Usar [amountPayment] en su lugar.
+  double get amount => amountPayment;
+
+  /// @deprecated El ID del cliente ahora se deriva del préstamo asociado.
+  String? get customerId => _customerId;
+
+  /// @deprecated Usar [createdAt] para la fecha del pago.
+  DateTime get paymentDate => createdAt;
+
+  /// @deprecated Número de recibo físico.
+  String? get receiptNumber => _receiptNumber;
+
+  /// @deprecated Usar [voidReasonKey] en su lugar.
+  String? get voidReason => voidReasonKey;
+
+  /// @deprecated Usar [fxProfitBase].
+  double? get exchangeProfit => fxProfitBaseMinor != 0 ? fxProfitBase : null;
+
+  /// @deprecated Usar [rateValueUsed].
+  double? get exchangeRateApplied => rateValueUsed;
+
+  /// @deprecated Tipo declarado (sin uso actual).
+  String get declaredType => _declaredType ?? 'MIXED';
+
+  /// @deprecated Notas u observaciones.
+  String? get notes => _notes;
 
   /// Convert to database map
   Map<String, dynamic> toMap() {

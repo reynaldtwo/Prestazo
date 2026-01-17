@@ -1,12 +1,12 @@
-import '../database/database_helper.dart';
-import '../models/app_settings.dart';
+import 'package:prestamos_app/data/database/database_helper.dart';
+import 'package:prestamos_app/data/models/app_settings.dart';
 
 /// Repository for AppSettings operations
 class SettingsRepository {
-  final DatabaseHelper _databaseHelper;
-
+  /// Crea un [SettingsRepository] con el [DatabaseHelper] proporcionado.
   SettingsRepository({DatabaseHelper? databaseHelper})
     : _databaseHelper = databaseHelper ?? DatabaseHelper();
+  final DatabaseHelper _databaseHelper;
 
   /// Get global settings
   Future<AppSettings> getSettings() async {
@@ -27,7 +27,7 @@ class SettingsRepository {
   /// Update settings
   Future<int> updateSettings(AppSettings settings) async {
     final db = await _databaseHelper.database;
-    return await db.update(
+    return db.update(
       'app_settings',
       settings.copyWith(updatedAt: DateTime.now()).toMap(),
       where: 'settings_id = ?',
@@ -38,7 +38,7 @@ class SettingsRepository {
   /// Update specific setting
   Future<int> updateSetting(String key, dynamic value) async {
     final db = await _databaseHelper.database;
-    return await db.update(
+    return db.update(
       'app_settings',
       {key: value, 'updated_at': DateTime.now().toIso8601String()},
       where: 'settings_id = ?',
@@ -79,7 +79,7 @@ class SettingsRepository {
   /// Reset receipt number to 1
   Future<int> resetReceiptNumber() async {
     final db = await _databaseHelper.database;
-    return await db.update(
+    return db.update(
       'app_settings',
       {
         'receipt_next_number': '1',
@@ -94,7 +94,7 @@ class SettingsRepository {
   String _incrementStringCode(String code) {
     if (code.isEmpty) return '1';
 
-    final RegExp regex = RegExp(r'(\d+)$');
+    final regex = RegExp(r'(\d+)$');
     final match = regex.firstMatch(code);
 
     if (match != null) {
@@ -104,7 +104,7 @@ class SettingsRepository {
       final newNumber = number + 1;
 
       // Preserve padding if number length didn't increase
-      String newNumberStr = newNumber.toString();
+      var newNumberStr = newNumber.toString();
       if (newNumberStr.length < numberStr.length) {
         newNumberStr = newNumberStr.padLeft(numberStr.length, '0');
       }

@@ -1,21 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../core/theme/app_colors.dart';
-import '../../../core/theme/app_typography.dart';
-import '../../../core/widgets/widgets.dart';
-import '../../../data/providers/providers.dart';
-import '../../../data/models/loan.dart';
-
-import '../../../core/localization/locale_provider.dart';
-import '../../../core/providers/currency_provider.dart';
+import 'package:prestamos_app/core/localization/locale_provider.dart';
+import 'package:prestamos_app/core/providers/currency_provider.dart';
+import 'package:prestamos_app/core/theme/app_colors.dart';
+import 'package:prestamos_app/core/theme/app_typography.dart';
+import 'package:prestamos_app/core/widgets/widgets.dart';
+import 'package:prestamos_app/data/models/loan.dart';
+import 'package:prestamos_app/data/providers/providers.dart';
+import 'package:prestamos_app/presentation/screens/reports/fx_differential_report_screen.dart';
 import 'package:sealed_currencies/sealed_currencies.dart';
 
-import 'fx_differential_report_screen.dart';
-
+/// Pantalla principal de reportes.
 class ReportsScreen extends ConsumerStatefulWidget {
-  final int initialTab;
-
+  /// Crea una instancia de [ReportsScreen].
   const ReportsScreen({super.key, this.initialTab = 0});
+
+  /// Pestaña inicial a mostrar.
+  final int initialTab;
 
   @override
   ConsumerState<ReportsScreen> createState() => _ReportsScreenState();
@@ -41,7 +42,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
   void initState() {
     super.initState();
     _selectedTab = widget.initialTab;
-    _startDate = DateTime(DateTime.now().year, DateTime.now().month, 1);
+    _startDate = DateTime(DateTime.now().year, DateTime.now().month);
     _endDate = DateTime.now();
     _loadRealizedEarnings();
     _loadProjectedEarnings();
@@ -150,11 +151,12 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
       body: Stack(
         children: [
           // Main content
-          _selectedTab == 0
-              ? _buildRealizedTab()
-              : _selectedTab == 1
-              ? _buildProjectedTab()
-              : const FxDifferentialReportScreen(),
+          if (_selectedTab == 0)
+            _buildRealizedTab()
+          else
+            _selectedTab == 1
+                ? _buildProjectedTab()
+                : const FxDifferentialReportScreen(),
           // Arc Sidebar custom widget
           ArcSideBar(
             key: _arcSideBarKey,
@@ -336,12 +338,10 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                 style: AppTypography.titleMedium,
               ),
               const SizedBox(height: 8),
-              ..._paymentsDetail
-                  .take(20)
-                  .map((p) => _buildPaymentDetailCard(p)),
+              ..._paymentsDetail.take(20).map(_buildPaymentDetailCard),
               if (_paymentsDetail.length > 20)
                 Padding(
-                  padding: const EdgeInsets.all(8.0),
+                  padding: const EdgeInsets.all(8),
                   child: Text(
                     '... ${S.of(context).and} ${_paymentsDetail.length - 20} ${S.of(context).morePayments}',
                     style: AppTypography.labelSmall,
@@ -369,7 +369,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
         FiatCurrency.maybeFromCode(loanCurrencyCode)?.symbol ??
         loanCurrencyCode;
 
-    final customerName = payment['customer_name'] ?? 'Sin nombre';
+    final customerName = (payment['customer_name'] as String?) ?? 'Sin nombre';
 
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
@@ -385,7 +385,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                   Row(
                     children: [
                       Text(
-                        '${date.day}/${date.month}/${date.year} • ${S.of(context).receiptNumber}${payment['receipt_number'] ?? '---'}',
+                        '${date.day}/${date.month}/${date.year} • ${S.of(context).receiptNumber}${payment['receipt_number']?.toString() ?? '---'}',
                         style: AppTypography.labelSmall,
                       ),
                       const SizedBox(width: 8),
@@ -421,7 +421,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                 ),
                 if (interestPaid > 0)
                   Text(
-                    'Int: $symbol ${interestPaid.toStringAsFixed(0)}',
+                    'Int: $symbol ${interestPaid.toStringAsFixed(2)}',
                     style: AppTypography.labelSmall.copyWith(
                       color: AppColors.success,
                     ),
@@ -517,7 +517,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
               // Use the LOAN'S original currency
               final loanSymbol =
                   FiatCurrency.maybeFromCode(loan.currencyCode)?.symbol ??
-                  'C\$';
+                  r'C$';
 
               return Card(
                 margin: const EdgeInsets.only(bottom: 8),
@@ -555,7 +555,9 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                         amount: principal,
                         currencySymbol: loanSymbol,
                       ),
-                      Text(' @ ${loan.monthlyInterestRate}%'),
+                      Text(
+                        ' @ ${loan.monthlyInterestRate.toStringAsFixed(2)}%',
+                      ),
                     ],
                   ),
                   trailing: Column(
@@ -599,6 +601,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
   Future<void> _shareReport() async {
     final pdfService = ref.read(pdfGeneratorServiceProvider);
     final settings = ref.read(appSettingsProvider).value;
+    final locale = Localizations.localeOf(context);
 
     if (settings == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -641,7 +644,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
           final earningsByCurrency = <String, double>{};
           final principalByCurrency = <String, double>{};
 
-          for (var row in _paymentsDetail) {
+          for (final row in _paymentsDetail) {
             final currency =
                 row['currency_code'] as String? ?? settings.baseCurrency;
             final interest = (row['interest_paid'] as num?)?.toDouble() ?? 0;
@@ -667,7 +670,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
           endDate: _endDate,
           paymentsData: _paymentsDetail,
           settings: settings,
-          locale: Localizations.localeOf(this.context),
+          locale: locale,
           currencySymbol:
               displayCurrencySymbol ??
               ref.read(currencyProvider).symbol ??
@@ -712,7 +715,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
           originalByCurrency = <String, double>{};
           balanceByCurrency = <String, double>{};
 
-          for (var row in loansData) {
+          for (final row in loansData) {
             final currency =
                 row['currency_code'] as String? ?? settings.baseCurrency;
             final original = (row['principal_original'] as num).toDouble();
@@ -737,7 +740,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
         await pdfService.generateConsolidatedActiveLoansReport(
           loansData: loansData,
           settings: settings,
-          locale: Localizations.localeOf(this.context),
+          locale: locale,
           currencySymbol:
               displayCurrencySymbol ??
               ref.read(currencyProvider).symbol ??
@@ -750,7 +753,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
           totalInBaseCurrency: totalInBaseCurrency,
         );
       }
-    } catch (e) {
+    } on Exception catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(

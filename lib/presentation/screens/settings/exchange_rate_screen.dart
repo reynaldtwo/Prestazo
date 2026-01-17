@@ -1,21 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
-import '../../../core/theme/app_colors.dart';
-import '../../../core/theme/app_typography.dart';
-import '../../../core/widgets/widgets.dart';
-import '../../../data/models/exchange_rate.dart';
-import '../../../data/providers/database_providers.dart';
-import '../../../core/localization/locale_provider.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
+import 'package:prestamos_app/core/localization/locale_provider.dart';
+import 'package:prestamos_app/core/theme/app_colors.dart';
+import 'package:prestamos_app/core/theme/app_typography.dart';
+import 'package:prestamos_app/core/widgets/widgets.dart';
+import 'package:prestamos_app/data/models/exchange_rate.dart';
+import 'package:prestamos_app/data/providers/database_providers.dart';
 
-/// Provider for exchange rates list
+/// Proveedor para la lista de tasas de cambio.
 final exchangeRatesProvider = FutureProvider<List<ExchangeRate>>((ref) async {
   final repo = ref.watch(exchangeRateRepositoryProvider);
   return repo.getAllRates();
 });
 
+/// Pantalla para visualizar y gestionar las tasas de cambio.
 class ExchangeRateScreen extends ConsumerStatefulWidget {
+  /// Crea una instancia de [ExchangeRateScreen].
   const ExchangeRateScreen({super.key});
 
   @override
@@ -46,7 +48,7 @@ class _ExchangeRateScreenState extends ConsumerState<ExchangeRateScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(
+                  const Icon(
                     Icons.currency_exchange,
                     size: 64,
                     color: AppColors.textSecondary,
@@ -165,7 +167,7 @@ class _ExchangeRateScreenState extends ConsumerState<ExchangeRateScreen> {
 
   Future<void> _createNewRate(BuildContext context) async {
     final result = await context.pushNamed<bool>('new-exchange-rate');
-    if (result == true) {
+    if (result ?? false) {
       ref.invalidate(exchangeRatesProvider);
     }
   }
@@ -175,7 +177,7 @@ class _ExchangeRateScreenState extends ConsumerState<ExchangeRateScreen> {
       'edit-exchange-rate',
       pathParameters: {'id': rate.rateId},
     );
-    if (result == true) {
+    if (result ?? false) {
       ref.invalidate(exchangeRatesProvider);
     }
   }
@@ -200,24 +202,26 @@ class _ExchangeRateScreenState extends ConsumerState<ExchangeRateScreen> {
       ),
     );
 
-    if (confirmed == true) {
+    if (confirmed ?? false) {
       try {
         final repo = ref.read(exchangeRateRepositoryProvider);
         await repo.deleteRate(rate.rateId);
         ref.invalidate(exchangeRatesProvider);
-        if (mounted) {
+        if (context.mounted) {
+          final l10n = S.of(context);
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(S.of(context).rateDeletedSuccessfully),
+              content: Text(l10n.rateDeletedSuccessfully),
               backgroundColor: AppColors.success,
             ),
           );
         }
-      } catch (e) {
-        if (mounted) {
+      } on Exception catch (e) {
+        if (context.mounted) {
+          final l10n = S.of(context);
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(S.of(context).genericError(e)),
+              content: Text(l10n.genericError(e)),
               backgroundColor: AppColors.danger,
             ),
           );
@@ -235,9 +239,9 @@ class _ExchangeRateScreenState extends ConsumerState<ExchangeRateScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(4),
-        border: Border.all(color: color.withOpacity(0.3)),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,

@@ -1,23 +1,44 @@
 import 'package:flutter/material.dart';
-import '../theme/app_colors.dart';
-import '../theme/app_typography.dart';
+import 'package:prestamos_app/core/theme/app_colors.dart';
+import 'package:prestamos_app/core/theme/app_typography.dart';
 
 /// Reusable button component with multiple variants
-enum AppButtonVariant { primary, secondary, outline, text, danger }
-enum AppButtonSize { small, medium, large }
+/// Variantes disponibles para el botón.
+enum AppButtonVariant {
+  /// Botón principal con color sólido primario.
+  primary,
 
+  /// Botón secundario con color de acento.
+  secondary,
+
+  /// Botón con borde y fondo transparente.
+  outline,
+
+  /// Botón de texto plano sin bordes ni fondo.
+  text,
+
+  /// Botón para acciones destructivas o de error.
+  danger,
+}
+
+/// Tamaños predefinidos para el botón.
+enum AppButtonSize {
+  /// Tamaño pequeño (40px de altura).
+  small,
+
+  /// Tamaño estándar (48px de altura).
+  medium,
+
+  /// Tamaño grande (56px de altura).
+  large,
+}
+
+/// Botón personalizado que sigue el sistema de diseño de la aplicación.
 class AppButton extends StatelessWidget {
-  final String label;
-  final VoidCallback? onPressed;
-  final AppButtonVariant variant;
-  final AppButtonSize size;
-  final IconData? icon;
-  final bool isLoading;
-  final bool isFullWidth;
-
+  /// Crea un [AppButton] con parámetros configurables.
   const AppButton({
-    super.key,
     required this.label,
+    super.key,
     this.onPressed,
     this.variant = AppButtonVariant.primary,
     this.size = AppButtonSize.medium,
@@ -25,6 +46,27 @@ class AppButton extends StatelessWidget {
     this.isLoading = false,
     this.isFullWidth = false,
   });
+
+  /// Texto que se muestra en el botón.
+  final String label;
+
+  /// Acción a ejecutar al presionar el botón.
+  final VoidCallback? onPressed;
+
+  /// Estilo visual del botón.
+  final AppButtonVariant variant;
+
+  /// Tamaño físico del botón.
+  final AppButtonSize size;
+
+  /// Icono opcional que se muestra antes del texto.
+  final IconData? icon;
+
+  /// Indica si el botón está en estado de carga (muestra un spinner).
+  final bool isLoading;
+
+  /// Indica si el botón debe ocupar todo el ancho disponible.
+  final bool isFullWidth;
 
   @override
   Widget build(BuildContext context) {
@@ -83,51 +125,51 @@ class AppButton extends StatelessWidget {
 
     return switch (variant) {
       AppButtonVariant.primary => ElevatedButton(
-          onPressed: isLoading ? null : onPressed,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.primary,
-            foregroundColor: AppColors.textOnPrimary,
-            padding: _getPadding(),
-            textStyle: _getTextStyle(),
-          ),
-          child: child,
+        onPressed: isLoading ? null : onPressed,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: AppColors.primary,
+          foregroundColor: AppColors.textOnPrimary,
+          padding: _getPadding(),
+          textStyle: _getTextStyle(),
         ),
+        child: child,
+      ),
       AppButtonVariant.secondary => ElevatedButton(
-          onPressed: isLoading ? null : onPressed,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.accent,
-            foregroundColor: AppColors.textOnAccent,
-            padding: _getPadding(),
-            textStyle: _getTextStyle(),
-          ),
-          child: child,
+        onPressed: isLoading ? null : onPressed,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: AppColors.accent,
+          foregroundColor: AppColors.textOnAccent,
+          padding: _getPadding(),
+          textStyle: _getTextStyle(),
         ),
+        child: child,
+      ),
       AppButtonVariant.outline => OutlinedButton(
-          onPressed: isLoading ? null : onPressed,
-          style: OutlinedButton.styleFrom(
-            padding: _getPadding(),
-            textStyle: _getTextStyle(),
-          ),
-          child: child,
+        onPressed: isLoading ? null : onPressed,
+        style: OutlinedButton.styleFrom(
+          padding: _getPadding(),
+          textStyle: _getTextStyle(),
         ),
+        child: child,
+      ),
       AppButtonVariant.text => TextButton(
-          onPressed: isLoading ? null : onPressed,
-          style: TextButton.styleFrom(
-            padding: _getPadding(),
-            textStyle: _getTextStyle(),
-          ),
-          child: child,
+        onPressed: isLoading ? null : onPressed,
+        style: TextButton.styleFrom(
+          padding: _getPadding(),
+          textStyle: _getTextStyle(),
         ),
+        child: child,
+      ),
       AppButtonVariant.danger => ElevatedButton(
-          onPressed: isLoading ? null : onPressed,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.danger,
-            foregroundColor: AppColors.textOnPrimary,
-            padding: _getPadding(),
-            textStyle: _getTextStyle(),
-          ),
-          child: child,
+        onPressed: isLoading ? null : onPressed,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: AppColors.danger,
+          foregroundColor: AppColors.textOnPrimary,
+          padding: _getPadding(),
+          textStyle: _getTextStyle(),
         ),
+        child: child,
+      ),
     };
   }
 

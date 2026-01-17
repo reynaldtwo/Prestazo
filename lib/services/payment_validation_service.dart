@@ -7,34 +7,44 @@
 /// - Cycle requirement validation
 library;
 
-import '../data/models/billing_cycle.dart';
-import '../data/models/loan.dart';
-import 'interest_calculation_service.dart';
+import 'package:prestamos_app/data/models/billing_cycle.dart';
+import 'package:prestamos_app/data/models/loan.dart';
+import 'package:prestamos_app/l10n/app_localizations.dart';
+import 'package:prestamos_app/services/interest_calculation_service.dart';
 
 /// Validation result with success status and error message
+/// Resultado de una validación con estado de éxito y mensaje de error opcional.
 class ValidationResult {
-  final bool isValid;
-  final String? errorTitle;
-  final String? errorMessage;
-
+  /// Crea un resultado de validación exitoso.
   const ValidationResult.success()
     : isValid = true,
       errorTitle = null,
       errorMessage = null;
 
+  /// Crea un resultado de validación fallido con título y mensaje de error.
   const ValidationResult.failure({
     required this.errorTitle,
     required this.errorMessage,
   }) : isValid = false;
+
+  /// Indica si la validación fue exitosa.
+  final bool isValid;
+
+  /// Título descriptivo del error, si aplica.
+  final String? errorTitle;
+
+  /// Mensaje detallado del error, si aplica.
+  final String? errorMessage;
 }
 
-/// Service for payment validation
+/// Servicio encargado de la validación de pagos según las reglas de negocio.
 class PaymentValidationService {
-  final InterestCalculationService _interestService;
-
+  /// Crea un [PaymentValidationService] con el servicio de cálculo de interés proporcionado.
   PaymentValidationService({InterestCalculationService? interestService})
     : _interestService = interestService ?? InterestCalculationService.instance;
+  final InterestCalculationService _interestService;
 
+  /// Valida una intención de pago contra el estado del préstamo y ciclos pendientes.
   ValidationResult validate({
     required Loan loan,
     required List<BillingCycle> pendingCycles,
@@ -42,10 +52,10 @@ class PaymentValidationService {
     required String paymentType,
     required DateTime paymentDate,
     required bool dailyAccrualEnabled,
+    required S s,
     int daysBeforeCycleForCapital = 10,
     bool enableCapitalRestriction = true,
-    required dynamic s,
-    String currencySymbol = 'C\$',
+    String currencySymbol = r'C$',
   }) {
     if (amount <= 0) {
       return ValidationResult.failure(
@@ -109,7 +119,7 @@ class PaymentValidationService {
     double amount,
     double totalDebt,
     String currencySymbol,
-    dynamic s,
+    S s,
   ) {
     if ((amount - totalDebt).abs() > 0.02) {
       return ValidationResult.failure(
@@ -127,7 +137,7 @@ class PaymentValidationService {
     double amount,
     double cycleInterest,
     String currencySymbol,
-    dynamic s,
+    S s,
   ) {
     if (amount > cycleInterest + 0.01) {
       return ValidationResult.failure(
@@ -146,7 +156,7 @@ class PaymentValidationService {
     double amount,
     double cycleInterest,
     String currencySymbol,
-    dynamic s,
+    S s,
   ) {
     if (cycleInterest > 0 && amount <= cycleInterest) {
       return ValidationResult.failure(
@@ -168,7 +178,7 @@ class PaymentValidationService {
     required double cycleInterest,
     required int daysBeforeCycle,
     required bool enableRestriction,
-    required dynamic s,
+    required S s,
     required String currencySymbol,
   }) {
     if (cycleInterest > 0) {
@@ -200,7 +210,7 @@ class PaymentValidationService {
           );
           return !today.isBefore(startDate) && !today.isAfter(endDate);
         });
-      } catch (_) {}
+      } on Exception catch (_) {}
 
       if (currentCycle != null) {
         final endDate = DateTime(

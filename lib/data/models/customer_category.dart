@@ -2,32 +2,14 @@ import 'package:equatable/equatable.dart';
 
 /// Customer category model for classifying customers
 class CustomerCategory extends Equatable {
-  /// Unique identifier
-  final String categoryId;
-
-  /// Display name
-  final String name;
-
-  /// Optional hex color code (e.g., "#FF5722")
-  final String? colorHex;
-
-  /// Sort order for display
-  final int sortOrder;
-
-  /// Creation timestamp
-  final DateTime createdAt;
-
-  /// Last update timestamp
-  final DateTime updatedAt;
-
   /// Creates a CustomerCategory
   const CustomerCategory({
     required this.categoryId,
     required this.name,
-    this.colorHex,
-    this.sortOrder = 0,
     required this.createdAt,
     required this.updatedAt,
+    this.colorHex,
+    this.sortOrder = 0,
   });
 
   /// Create from database map
@@ -41,6 +23,24 @@ class CustomerCategory extends Equatable {
       updatedAt: DateTime.parse(map['updated_at'] as String),
     );
   }
+
+  /// Identificador único de la categoría.
+  final String categoryId;
+
+  /// Nombre mostrado de la categoría.
+  final String name;
+
+  /// Código de color hexadecimal opcional (ej: "#FF5722").
+  final String? colorHex;
+
+  /// Orden de clasificación para la visualización.
+  final int sortOrder;
+
+  /// Fecha de creación del registro.
+  final DateTime createdAt;
+
+  /// Fecha de última actualización.
+  final DateTime updatedAt;
 
   /// Convert to database map
   Map<String, dynamic> toMap() {

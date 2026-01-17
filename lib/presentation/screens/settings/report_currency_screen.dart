@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:sealed_currencies/sealed_currencies.dart';
-import '../../../core/theme/app_colors.dart';
-import '../../../core/theme/app_typography.dart';
-import '../../../core/widgets/widgets.dart';
-import '../../../core/localization/locale_provider.dart';
-import '../../../data/providers/providers.dart';
 import 'package:go_router/go_router.dart';
+import 'package:prestamos_app/core/localization/locale_provider.dart';
+import 'package:prestamos_app/core/theme/app_colors.dart';
+import 'package:prestamos_app/core/theme/app_typography.dart';
+import 'package:prestamos_app/core/widgets/widgets.dart';
+import 'package:prestamos_app/data/providers/providers.dart';
+import 'package:sealed_currencies/sealed_currencies.dart';
 
-/// Screen for configuring report currency and exchange rate for prestamista reports
+/// Pantalla para configurar la moneda de reporte y la tasa de cambio para los reportes del prestamista.
 class ReportCurrencyScreen extends ConsumerStatefulWidget {
+  /// Crea una instancia de [ReportCurrencyScreen].
   const ReportCurrencyScreen({super.key});
 
   @override
@@ -77,7 +78,7 @@ class _ReportCurrencyScreenState extends ConsumerState<ReportCurrencyScreen> {
         );
         context.pop();
       }
-    } catch (e) {
+    } on Exception catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -92,12 +93,12 @@ class _ReportCurrencyScreenState extends ConsumerState<ReportCurrencyScreen> {
   }
 
   void _showInfoDialog() {
-    showDialog(
+    showDialog<void>(
       context: context,
       builder: (ctx) => AlertDialog(
         title: Row(
           children: [
-            Icon(Icons.info_outline, color: AppColors.primary),
+            const Icon(Icons.info_outline, color: AppColors.primary),
             const SizedBox(width: 8),
             Expanded(
               child: Text(S.of(context).info, style: AppTypography.titleMedium),
@@ -152,7 +153,7 @@ class _ReportCurrencyScreenState extends ConsumerState<ReportCurrencyScreen> {
     FiatCurrency? displayCurrency;
     try {
       displayCurrency = FiatCurrency.fromCode(_reportCurrency);
-    } catch (_) {
+    } on Object catch (_) {
       displayCurrency = FiatCurrency.fromCode('NIO');
     }
 
@@ -185,7 +186,7 @@ class _ReportCurrencyScreenState extends ConsumerState<ReportCurrencyScreen> {
             ),
             child: Row(
               children: [
-                Icon(Icons.info_outline, color: AppColors.info),
+                const Icon(Icons.info_outline, color: AppColors.info),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(

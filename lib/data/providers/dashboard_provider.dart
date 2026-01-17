@@ -1,31 +1,13 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'database_providers.dart';
-import '../../services/backup_service.dart';
-import 'service_providers.dart';
-import '../models/currency_context.dart';
+import 'package:prestamos_app/data/models/currency_context.dart';
+import 'package:prestamos_app/data/providers/database_providers.dart';
+import 'package:prestamos_app/data/providers/service_providers.dart';
+import 'package:prestamos_app/services/backup_service.dart';
 
 /// Dashboard statistics state
 class DashboardStats {
-  final int activeCustomers;
-  final int activeLoans;
-  final double totalPrincipalBalance;
-  final double totalOriginalPrincipal;
-  final double collectedToday;
-  final double capitalRecoveredToday;
-  final int overdueCount;
-  final int paymentsTodayCount;
-  final double availableCapital;
-  final double earningsMonth;
-  final double projectedEarnings;
-  final bool isLoading;
-  final String? error;
-
-  // Currency context for display
-  final CurrencyContext? currencyContext;
-  final String displaySymbol;
-  final bool showRateWarning;
-
+  /// Crea una instancia de [DashboardStats] con las estadísticas del tablero.
   const DashboardStats({
     this.activeCustomers = 0,
     this.activeLoans = 0,
@@ -41,10 +23,59 @@ class DashboardStats {
     this.isLoading = false,
     this.error,
     this.currencyContext,
-    this.displaySymbol = '\$',
+    this.displaySymbol = r'$',
     this.showRateWarning = false,
   });
 
+  /// Cantidad de clientes activos.
+  final int activeCustomers;
+
+  /// Cantidad de préstamos activos.
+  final int activeLoans;
+
+  /// Saldo capital total pendiente (en moneda de visualización).
+  final double totalPrincipalBalance;
+
+  /// Capital original total prestado (en moneda de visualización).
+  final double totalOriginalPrincipal;
+
+  /// Monto total recaudado hoy.
+  final double collectedToday;
+
+  /// Capital recuperado hoy.
+  final double capitalRecoveredToday;
+
+  /// Cantidad de préstamos vencidos.
+  final int overdueCount;
+
+  /// Cantidad de pagos recibidos hoy.
+  final int paymentsTodayCount;
+
+  /// Capital total disponible para prestar (en moneda de visualización).
+  final double availableCapital;
+
+  /// Ganancias realizadas en el mes actual.
+  final double earningsMonth;
+
+  /// Ganancias proyectadas para el mes.
+  final double projectedEarnings;
+
+  /// Indica si los datos se están cargando.
+  final bool isLoading;
+
+  /// Mensaje de error, si existe.
+  final String? error;
+
+  /// Contexto de divisas (base, visualización, tasa).
+  final CurrencyContext? currencyContext;
+
+  /// Símbolo de moneda a mostrar.
+  final String displaySymbol;
+
+  /// Indica si hay una advertencia de tasa de cambio (ej: tasa antigua o manual).
+  final bool showRateWarning;
+
+  /// Crea una copia de las estadísticas con los campos proporcionados actualizados.
   DashboardStats copyWith({
     int? activeCustomers,
     int? activeLoans,
@@ -113,15 +144,15 @@ class DashboardStats {
 
 /// Notifier for dashboard statistics
 class DashboardNotifier extends StateNotifier<DashboardStats> {
-  final Ref _ref;
-
+  /// Crea un [DashboardNotifier] e inicia la carga de estadísticas.
   DashboardNotifier(this._ref) : super(const DashboardStats()) {
     loadStats();
   }
+  final Ref _ref;
 
   /// Load all dashboard statistics using universal currency conversion
   Future<void> loadStats() async {
-    state = state.copyWith(isLoading: true, error: null);
+    state = state.copyWith(isLoading: true);
     try {
       final customerRepo = _ref.read(customerRepositoryProvider);
       final loanRepo = _ref.read(loanRepositoryProvider);
@@ -152,7 +183,7 @@ class DashboardNotifier extends StateNotifier<DashboardStats> {
 
       // Calculate time ranges
       final now = DateTime.now();
-      final startOfMonth = DateTime(now.year, now.month, 1);
+      final startOfMonth = DateTime(now.year, now.month);
       final endOfMonth = DateTime(now.year, now.month + 1, 0);
 
       // Fetch all stats concurrently
@@ -169,15 +200,15 @@ class DashboardNotifier extends StateNotifier<DashboardStats> {
       ]);
 
       // Fetch earnings
-      Map<String, double> monthEarnings = {};
-      Map<String, double> projected = {};
+      var monthEarnings = <String, double>{};
+      var projected = <String, double>{};
       try {
         monthEarnings = await paymentRepo.getRealizedEarningsByCurrency(
           startDate: startOfMonth,
           endDate: endOfMonth,
         );
         projected = await loanRepo.getProjectedMonthlyEarningsByCurrency();
-      } catch (_) {}
+      } on Exception catch (_) {}
 
       final settings = await settingsRepo.getSettings();
 
@@ -197,8 +228,8 @@ class DashboardNotifier extends StateNotifier<DashboardStats> {
       // Now using [2] which is List<Map> of loans
       final activeLoans = results[2] as List<dynamic>;
       double totalPrincipalBalance = 0;
-      bool rateWarning = false;
-      String effectiveSymbol = context.displayCurrency.symbol;
+      var rateWarning = false;
+      var effectiveSymbol = context.displayCurrency.symbol;
 
       try {
         // Calculate Total Base -> Display using division
@@ -206,20 +237,16 @@ class DashboardNotifier extends StateNotifier<DashboardStats> {
           activeLoans,
           context,
         );
-      } catch (e) {
-        debugPrint('[Dashboard] Portfolio Calculation Warning: $e');
+      } on Exception catch (_) {
+        // Portfolio Calculation Warning ignored
         rateWarning = true;
         // FALLBACK: Sum loans in Base Currency directly (no conversion)
-        for (var loan in activeLoans) {
-          final loanCurrency = loan is Map
-              ? loan['currency_code']
-              : loan.currencyCode;
-          final balance = loan is Map
-              ? (loan['principal_balance'] as num).toDouble()
-              : loan.principalBalance;
-          final contractRate = loan is Map
-              ? (loan['applied_exchange_rate'] as num?)?.toDouble() ?? 1.0
-              : loan.appliedExchangeRate ?? 1.0;
+        for (final item in activeLoans) {
+          final loan = item as Map<String, dynamic>;
+          final loanCurrency = loan['currency_code'] as String? ?? '';
+          final balance = (loan['principal_balance'] as num).toDouble();
+          final contractRate =
+              (loan['applied_exchange_rate'] as num?)?.toDouble() ?? 1.0;
 
           if (loanCurrency == context.baseCurrency.code) {
             totalPrincipalBalance += balance;
@@ -275,21 +302,21 @@ class DashboardNotifier extends StateNotifier<DashboardStats> {
         displaySymbol: effectiveSymbol,
         showRateWarning: rateWarning,
       );
-    } catch (e) {
-      debugPrint('[Dashboard] Error: $e');
+    } on Exception catch (e) {
       state = state.copyWith(isLoading: false, error: e.toString());
     } finally {
       // Check scheduled backup in background
       try {
         final settingsRepo = _ref.read(settingsRepositoryProvider);
         final settings = await settingsRepo.getSettings();
+        // ignore: unawaited_futures // Background check, result doesn't affect dashboard immediate load
         BackupService.instance.checkScheduledBackup(
           frequency: settings.backupFrequency,
           retentionDays: settings.backupRetentionDays,
           retries: settings.backupRetries,
           customName: settings.backupCustomName,
         );
-      } catch (_) {}
+      } on Exception catch (_) {}
     }
   }
 
@@ -300,7 +327,8 @@ class DashboardNotifier extends StateNotifier<DashboardStats> {
 /// Provider for dashboard statistics
 final dashboardProvider =
     StateNotifierProvider<DashboardNotifier, DashboardStats>((ref) {
-      ref.watch(refreshTriggerProvider);
-      ref.watch(appSettingsProvider);
+      ref
+        ..watch(refreshTriggerProvider)
+        ..watch(appSettingsProvider);
       return DashboardNotifier(ref);
     });

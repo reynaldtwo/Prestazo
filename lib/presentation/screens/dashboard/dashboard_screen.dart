@@ -2,14 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
-import '../../../core/theme/app_colors.dart';
-import '../../../core/theme/app_typography.dart';
-import '../../../core/Widgets/widgets.dart';
-import '../../../data/providers/providers.dart';
-import '../../../core/localization/locale_provider.dart';
+import 'package:prestamos_app/core/Widgets/widgets.dart';
+import 'package:prestamos_app/core/localization/locale_provider.dart';
+import 'package:prestamos_app/core/theme/app_colors.dart';
+import 'package:prestamos_app/core/theme/app_typography.dart';
+import 'package:prestamos_app/data/providers/providers.dart';
 
-/// Dashboard screen - Main home with real KPIs from database
+/// Pantalla de Panel de Control (Dashboard) - Pantalla principal con KPIs reales de la base de datos.
 class DashboardScreen extends ConsumerStatefulWidget {
+  /// Crea una instancia de [DashboardScreen].
   const DashboardScreen({super.key});
 
   @override
@@ -37,8 +38,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         retries: 3,
         customName: settings.backupCustomName,
       );
-    } catch (e) {
-      debugPrint('Error checking scheduled backups: $e');
+    } on Exception catch (_) {
+      // Ignore error checking backup
     }
   }
 
@@ -48,11 +49,13 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
     // Listen for rate warnings
     ref.listen<DashboardStats>(dashboardProvider, (previous, next) {
-      if ((previous?.isLoading == true) &&
+      if ((previous?.isLoading ?? false) &&
           !next.isLoading &&
           next.showRateWarning) {
         // Show dialog only when transition from loading to done with warning
-        _showRateWarningDialog(context);
+        Future.microtask(() {
+          if (context.mounted) _showRateWarningDialog(context);
+        });
       }
     });
 
@@ -88,13 +91,13 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   }
 
   void _showRateWarningDialog(BuildContext context) {
-    showDialog(
+    showDialog<void>(
       context: context,
       barrierDismissible: false, // User must choose an action
       builder: (context) => AlertDialog(
         title: Row(
           children: [
-            Icon(Icons.warning_amber_rounded, color: AppColors.warning),
+            const Icon(Icons.warning_amber_rounded, color: AppColors.warning),
             const SizedBox(width: 8),
             Expanded(
               child: Text(
@@ -131,7 +134,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     final settingsAsync = ref.watch(appSettingsProvider);
     final settings = settingsAsync.value;
 
-    String title = S.of(context).appName;
+    var title = S.of(context).appName;
     if (settings != null &&
         settings.showCompanyName &&
         settings.companyName != null &&
@@ -141,8 +144,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
     return SliverAppBar(
       pinned: true,
-      floating: false,
-      expandedHeight: 100.0,
+      expandedHeight: 100,
       backgroundColor: AppColors.primary,
       // No shape allows it to be flat/rectangular like other screens
       flexibleSpace: FlexibleSpaceBar(
@@ -368,7 +370,6 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             alignment: Alignment.centerLeft,
             child: MoneyDisplay(
               amount: stats.totalPrincipalBalance,
-              size: MoneyDisplaySize.medium,
               color: capitalColor,
               currencySymbol:
                   currencySymbol, // CRITICAL: Use display currency symbol
@@ -397,7 +398,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             ),
             const SizedBox(height: 2),
             Text(
-              '${stats.capitalUsagePercentage.toStringAsFixed(0)}% ${S.of(context).ofLabel} $currencySymbol${NumberFormat('#,##0.00').format(stats.availableCapital)}',
+              '${stats.capitalUsagePercentage.toStringAsFixed(1)}% ${S.of(context).ofLabel} $currencySymbol${NumberFormat('#,##0.00').format(stats.availableCapital)}',
               style: AppTypography.labelSmall.copyWith(
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
                 // Removed explicit fontSize to improve readability
@@ -451,7 +452,6 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                       ),
                       MoneyDisplay(
                         amount: stats.capitalRecoveredToday,
-                        size: MoneyDisplaySize.medium,
                         currencySymbol: reportSymbol,
                       ),
                     ],
@@ -549,11 +549,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           ),
           const SizedBox(height: 16),
           if (value != null)
-            MoneyDisplay(
-              amount: value,
-              size: MoneyDisplaySize.medium,
-              currencySymbol: currencySymbol,
-            )
+            MoneyDisplay(amount: value, currencySymbol: currencySymbol)
           else if (valueText != null)
             FittedBox(
               fit: BoxFit.scaleDown,

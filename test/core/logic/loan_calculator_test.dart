@@ -5,7 +5,7 @@ void main() {
   group('LoanCalculator Commercial Rules', () {
     test('Example 1: 3 Months, Weekly, 13.33%', () {
       final result = LoanCalculator.calculateLoan(
-        capital: 2000.00,
+        capital: 2000,
         monthlyRate: 0.1333,
         term: 3,
         termUnit: 'Months', // or Meses
@@ -49,7 +49,7 @@ void main() {
 
     test('Example 2: 60 Days, Fortnightly, 8%', () {
       final result = LoanCalculator.calculateLoan(
-        capital: 5000.00,
+        capital: 5000,
         monthlyRate: 0.08,
         term: 60,
         termUnit: 'Days',

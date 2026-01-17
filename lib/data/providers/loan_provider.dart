@@ -1,17 +1,12 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../models/loan.dart';
-import '../models/billing_cycle.dart';
-
-import 'database_providers.dart';
-import 'service_providers.dart';
+import 'package:prestamos_app/data/models/billing_cycle.dart';
+import 'package:prestamos_app/data/models/loan.dart';
+import 'package:prestamos_app/data/providers/database_providers.dart';
+import 'package:prestamos_app/data/providers/service_providers.dart';
 
 /// State for loans list
 class LoansState {
-  final List<Loan> loans;
-  final bool isLoading;
-  final String? error;
-  final String? filterStatus;
-
+  /// Crea el estado para la lista de préstamos.
   const LoansState({
     this.loans = const [],
     this.isLoading = false,
@@ -19,6 +14,19 @@ class LoansState {
     this.filterStatus,
   });
 
+  /// Lista de todos los préstamos cargados.
+  final List<Loan> loans;
+
+  /// Indica si los datos se están cargando.
+  final bool isLoading;
+
+  /// Mensaje de error si la carga falló.
+  final String? error;
+
+  /// Estado por el cual filtrar (ej: 'ACTIVE', 'PAID').
+  final String? filterStatus;
+
+  /// Crea una copia del estado con los campos proporcionados actualizados.
   LoansState copyWith({
     List<Loan>? loans,
     bool? isLoading,
@@ -33,6 +41,7 @@ class LoansState {
     );
   }
 
+  /// Filtra y obtiene solo los préstamos con estado 'ACTIVE'.
   List<Loan> get activeLoans {
     return loans.where((l) => l.status == 'ACTIVE').toList();
   }
@@ -45,20 +54,20 @@ class LoansState {
 
 /// Notifier for managing loans state
 class LoansNotifier extends StateNotifier<LoansState> {
-  final Ref _ref;
-
+  /// Crea un [LoansNotifier] e inicia la carga de préstamos.
   LoansNotifier(this._ref) : super(const LoansState()) {
     loadLoans();
   }
+  final Ref _ref;
 
   /// Load all loans
   Future<void> loadLoans() async {
-    state = state.copyWith(isLoading: true, error: null);
+    state = state.copyWith(isLoading: true);
     try {
       final repo = _ref.read(loanRepositoryProvider);
       final loans = await repo.getAllLoans();
       state = state.copyWith(loans: loans, isLoading: false);
-    } catch (e) {
+    } on Exception catch (e) {
       state = state.copyWith(isLoading: false, error: e.toString());
     }
   }
@@ -77,7 +86,7 @@ class LoansNotifier extends StateNotifier<LoansState> {
       await loadLoans();
       _ref.read(refreshTriggerProvider.notifier).state++;
       return true;
-    } catch (e) {
+    } on Exception catch (e) {
       state = state.copyWith(error: e.toString());
       return false;
     }
@@ -111,7 +120,7 @@ class LoansNotifier extends StateNotifier<LoansState> {
       await loadLoans();
       _ref.read(refreshTriggerProvider.notifier).state++;
       return createdLoan;
-    } catch (e) {
+    } on Exception catch (e) {
       state = state.copyWith(error: e.toString());
       return null;
     }
@@ -125,12 +134,13 @@ class LoansNotifier extends StateNotifier<LoansState> {
       await loadLoans();
       _ref.read(refreshTriggerProvider.notifier).state++;
       return true;
-    } catch (e) {
+    } on Exception catch (e) {
       state = state.copyWith(error: e.toString());
       return false;
     }
   }
 
+  /// Cierra un préstamo con el estado especificado (e.g., CANCELED, PAI_IN_FULL).
   Future<bool> closeLoan(String loanId, String closeStatus) async {
     try {
       final repo = _ref.read(loanRepositoryProvider);
@@ -138,7 +148,7 @@ class LoansNotifier extends StateNotifier<LoansState> {
       await loadLoans();
       _ref.read(refreshTriggerProvider.notifier).state++;
       return true;
-    } catch (e) {
+    } on Exception catch (e) {
       state = state.copyWith(error: e.toString());
       return false;
     }
@@ -160,7 +170,7 @@ class LoansNotifier extends StateNotifier<LoansState> {
       await loadLoans();
       _ref.read(refreshTriggerProvider.notifier).state++;
       return true;
-    } catch (e) {
+    } on Exception catch (e) {
       state = state.copyWith(error: e.toString());
       return false;
     }
@@ -173,7 +183,7 @@ class LoansNotifier extends StateNotifier<LoansState> {
 
   /// Clear error
   void clearError() {
-    state = state.copyWith(error: null);
+    state = state.copyWith();
   }
 }
 

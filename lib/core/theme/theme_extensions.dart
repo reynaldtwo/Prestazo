@@ -4,42 +4,50 @@
 library;
 
 import 'package:flutter/material.dart';
-import 'app_colors.dart';
+import 'package:prestamos_app/core/theme/app_colors.dart';
 
 /// Extension on BuildContext for easier theme access
 extension ThemeX on BuildContext {
-  /// Get the current ColorScheme
+  /// Obtiene el [ColorScheme] actual del tema.
   ColorScheme get colorScheme => Theme.of(this).colorScheme;
 
-  /// Check if dark mode is active
+  /// Indica si el modo oscuro está activo.
   bool get isDarkMode => Theme.of(this).brightness == Brightness.dark;
 
-  /// Get theme-aware surface color
+  /// Obtiene el color de superficie adaptado al tema.
   Color get surface => colorScheme.surface;
 
-  /// Get theme-aware surface variant color
+  /// Obtiene la variante del color de superficie adaptada al tema.
   Color get surfaceVariant => colorScheme.surfaceContainerHighest;
 
-  /// Get theme-aware primary color
+  /// Obtiene el color primario adaptado al tema.
   Color get primary => colorScheme.primary;
 
-  /// Get theme-aware onSurface color
+  /// Obtiene el color sobre superficie adaptado al tema.
   Color get onSurface => colorScheme.onSurface;
 
-  /// Get theme-aware onSurfaceVariant color
+  /// Obtiene la variante del color sobre superficie adaptada al tema.
   Color get onSurfaceVariant => colorScheme.onSurfaceVariant;
 
-  /// Get theme-aware border color
+  /// Obtiene el color de borde adaptado al tema.
   Color get border =>
       isDarkMode ? colorScheme.outlineVariant : AppColors.border;
 
-  /// Get theme-aware text colors
+  /// Colores de texto adaptados al tema (primario, secundario y terciario).
   Color get textPrimary => colorScheme.onSurface;
+
+  /// Color de texto secundario.
   Color get textSecondary => colorScheme.onSurfaceVariant;
+
+  /// Color de texto terciario.
   Color get textTertiary => colorScheme.outline;
 
-  /// Get theme-aware danger/warning colors
+  /// Colores semánticos adaptados al tema (peligro, éxito y advertencia).
   Color get danger => AppColors.danger;
+
+  /// Color para éxito.
   Color get success => AppColors.success;
+
+  /// Color para advertencias.
   Color get warning => AppColors.warning;
 }

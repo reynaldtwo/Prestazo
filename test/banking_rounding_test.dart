@@ -1,15 +1,16 @@
-import 'package:test/test.dart';
+// ignore_for_file: avoid_print // Tests use print for rounding parity verification
 import 'package:mockito/mockito.dart';
-import 'package:prestamos_app/services/billing_cycle_service.dart';
-import 'package:prestamos_app/data/models/payment_plan.dart';
-import 'package:prestamos_app/data/models/loan.dart';
 import 'package:prestamos_app/data/models/billing_cycle.dart';
 import 'package:prestamos_app/data/models/customer.dart';
+import 'package:prestamos_app/data/models/loan.dart';
+import 'package:prestamos_app/data/models/payment_plan.dart';
 import 'package:prestamos_app/data/repositories/billing_cycle_repository.dart';
 import 'package:prestamos_app/data/repositories/customer_repository.dart';
 import 'package:prestamos_app/data/repositories/loan_repository.dart';
 import 'package:prestamos_app/data/repositories/payment_plan_repository.dart';
-import 'package:prestamos_app/data/repositories/settings_repository.dart'; // Make sure this exists or mock it? Service doesn't take it yet, logic is in CurrencyUtils.
+import 'package:prestamos_app/services/billing_cycle_service.dart';
+import 'package:test/test.dart';
+// Make sure this exists or mock it? Service doesn't take it yet, logic is in CurrencyUtils.
 
 class MockLoanRepository extends Mock implements LoanRepository {}
 
@@ -78,7 +79,6 @@ void main() {
           monthlyInterestRate: 10,
           currencyCode: 'NIO',
           distributeCapitalAndInterest: true,
-          periodStartsOnDisbursement: true,
           createdAt: now,
           updatedAt: now,
         );
@@ -98,8 +98,6 @@ void main() {
           distributeCapitalAndInterest:
               true, // Trigger Level Installment (snapshot)
           disbursementDate: now,
-          currencyCode: 'NIO',
-          status: 'ACTIVE',
           createdAt: now,
           updatedAt: now,
         );
@@ -112,7 +110,7 @@ void main() {
         expect(generatedCycles.length, 6);
 
         double totalInstallmentSum = 0;
-        for (var c in generatedCycles) {
+        for (final c in generatedCycles) {
           totalInstallmentSum += c.installmentExpected!;
           print('Cycle ${c.cycleNumber}: ${c.installmentExpected}');
         }

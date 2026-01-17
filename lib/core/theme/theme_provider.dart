@@ -6,8 +6,8 @@ library;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:prestamos_app/core/theme/app_colors.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'app_colors.dart';
 
 /// Theme mode key for storage
 const String _themeModeKey = 'theme_mode';
@@ -21,6 +21,7 @@ final themeModeProvider = StateNotifierProvider<ThemeModeNotifier, ThemeMode>((
 
 /// Notifier for theme mode state
 class ThemeModeNotifier extends StateNotifier<ThemeMode> {
+  /// Crea un [ThemeModeNotifier] e inicializa la carga del modo de tema persistido.
   ThemeModeNotifier() : super(ThemeMode.system) {
     _loadThemeMode();
   }
@@ -36,23 +37,25 @@ class ThemeModeNotifier extends StateNotifier<ThemeMode> {
           orElse: () => ThemeMode.system,
         );
       }
-    } catch (_) {
+    } on Exception catch (_) {
       state = ThemeMode.system;
     }
   }
 
   /// Set and persist theme mode
+  /// Cambia el modo de tema actual y lo persiste en las preferencias del usuario.
   Future<void> setThemeMode(ThemeMode mode) async {
     state = mode;
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString(_themeModeKey, mode.name);
-    } catch (_) {
+    } on Exception catch (_) {
       // Ignore storage errors
     }
   }
 
   /// Toggle between light and dark (ignores system)
+  /// Alterna entre el modo claro y oscuro (ignora la configuración del sistema).
   Future<void> toggleTheme() async {
     if (state == ThemeMode.dark) {
       await setThemeMode(ThemeMode.light);
@@ -62,7 +65,7 @@ class ThemeModeNotifier extends StateNotifier<ThemeMode> {
   }
 }
 
-/// Light Theme Data
+/// Configuración de los datos del tema claro.
 ThemeData get lightTheme => ThemeData(
   useMaterial3: true,
   brightness: Brightness.light,
@@ -71,9 +74,7 @@ ThemeData get lightTheme => ThemeData(
   colorScheme: const ColorScheme.light(
     primary: AppColors.primary,
     secondary: AppColors.accent,
-    surface: AppColors.surface,
     error: AppColors.danger,
-    onPrimary: AppColors.textOnPrimary,
     onSecondary: AppColors.textOnAccent,
     onSurface: AppColors.textPrimary,
   ),
@@ -120,13 +121,13 @@ ThemeData get lightTheme => ThemeData(
   ),
 );
 
-/// Dark Theme Data
+/// Configuración de los datos del tema oscuro.
 ThemeData get darkTheme => ThemeData(
   useMaterial3: true,
   brightness: Brightness.dark,
   primaryColor: AppColors.primaryLight,
   scaffoldBackgroundColor: AppColors.backgroundDark,
-  colorScheme: ColorScheme.dark(
+  colorScheme: const ColorScheme.dark(
     primary: AppColors.primaryLight,
     secondary: AppColors.accent,
     surface: AppColors.surfaceDark,
@@ -220,19 +221,19 @@ ThemeData get darkTheme => ThemeData(
     type: BottomNavigationBarType.fixed,
   ),
   // Dialog theme
-  dialogTheme: DialogThemeData(
+  dialogTheme: const DialogThemeData(
     backgroundColor: AppColors.surfaceDark,
-    titleTextStyle: const TextStyle(
+    titleTextStyle: TextStyle(
       color: AppColors.textPrimaryDark,
       fontSize: 20,
       fontWeight: FontWeight.w600,
     ),
-    contentTextStyle: const TextStyle(color: AppColors.textPrimaryDark),
+    contentTextStyle: TextStyle(color: AppColors.textPrimaryDark),
   ),
   // Chip theme
-  chipTheme: ChipThemeData(
+  chipTheme: const ChipThemeData(
     backgroundColor: AppColors.surfaceVariantDark,
-    labelStyle: const TextStyle(color: AppColors.textPrimaryDark),
+    labelStyle: TextStyle(color: AppColors.textPrimaryDark),
     selectedColor: AppColors.primaryLight,
   ),
 );

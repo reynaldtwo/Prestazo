@@ -2175,6 +2175,27 @@ class SEs extends S {
   String get categoryColor => 'Color';
 
   @override
+  String get recoveryPriority => 'Prioridad en Recuperación';
+
+  @override
+  String get recoveryPriorityDesc =>
+      'Define cómo se aplica el pago cuando se utiliza la opción \"Recuperar\".';
+
+  @override
+  String get recoveryPriorityAffects =>
+      'Afecta el orden de reducción de la deuda en pagos de recuperación.';
+
+  @override
+  String get recoveryPriorityEx =>
+      'Priorizar Capital: El pago reduce primero el capital prestado. Priorizar Interés: El pago reduce primero los intereses vencidos.';
+
+  @override
+  String get prioritizeCapital => 'Priorizar Capital (Recomendado)';
+
+  @override
+  String get prioritizeInterest => 'Priorizar Interés Vencido';
+
+  @override
   String get categoryRequired => 'El nombre de categoría es requerido';
 
   @override

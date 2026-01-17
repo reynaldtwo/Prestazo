@@ -1,23 +1,33 @@
 import 'package:flutter/material.dart';
-import '../theme/app_colors.dart';
-import '../theme/app_typography.dart';
+import 'package:prestamos_app/core/theme/app_colors.dart';
+import 'package:prestamos_app/core/theme/app_typography.dart';
 
 /// Empty state placeholder
 class AppEmptyState extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final String? message;
-  final String? actionLabel;
-  final VoidCallback? onAction;
-
+  /// Crea un [AppEmptyState] para mostrar cuando no hay datos.
   const AppEmptyState({
-    super.key,
     required this.icon,
     required this.title,
+    super.key,
     this.message,
     this.actionLabel,
     this.onAction,
   });
+
+  /// Icono descriptivo del estado vacío.
+  final IconData icon;
+
+  /// Título principal del mensaje de estado vacío.
+  final String title;
+
+  /// Mensaje secundario detallado (opcional).
+  final String? message;
+
+  /// Etiqueta para un botón de acción (opcional).
+  final String? actionLabel;
+
+  /// Función a ejecutar cuando se presiona el botón de acción.
+  final VoidCallback? onAction;
 
   @override
   Widget build(BuildContext context) {
@@ -29,15 +39,11 @@ class AppEmptyState extends StatelessWidget {
           children: [
             Container(
               padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 color: AppColors.surfaceVariant,
                 shape: BoxShape.circle,
               ),
-              child: Icon(
-                icon,
-                size: 48,
-                color: AppColors.textTertiary,
-              ),
+              child: Icon(icon, size: 48, color: AppColors.textTertiary),
             ),
             const SizedBox(height: 24),
             Text(
@@ -72,9 +78,11 @@ class AppEmptyState extends StatelessWidget {
 
 /// Loading state placeholder
 class AppLoading extends StatelessWidget {
-  final String? message;
-
+  /// Crea un [AppLoading] para mostrar durante procesos de carga.
   const AppLoading({super.key, this.message});
+
+  /// Mensaje opcional que se muestra debajo del indicador de carga.
+  final String? message;
 
   @override
   Widget build(BuildContext context) {
@@ -82,9 +90,7 @@ class AppLoading extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const CircularProgressIndicator(
-            color: AppColors.primary,
-          ),
+          const CircularProgressIndicator(color: AppColors.primary),
           if (message != null) ...[
             const SizedBox(height: 16),
             Text(
@@ -102,16 +108,17 @@ class AppLoading extends StatelessWidget {
 
 /// Error state placeholder
 class AppError extends StatelessWidget {
-  final String title;
-  final String? message;
-  final VoidCallback? onRetry;
+  /// Crea un [AppError] para mostrar advertencias o fallos.
+  const AppError({super.key, this.title = 'Error', this.message, this.onRetry});
 
-  const AppError({
-    super.key,
-    this.title = 'Error',
-    this.message,
-    this.onRetry,
-  });
+  /// Título del error.
+  final String title;
+
+  /// Mensaje detallado del error (opcional).
+  final String? message;
+
+  /// Función opcional para reintentar la operación fallida.
+  final VoidCallback? onRetry;
 
   @override
   Widget build(BuildContext context) {

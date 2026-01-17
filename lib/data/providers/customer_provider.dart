@@ -1,14 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../models/customer.dart';
-import 'database_providers.dart';
+import 'package:prestamos_app/data/models/customer.dart';
+import 'package:prestamos_app/data/providers/database_providers.dart';
 
 /// State for customers list
 class CustomersState {
-  final List<Customer> customers;
-  final bool isLoading;
-  final String? error;
-  final String searchQuery;
-
+  /// Crea el estado para la lista de clientes.
   const CustomersState({
     this.customers = const [],
     this.isLoading = false,
@@ -16,6 +12,19 @@ class CustomersState {
     this.searchQuery = '',
   });
 
+  /// Lista de todos los clientes.
+  final List<Customer> customers;
+
+  /// Indica si se están cargando los clientes.
+  final bool isLoading;
+
+  /// Mensaje de error, si existe.
+  final String? error;
+
+  /// Consulta de búsqueda actual.
+  final String searchQuery;
+
+  /// Crea una copia del estado con los campos proporcionados actualizados.
   CustomersState copyWith({
     List<Customer>? customers,
     bool? isLoading,
@@ -41,6 +50,7 @@ class CustomersState {
     }).toList();
   }
 
+  /// Obtiene la lista de clientes con estado 'ACTIVE'.
   List<Customer> get activeCustomers {
     return customers.where((c) => c.status == 'ACTIVE').toList();
   }
@@ -48,20 +58,20 @@ class CustomersState {
 
 /// Notifier for managing customers state
 class CustomersNotifier extends StateNotifier<CustomersState> {
-  final Ref _ref;
-
+  /// Crea un [CustomersNotifier] e inicializa la carga de clientes.
   CustomersNotifier(this._ref) : super(const CustomersState()) {
     loadCustomers();
   }
+  final Ref _ref;
 
   /// Load all customers
   Future<void> loadCustomers() async {
-    state = state.copyWith(isLoading: true, error: null);
+    state = state.copyWith(isLoading: true);
     try {
       final repo = _ref.read(customerRepositoryProvider);
       final customers = await repo.getAllCustomers();
       state = state.copyWith(customers: customers, isLoading: false);
-    } catch (e) {
+    } on Exception catch (e) {
       state = state.copyWith(isLoading: false, error: e.toString());
     }
   }
@@ -74,7 +84,7 @@ class CustomersNotifier extends StateNotifier<CustomersState> {
       await loadCustomers();
       _ref.read(refreshTriggerProvider.notifier).state++;
       return true;
-    } catch (e) {
+    } on Exception catch (e) {
       state = state.copyWith(error: e.toString());
       return false;
     }
@@ -88,7 +98,7 @@ class CustomersNotifier extends StateNotifier<CustomersState> {
       await loadCustomers();
       _ref.read(refreshTriggerProvider.notifier).state++;
       return true;
-    } catch (e) {
+    } on Exception catch (e) {
       state = state.copyWith(error: e.toString());
       return false;
     }
@@ -112,7 +122,7 @@ class CustomersNotifier extends StateNotifier<CustomersState> {
       await loadCustomers();
       _ref.read(refreshTriggerProvider.notifier).state++;
       return true;
-    } catch (e) {
+    } on Exception catch (e) {
       state = state.copyWith(error: e.toString());
       return false;
     }
@@ -126,7 +136,7 @@ class CustomersNotifier extends StateNotifier<CustomersState> {
       await loadCustomers();
       _ref.read(refreshTriggerProvider.notifier).state++;
       return true;
-    } catch (e) {
+    } on Exception catch (e) {
       state = state.copyWith(error: e.toString());
       return false;
     }
@@ -139,7 +149,7 @@ class CustomersNotifier extends StateNotifier<CustomersState> {
 
   /// Clear error
   void clearError() {
-    state = state.copyWith(error: null);
+    state = state.copyWith();
   }
 }
 

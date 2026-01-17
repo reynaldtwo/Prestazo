@@ -1,29 +1,55 @@
 import 'package:flutter/material.dart';
-import '../theme/app_colors.dart';
+import 'package:prestamos_app/core/theme/app_colors.dart';
 
 /// Centralized definitions for Loan and Cycle statuses and their colors
 class AppStatus {
   // Loan Statuses
+  /// Préstamo con pagos al día.
   static const String loanActive = 'ACTIVE';
+
+  /// Préstamo con cuotas vencidas.
   static const String loanOverdue = 'IN_MORA';
+
+  /// Préstamo finalizado satisfactoriamente.
   static const String loanClosed = 'CLOSED';
+
+  /// Préstamo en proceso de cobro judicial o legal.
   static const String loanLegal = 'LEGAL';
+
+  /// Préstamo marcado como pagado (legado).
   static const String loanPaid = 'PAID'; // Some legacy loans might use this?
 
   // Billing Cycle Statuses
+  /// Ciclo que aún no ha llegado a su fecha de vencimiento.
   static const String cyclePending = 'PENDING';
+
+  /// Ciclo cuya cuota ha sido cubierta al 100%.
   static const String cyclePaid = 'PAID';
+
+  /// Ciclo con pagos realizados pero sin cubrir el total de la cuota.
   static const String cyclePartial = 'PARTIAL';
+
+  /// Ciclo cuya fecha de vencimiento ha pasado sin pago completo.
   static const String cycleOverdue = 'OVERDUE';
+
+  /// Ciclo anulado por corrección administrativa.
   static const String cycleAnulled = 'ANULLED';
+
+  /// Ciclo cerrado administrativamente.
   static const String cycleClosed = 'CLOSED';
 
   // Customer Statuses
+  /// Cliente activo y habilitado para nuevos préstamos.
   static const String customerActive = 'ACTIVE';
+
+  /// Cliente inactivo o suspendido.
   static const String customerInactive = 'INACTIVE';
 
   // Payment Statuses
+  /// Pago recibido y procesado correctamente.
   static const String paymentValid = 'VALID';
+
+  /// Pago anulado (por ejemplo, reversión de recibo).
   static const String paymentVoided = 'VOIDED';
 
   /// Get color for a given status
@@ -127,7 +153,7 @@ class AppStatus {
       // constants shouldn't depend on providers.
       // So we will NOT put this here. We will handle logic in StatusBadge.
       return getLabel(status); // Fallback
-    } catch (e) {
+    } on Exception catch (_) {
       return status;
     }
   }

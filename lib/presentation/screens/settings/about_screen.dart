@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_typography.dart';
-import '../../../../core/widgets/widgets.dart';
-import '../../../../core/localization/locale_provider.dart';
+import 'package:prestamos_app/core/localization/locale_provider.dart';
+import 'package:prestamos_app/core/theme/app_colors.dart';
+import 'package:prestamos_app/core/theme/app_typography.dart';
+import 'package:prestamos_app/core/widgets/widgets.dart';
 
+/// Pantalla "Acerca de".
 class AboutScreen extends ConsumerWidget {
+  /// Crea una instancia de [AboutScreen].
   const AboutScreen({super.key});
 
   @override
@@ -15,7 +17,6 @@ class AboutScreen extends ConsumerWidget {
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             const SizedBox(height: 20),
             // App Logo

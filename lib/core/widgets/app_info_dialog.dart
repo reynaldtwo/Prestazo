@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
-import '../localization/locale_provider.dart';
+import 'package:prestamos_app/core/localization/locale_provider.dart';
 
 /// Shows an elegant information dialog with the given [title] and [info].
 /// Uses Markdown for rich text formatting in the description.
@@ -9,17 +9,22 @@ void showAppInfoDialog(
   required String title,
   required String info,
 }) {
-  showDialog(
+  showDialog<void>(
     context: context,
     builder: (context) => AppInfoDialog(title: title, info: info),
   );
 }
 
+/// Widget encargado de renderizar el diálogo de información con soporte para Markdown.
 class AppInfoDialog extends StatelessWidget {
-  final String title;
-  final String info;
+  /// Crea un [AppInfoDialog] con el título e información proporcionados.
+  const AppInfoDialog({required this.title, required this.info, super.key});
 
-  const AppInfoDialog({super.key, required this.title, required this.info});
+  /// Título que se muestra en la cabecera del diálogo.
+  final String title;
+
+  /// Contenido textual del diálogo (soporta formato Markdown).
+  final String info;
 
   @override
   Widget build(BuildContext context) {

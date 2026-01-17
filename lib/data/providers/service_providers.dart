@@ -4,11 +4,11 @@
 library;
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../services/services.dart';
-import '../repositories/cobrar_repository.dart';
-import '../repositories/payment_plan_repository.dart';
-import 'database_providers.dart';
-import 'payment_plan_provider.dart';
+import 'package:prestamos_app/data/providers/database_providers.dart';
+import 'package:prestamos_app/data/providers/payment_plan_provider.dart';
+import 'package:prestamos_app/data/repositories/cobrar_repository.dart';
+import 'package:prestamos_app/data/repositories/payment_plan_repository.dart';
+import 'package:prestamos_app/services/services.dart';
 
 /// Provider for BillingCycleService
 final billingCycleServiceProvider = Provider<BillingCycleService>((ref) {
@@ -34,6 +34,7 @@ final backupServiceProvider = Provider<BackupService>((ref) {
   return BackupService.instance;
 });
 
+/// Provider para el servicio de cálculo de intereses.
 final interestCalculationServiceProvider = Provider<InterestCalculationService>(
   (ref) {
     return InterestCalculationService.instance;

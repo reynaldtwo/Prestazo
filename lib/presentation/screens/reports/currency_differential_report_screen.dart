@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import '../../../core/theme/app_colors.dart';
-import '../../../core/theme/app_typography.dart';
-import '../../../data/providers/providers.dart';
-import '../../../core/localization/locale_provider.dart';
+import 'package:prestamos_app/core/localization/locale_provider.dart';
+import 'package:prestamos_app/core/theme/app_colors.dart';
+import 'package:prestamos_app/core/theme/app_typography.dart';
+import 'package:prestamos_app/data/providers/providers.dart';
 
-/// Provider for differential report data
+/// Proveedor para los datos del reporte diferencial.
 final differentialReportProvider = FutureProvider<List<DifferentialReportItem>>(
   (ref) async {
     final loanRepo = ref.watch(loanRepositoryProvider);
@@ -16,7 +16,7 @@ final differentialReportProvider = FutureProvider<List<DifferentialReportItem>>(
 
     final loans = await loanRepo.getActiveLoans();
 
-    List<DifferentialReportItem> items = [];
+    final items = <DifferentialReportItem>[];
 
     for (final loan in loans) {
       // Only consider loans with both a currency code and an applied rate
@@ -69,18 +69,9 @@ final differentialReportProvider = FutureProvider<List<DifferentialReportItem>>(
   },
 );
 
-/// Data class for differential report item
+/// Clase de datos para un elemento del reporte diferencial.
 class DifferentialReportItem {
-  final String loanId;
-  final String loanNumber;
-  final String currency;
-  final double principalBalance;
-  final double contractRate;
-  final double currentRate;
-  final double originalValueBase;
-  final double currentValueBase;
-  final double differential;
-
+  /// Crea un [DifferentialReportItem].
   DifferentialReportItem({
     required this.loanId,
     required this.loanNumber,
@@ -93,11 +84,40 @@ class DifferentialReportItem {
     required this.differential,
   });
 
+  /// Identificador del préstamo.
+  final String loanId;
+
+  /// Número visible del préstamo.
+  final String loanNumber;
+
+  /// Moneda del préstamo.
+  final String currency;
+
+  /// Saldo principal actual en la moneda original.
+  final double principalBalance;
+
+  /// Tasa de cambio pactada en el contrato.
+  final double contractRate;
+
+  /// Tasa de cambio actual del mercado.
+  final double currentRate;
+
+  /// Valor original en moneda base (pactado).
+  final double originalValueBase;
+
+  /// Valor actual equivalente en moneda base.
+  final double currentValueBase;
+
+  /// Diferencial cambiario (ganancia o pérdida).
+  final double differential;
+
+  /// Indica si el diferencial representa una ganancia.
   bool get isGain => differential > 0;
 }
 
-/// Screen for currency differential report
+/// Pantalla para el reporte de diferencial cambiario.
 class CurrencyDifferentialReportScreen extends ConsumerWidget {
+  /// Crea una instancia de [CurrencyDifferentialReportScreen].
   const CurrencyDifferentialReportScreen({super.key});
 
   @override
@@ -116,7 +136,7 @@ class CurrencyDifferentialReportScreen extends ConsumerWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(
+                  const Icon(
                     Icons.currency_exchange,
                     size: 64,
                     color: AppColors.textSecondary,

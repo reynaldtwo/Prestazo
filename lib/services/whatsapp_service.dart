@@ -5,16 +5,17 @@ library;
 
 import 'dart:io';
 import 'dart:ui';
+
 import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:prestamos_app/core/localization/locale_provider.dart';
+import 'package:prestamos_app/data/models/app_settings.dart';
+import 'package:prestamos_app/data/models/customer.dart';
+import 'package:prestamos_app/data/models/loan.dart';
+import 'package:prestamos_app/data/models/payment.dart';
+import 'package:prestamos_app/data/models/payment_allocation.dart';
+import 'package:prestamos_app/services/pdf_generator_service.dart';
 import 'package:share_plus/share_plus.dart';
-import '../data/models/loan.dart';
-import '../data/models/customer.dart';
-import '../data/models/payment.dart';
-import '../data/models/payment_allocation.dart';
-import '../data/models/app_settings.dart';
-import '../core/localization/locale_provider.dart';
-import 'pdf_generator_service.dart';
 
 /// Debug logging helper - only prints in debug mode
 void _log(String message) {
@@ -23,7 +24,7 @@ void _log(String message) {
   }
 }
 
-/// WhatsApp integration service for sharing PDF receipts
+/// Servicio de integración con WhatsApp para compartir recibos y documentos en formato PDF.
 class WhatsAppService {
   WhatsAppService._();
 
@@ -86,7 +87,7 @@ class WhatsAppService {
       );
 
       return true;
-    } catch (e) {
+    } on Exception catch (e) {
       _log('WhatsApp: Error sharing disbursement receipt - $e');
       return false;
     }
@@ -149,7 +150,7 @@ class WhatsAppService {
       );
 
       return true;
-    } catch (e) {
+    } on Exception catch (e) {
       _log('WhatsApp: Error sharing payment receipt - $e');
       return false;
     }
@@ -203,7 +204,7 @@ class WhatsAppService {
       );
 
       return true;
-    } catch (e) {
+    } on Exception catch (e) {
       _log('WhatsApp: Error sharing loan statement - $e');
       return false;
     }

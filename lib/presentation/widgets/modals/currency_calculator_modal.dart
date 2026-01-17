@@ -1,25 +1,34 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:prestamos_app/core/theme/app_colors.dart';
+import 'package:prestamos_app/core/theme/app_typography.dart';
+import 'package:prestamos_app/core/widgets/widgets.dart';
+import 'package:prestamos_app/data/providers/providers.dart';
 import 'package:sealed_currencies/sealed_currencies.dart';
 
-import '../../../core/theme/app_colors.dart';
-import '../../../core/theme/app_typography.dart';
-import '../../../core/widgets/widgets.dart';
-import '../../../data/providers/providers.dart';
-
+/// Modal de calculadora de divisas para convertir montos entre diferentes monedas.
 class CurrencyCalculatorModal extends ConsumerStatefulWidget {
-  final String initialSourceCurrency;
-  final String initialTargetCurrency;
-  final double? initialAmount;
-  final Function(double result, String currency, double rate) onTakeAmount;
-
+  /// Crea una instancia de [CurrencyCalculatorModal].
   const CurrencyCalculatorModal({
-    super.key,
     required this.initialSourceCurrency,
     required this.initialTargetCurrency,
-    this.initialAmount,
     required this.onTakeAmount,
+    super.key,
+    this.initialAmount,
   });
+
+  /// Código de la moneda de origen inicial.
+  final String initialSourceCurrency;
+
+  /// Código de la moneda de destino inicial.
+  final String initialTargetCurrency;
+
+  /// Monto inicial opcional para la calculadora.
+  final double? initialAmount;
+
+  /// Callback que se ejecuta al confirmar el monto calculado.
+  /// Proporciona el resultado, la moneda y la tasa de cambio utilizada.
+  final void Function(double result, String currency, double rate) onTakeAmount;
 
   @override
   ConsumerState<CurrencyCalculatorModal> createState() =>
@@ -75,8 +84,8 @@ class _CurrencyCalculatorModalState
           _manualRateController.text = rate.toStringAsFixed(4);
         });
       }
-    } catch (e) {
-      debugPrint('Error loading rate: $e');
+    } on Exception catch (_) {
+      // Ignore error loading rate
     } finally {
       if (mounted) setState(() => _isLoadingRate = false);
       _calculate();
@@ -260,7 +269,9 @@ class _CurrencyCalculatorModalState
         Text(label, style: AppTypography.labelMedium),
         const SizedBox(height: 8),
         DropdownButtonFormField<String>(
-          value: FiatCurrency.list.any((c) => c.code == value) ? value : null,
+          initialValue: FiatCurrency.list.any((c) => c.code == value)
+              ? value
+              : null,
           isExpanded: true,
           decoration: const InputDecoration(
             border: OutlineInputBorder(),

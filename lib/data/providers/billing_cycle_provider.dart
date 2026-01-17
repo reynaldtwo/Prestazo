@@ -1,21 +1,30 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../models/billing_cycle.dart';
-import '../../services/interest_calculation_service.dart';
-import 'database_providers.dart';
-import 'loan_provider.dart';
+import 'package:prestamos_app/data/models/billing_cycle.dart';
+import 'package:prestamos_app/data/providers/database_providers.dart';
+import 'package:prestamos_app/data/providers/loan_provider.dart';
+import 'package:prestamos_app/services/interest_calculation_service.dart';
 
 /// State for billing cycles list
+/// Estado que representa la lista de ciclos de facturación, incluyendo su carga y errores.
 class BillingCyclesState {
-  final List<BillingCycle> cycles;
-  final bool isLoading;
-  final String? error;
-
+  /// Crea una instancia de [BillingCyclesState].
   const BillingCyclesState({
     this.cycles = const [],
     this.isLoading = false,
     this.error,
   });
 
+  /// Lista de ciclos de facturación obtenidos.
+  final List<BillingCycle> cycles;
+
+  /// Indica si los ciclos se están cargando actualmente.
+  final bool isLoading;
+
+  /// Mensaje de error si la carga falló.
+  final String? error;
+
+  /// Crea una copia de este estado con los campos proporcionados actualizados.
   BillingCyclesState copyWith({
     List<BillingCycle>? cycles,
     bool? isLoading,
@@ -33,7 +42,7 @@ class BillingCyclesState {
 final billingCyclesByLoanProvider =
     FutureProvider.family<List<BillingCycle>, String>((ref, loanId) async {
       final repo = ref.watch(billingCycleRepositoryProvider);
-      ref.watch(refreshTriggerProvider);
+      final _ = ref.watch(refreshTriggerProvider);
       return repo.getBillingCyclesByLoan(loanId);
     });
 
@@ -41,17 +50,16 @@ final billingCyclesByLoanProvider =
 final pendingBillingCyclesProvider =
     FutureProvider.family<List<BillingCycle>, String>((ref, loanId) async {
       final repo = ref.watch(billingCycleRepositoryProvider);
-      ref.watch(refreshTriggerProvider);
+      final _ = ref.watch(refreshTriggerProvider);
       return repo.getPendingCyclesByLoan(loanId);
     });
 
-/// Parameters for loan calculation
+/// Parámetros necesarios para realizar cálculos de intereses y deudas de un préstamo.
+@immutable
 class LoanCalculationParams {
-  final String loanId;
-  final String paymentType;
-  final DateTime? paymentDate;
-  final int refreshTrigger; // Forces recalculation when data changes
+  // Forces recalculation when data changes
 
+  /// Crea los parámetros para el cálculo del préstamo.
   const LoanCalculationParams({
     required this.loanId,
     this.paymentType =
@@ -59,6 +67,18 @@ class LoanCalculationParams {
     this.paymentDate,
     this.refreshTrigger = 0,
   });
+
+  /// ID del préstamo a calcular.
+  final String loanId;
+
+  /// Tipo de operación (VIEW, CANCEL, MIXED, etc).
+  final String paymentType;
+
+  /// Fecha en la que se simula el pago o consulta.
+  final DateTime? paymentDate;
+
+  /// Disparador para forzar la actualización del cálculo.
+  final int refreshTrigger;
 
   @override
   bool operator ==(Object other) =>
@@ -90,7 +110,10 @@ final loanCalculationProvider =
       final loan = loanAsync.value;
       if (loan == null) {
         // If loading, we could throw or wait. If null (not found), throw.
-        if (loanAsync.isLoading) throw const AsyncLoading(); // Wait for loan
+        if (loanAsync.isLoading) {
+          // ignore: only_throw_errors // AsyncLoading is thrown to signal suspension in this specific architecture
+          throw const AsyncLoading<LoanCalculationResult>(); // Wait for loan
+        }
         throw Exception('Loan not found');
       }
 
@@ -101,10 +124,14 @@ final loanCalculationProvider =
 
       // Wait for cycles to load before calculating
       if (cyclesAsync.isLoading) {
-        throw const AsyncLoading(); // Wait for cycles
+        // ignore: only_throw_errors // AsyncLoading is thrown to signal suspension in this specific architecture
+        throw const AsyncLoading<LoanCalculationResult>(); // Wait for cycles
       }
       if (cyclesAsync.hasError) {
-        throw cyclesAsync.error!;
+        final error = cyclesAsync.error!;
+        if (error is Exception) throw error;
+        if (error is Error) throw error;
+        throw Exception(error.toString());
       }
       final pendingCycles = cyclesAsync.value ?? [];
 

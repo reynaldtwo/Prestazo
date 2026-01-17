@@ -1,21 +1,26 @@
-// ignore_for_file: deprecated_member_use
+// ignore_for_file: deprecated_member_use // Using deprecated members until migration roadmap is defined
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:prestamos_app/core/localization/locale_provider.dart';
+import 'package:prestamos_app/core/providers/currency_provider.dart';
+import 'package:prestamos_app/core/theme/app_colors.dart';
+import 'package:prestamos_app/core/theme/app_typography.dart';
 import 'package:sealed_currencies/sealed_currencies.dart';
-import '../../../../core/localization/locale_provider.dart';
-import '../../../../core/providers/currency_provider.dart';
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_typography.dart';
 
+/// Pantalla de selección de moneda.
 class CurrencySelectionScreen extends ConsumerStatefulWidget {
-  final String? initialValue;
-  final bool isGlobalUpdate;
-
+  /// Crea una instancia de [CurrencySelectionScreen].
   const CurrencySelectionScreen({
     super.key,
     this.initialValue,
     this.isGlobalUpdate = false,
   });
+
+  /// Valor inicial seleccionado.
+  final String? initialValue;
+
+  /// Indica si la actualización debe ser global en el proveedor de moneda del app.
+  final bool isGlobalUpdate;
 
   @override
   ConsumerState<CurrencySelectionScreen> createState() =>
@@ -56,7 +61,7 @@ class _CurrencySelectionScreenState
   Widget build(BuildContext context) {
     // If not global update, use passed initialValue, otherwise fallback to provider
     final currentCode = widget.isGlobalUpdate
-        ? ref.watch(currencyProvider)?.code
+        ? ref.watch(currencyProvider).code
         : widget.initialValue;
 
     return Scaffold(
@@ -117,7 +122,7 @@ class _CurrencySelectionScreenState
                       shape: BoxShape.circle,
                     ),
                     child: Text(
-                      currency.symbol ?? '\$',
+                      currency.symbol ?? r'$',
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         color: isSelected

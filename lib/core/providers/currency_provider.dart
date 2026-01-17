@@ -12,7 +12,9 @@ final currencyProvider = StateNotifierProvider<CurrencyNotifier, FiatCurrency>((
   return CurrencyNotifier();
 });
 
+/// Notificador para gestionar la moneda seleccionada por el usuario.
 class CurrencyNotifier extends StateNotifier<FiatCurrency> {
+  /// Crea un [CurrencyNotifier] e inicializa la carga de la moneda persistida.
   CurrencyNotifier()
     : super(
         FiatCurrency.list.firstWhere(
@@ -33,17 +35,18 @@ class CurrencyNotifier extends StateNotifier<FiatCurrency> {
           state = currency;
         }
       }
-    } catch (_) {
+    } on Exception catch (_) {
       // Ignore errors, use default
     }
   }
 
+  /// Cambia la moneda actual y la persiste en las preferencias del usuario.
   Future<void> setCurrency(FiatCurrency currency) async {
     state = currency;
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString(_currencyKey, currency.code);
-    } catch (_) {
+    } on Exception catch (_) {
       // Ignore errors
     }
   }

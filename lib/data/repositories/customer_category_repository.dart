@@ -1,8 +1,7 @@
+import 'package:prestamos_app/data/database/database_helper.dart';
+import 'package:prestamos_app/data/models/customer.dart';
+import 'package:prestamos_app/data/models/customer_category.dart';
 import 'package:uuid/uuid.dart';
-
-import '../database/database_helper.dart';
-import '../models/customer_category.dart';
-import '../models/customer.dart';
 
 /// Repository for customer category operations
 class CustomerCategoryRepository {
@@ -15,7 +14,7 @@ class CustomerCategoryRepository {
       'customer_categories',
       orderBy: 'sort_order ASC, name ASC',
     );
-    return maps.map((m) => CustomerCategory.fromMap(m)).toList();
+    return maps.map(CustomerCategory.fromMap).toList();
   }
 
   /// Get category by ID
@@ -88,7 +87,7 @@ class CustomerCategoryRepository {
       where: 'category_id = ?',
       whereArgs: [categoryId],
     );
-    return maps.map((m) => Customer.fromMap(m)).toList();
+    return maps.map(Customer.fromMap).toList();
   }
 
   /// Get count of customers using a category

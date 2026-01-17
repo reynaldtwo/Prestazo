@@ -1,33 +1,30 @@
-import 'package:sqflite/sqflite.dart';
+import 'dart:io' as io;
+
+import 'package:flutter/foundation.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:flutter/foundation.dart';
-import 'package:sqflite_common_ffi_web/sqflite_ffi_web.dart';
+import 'package:prestamos_app/core/constants/app_constants.dart';
+import 'package:prestamos_app/core/constants/app_status.dart';
+import 'package:prestamos_app/data/models/models.dart';
+import 'package:sqflite/sqflite.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
-import 'dart:io' as io;
-import '../../core/constants/app_constants.dart';
-import '../models/models.dart';
-import '../../core/constants/app_status.dart';
+import 'package:sqflite_common_ffi_web/sqflite_ffi_web.dart';
 
 /// Database helper for SQLite operations
 class DatabaseHelper {
-  static final DatabaseHelper _instance = DatabaseHelper._internal();
-  static Database? _database;
-
-  static bool _isMaintenanceMode = false;
-
+  /// Constructor de factoría para el patrón Singleton.
   factory DatabaseHelper() => _instance;
 
   DatabaseHelper._internal();
+  static final DatabaseHelper _instance = DatabaseHelper._internal();
+  static Database? _database;
 
-  /// Set maintenance mode (true to block DB access, false to resume)
-  void setMaintenanceMode(bool enabled) {
-    _isMaintenanceMode = enabled;
-  }
+  /// Maintenance mode (true to block DB access, false to resume)
+  bool maintenanceMode = false;
 
   /// Get database instance
   Future<Database> get database async {
-    if (_isMaintenanceMode) {
+    if (maintenanceMode) {
       throw Exception('Database is in maintenance mode');
     }
     if (_database != null && _database!.isOpen) return _database!;
@@ -38,8 +35,10 @@ class DatabaseHelper {
   /// Initialize database
   Future<Database> _initDatabase() async {
     if (kIsWeb) {
-      databaseFactory = databaseFactoryFfiWeb;
-      return await openDatabase(
+      if (databaseFactory.runtimeType.toString() != 'DatabaseFactoryFfiWeb') {
+        databaseFactory = databaseFactoryFfiWeb;
+      }
+      return openDatabase(
         AppConstants.databaseName,
         version: AppConstants.databaseVersion,
         onCreate: _onCreate,
@@ -49,16 +48,18 @@ class DatabaseHelper {
     }
 
     if (io.Platform.isWindows || io.Platform.isLinux || io.Platform.isMacOS) {
-      databaseFactory = databaseFactoryFfi;
+      if (databaseFactory.runtimeType.toString() != 'DatabaseFactoryFfi') {
+        databaseFactory = databaseFactoryFfi;
+      }
     }
 
     final path = await getDatabasePath();
     final file = io.File(path);
-    if (!await file.parent.exists()) {
-      await file.parent.create(recursive: true);
+    if (!file.parent.existsSync()) {
+      file.parent.createSync(recursive: true);
     }
 
-    return await openDatabase(
+    return openDatabase(
       path,
       version: AppConstants.databaseVersion,
       onCreate: _onCreate,
@@ -70,21 +71,19 @@ class DatabaseHelper {
 
   /// Called every time the database is opened - ensures all columns exist
   Future<void> _onOpen(Database db) async {
-    debugPrint('Database opened, checking for missing columns...');
-
     // Check and add share_receipts_whatsapp column if missing
     try {
       final result = await db.rawQuery(
         "SELECT COUNT(*) as cnt FROM pragma_table_info('app_settings') WHERE name='share_receipts_whatsapp'",
       );
-      final hasColumn = (result.first['cnt'] as int) > 0;
+      final hasColumn = (result.first['cnt']! as int) > 0;
       if (!hasColumn) {
         debugPrint('Adding missing column: share_receipts_whatsapp');
         await db.execute(
           'ALTER TABLE app_settings ADD COLUMN share_receipts_whatsapp INTEGER DEFAULT 0',
         );
       }
-    } catch (e) {
+    } on Exception catch (e) {
       debugPrint('Error checking/adding share_receipts_whatsapp: $e');
     }
 
@@ -93,14 +92,14 @@ class DatabaseHelper {
       final result = await db.rawQuery(
         "SELECT COUNT(*) as cnt FROM pragma_table_info('app_settings') WHERE name='backup_path'",
       );
-      final hasColumn = (result.first['cnt'] as int) > 0;
+      final hasColumn = (result.first['cnt']! as int) > 0;
       if (!hasColumn) {
         debugPrint('Adding missing column: backup_path');
         await db.execute(
           'ALTER TABLE app_settings ADD COLUMN backup_path TEXT',
         );
       }
-    } catch (e) {
+    } on Exception catch (e) {
       debugPrint('Error checking/adding backup_path: $e');
     }
 
@@ -119,14 +118,13 @@ class DatabaseHelper {
         final result = await db.rawQuery(
           "SELECT COUNT(*) as cnt FROM pragma_table_info('app_settings') WHERE name='${col['name']}'",
         );
-        final hasColumn = (result.first['cnt'] as int) > 0;
+        final hasColumn = (result.first['cnt']! as int) > 0;
         if (!hasColumn) {
-          debugPrint('Adding missing column: ${col['name']}');
           await db.execute(
             'ALTER TABLE app_settings ADD COLUMN ${col['name']} ${col['def']}',
           );
         }
-      } catch (e) {
+      } on Exception catch (e) {
         debugPrint('Error checking/adding ${col['name']}: $e');
       }
     }
@@ -142,14 +140,13 @@ class DatabaseHelper {
         final result = await db.rawQuery(
           "SELECT COUNT(*) as cnt FROM pragma_table_info('app_settings') WHERE name='${col['name']}'",
         );
-        final hasColumn = (result.first['cnt'] as int) > 0;
+        final hasColumn = (result.first['cnt']! as int) > 0;
         if (!hasColumn) {
-          debugPrint('Adding missing column: ${col['name']}');
           await db.execute(
             'ALTER TABLE app_settings ADD COLUMN ${col['name']} ${col['def']}',
           );
         }
-      } catch (e) {
+      } on Exception catch (e) {
         debugPrint('Error checking/adding ${col['name']}: $e');
       }
     }
@@ -159,15 +156,14 @@ class DatabaseHelper {
       final result = await db.rawQuery(
         "SELECT COUNT(*) as cnt FROM pragma_table_info('loans') WHERE name='currency_code'",
       );
-      final hasColumn = (result.first['cnt'] as int) > 0;
+      final hasColumn = (result.first['cnt']! as int) > 0;
       if (!hasColumn) {
-        debugPrint('Adding missing column to loans: currency_code');
         await db.execute(
           "ALTER TABLE loans ADD COLUMN currency_code TEXT DEFAULT 'NIO'",
         );
       }
-    } catch (e) {
-      debugPrint('Error checking/adding currency_code to loans: $e');
+    } on Exception catch (e) {
+      debugPrint('DB Init Error (currency_code in loans): $e');
     }
 
     // Check and add report currency settings columns if missing
@@ -181,14 +177,14 @@ class DatabaseHelper {
         final result = await db.rawQuery(
           "SELECT COUNT(*) as cnt FROM pragma_table_info('app_settings') WHERE name='${col['name']}'",
         );
-        final hasColumn = (result.first['cnt'] as int) > 0;
+        final hasColumn = (result.first['cnt']! as int) > 0;
         if (!hasColumn) {
           debugPrint('Adding missing column: ${col['name']}');
           await db.execute(
             'ALTER TABLE app_settings ADD COLUMN ${col['name']} ${col['def']}',
           );
         }
-      } catch (e) {
+      } on Exception catch (e) {
         debugPrint('Error checking/adding ${col['name']}: $e');
       }
     }
@@ -209,14 +205,14 @@ class DatabaseHelper {
         final result = await db.rawQuery(
           "SELECT COUNT(*) as cnt FROM pragma_table_info('app_settings') WHERE name='${col['name']}'",
         );
-        final hasColumn = (result.first['cnt'] as int) > 0;
+        final hasColumn = (result.first['cnt']! as int) > 0;
         if (!hasColumn) {
           debugPrint('Adding missing column: ${col['name']}');
           await db.execute(
             'ALTER TABLE app_settings ADD COLUMN ${col['name']} ${col['def']}',
           );
         }
-      } catch (e) {
+      } on Exception catch (e) {
         debugPrint('Error checking/adding ${col['name']}: $e');
       }
     }
@@ -226,15 +222,14 @@ class DatabaseHelper {
       final result = await db.rawQuery(
         "SELECT COUNT(*) as cnt FROM pragma_table_info('app_settings') WHERE name='company_country_code'",
       );
-      final hasColumn = (result.first['cnt'] as int) > 0;
+      final hasColumn = (result.first['cnt']! as int) > 0;
       if (!hasColumn) {
-        debugPrint('Adding missing column: company_country_code');
         await db.execute(
           'ALTER TABLE app_settings ADD COLUMN company_country_code TEXT',
         );
       }
-    } catch (e) {
-      debugPrint('Error checking/adding company_country_code: $e');
+    } on Exception catch (e) {
+      debugPrint('DB Init Error (company_country_code): $e');
     }
 
     // Check and add rate type columns (v22)
@@ -248,14 +243,14 @@ class DatabaseHelper {
         final result = await db.rawQuery(
           "SELECT COUNT(*) as cnt FROM pragma_table_info('app_settings') WHERE name='${col['name']}'",
         );
-        final hasColumn = (result.first['cnt'] as int) > 0;
+        final hasColumn = (result.first['cnt']! as int) > 0;
         if (!hasColumn) {
           debugPrint('Adding missing column: ${col['name']}');
           await db.execute(
             'ALTER TABLE app_settings ADD COLUMN ${col['name']} ${col['def']}',
           );
         }
-      } catch (e) {
+      } on Exception catch (e) {
         debugPrint('Error checking/adding ${col['name']}: $e');
       }
     }
@@ -265,15 +260,14 @@ class DatabaseHelper {
       final result = await db.rawQuery(
         "SELECT COUNT(*) as cnt FROM pragma_table_info('app_settings') WHERE name='allow_manual_exchange_rate'",
       );
-      final hasColumn = (result.first['cnt'] as int) > 0;
+      final hasColumn = (result.first['cnt']! as int) > 0;
       if (!hasColumn) {
-        debugPrint('Adding missing column: allow_manual_exchange_rate');
         await db.execute(
           'ALTER TABLE app_settings ADD COLUMN allow_manual_exchange_rate INTEGER NOT NULL DEFAULT 0',
         );
       }
-    } catch (e) {
-      debugPrint('Error checking/adding allow_manual_exchange_rate: $e');
+    } on Exception catch (e) {
+      debugPrint('DB Init Error (allow_manual_exchange_rate): $e');
     }
 
     // Check and add payment currency columns (v24)
@@ -288,15 +282,14 @@ class DatabaseHelper {
         final result = await db.rawQuery(
           "SELECT COUNT(*) as cnt FROM pragma_table_info('payments') WHERE name='${col['name']}'",
         );
-        final hasColumn = (result.first['cnt'] as int) > 0;
+        final hasColumn = (result.first['cnt']! as int) > 0;
         if (!hasColumn) {
-          debugPrint('Adding missing column to payments: ${col['name']}');
           await db.execute(
             'ALTER TABLE payments ADD COLUMN ${col['name']} ${col['def']}',
           );
         }
-      } catch (e) {
-        debugPrint('Error checking/adding ${col['name']} to payments: $e');
+      } on Exception catch (e) {
+        debugPrint('DB Init Error (payments columns): $e');
       }
     }
 
@@ -322,8 +315,8 @@ class DatabaseHelper {
           'CREATE UNIQUE INDEX uq_exchange_rate_pair_date ON exchange_rates(source_currency, target_currency, rate_date)',
         );
       }
-    } catch (e) {
-      debugPrint('Error checking/creating exchange_rates table: $e');
+    } on Exception catch (_) {
+      // Ignore exchange_rates table check error
     }
 
     // Auto-add loans columns if missing (v21)
@@ -337,15 +330,14 @@ class DatabaseHelper {
         final result = await db.rawQuery(
           "SELECT COUNT(*) as cnt FROM pragma_table_info('loans') WHERE name='${col['name']}'",
         );
-        final hasColumn = (result.first['cnt'] as int) > 0;
+        final hasColumn = (result.first['cnt']! as int) > 0;
         if (!hasColumn) {
-          debugPrint('Adding missing column to loans: ${col['name']}');
           await db.execute(
             'ALTER TABLE loans ADD COLUMN ${col['name']} ${col['def']}',
           );
         }
-      } catch (e) {
-        debugPrint('Error checking/adding ${col['name']} to loans: $e');
+      } on Exception catch (_) {
+        // Ignore loans column check error
       }
     }
 
@@ -354,17 +346,14 @@ class DatabaseHelper {
       final result = await db.rawQuery(
         "SELECT COUNT(*) as cnt FROM pragma_table_info('loans') WHERE name='payment_frequency_days'",
       );
-      final hasColumn = (result.first['cnt'] as int) > 0;
+      final hasColumn = (result.first['cnt']! as int) > 0;
       if (!hasColumn) {
-        debugPrint(
-          'Adding missing column to loans (Safety Check): payment_frequency_days',
-        );
         await db.execute(
           'ALTER TABLE loans ADD COLUMN payment_frequency_days INTEGER',
         );
       }
-    } catch (e) {
-      debugPrint('Error checking/adding payment_frequency_days to loans: $e');
+    } on Exception catch (_) {
+      // Ignore payment_frequency_days check error
     }
 
     // Safety Check: Ensure Plan columns exist in loans table (Critical for Level Installment)
@@ -380,33 +369,29 @@ class DatabaseHelper {
         final result = await db.rawQuery(
           "SELECT COUNT(*) as cnt FROM pragma_table_info('loans') WHERE name='${col['name']}'",
         );
-        final hasColumn = (result.first['cnt'] as int) > 0;
+        final hasColumn = (result.first['cnt']! as int) > 0;
         if (!hasColumn) {
-          debugPrint('Adding missing column to loans: ${col['name']}');
           await db.execute(
             'ALTER TABLE loans ADD COLUMN ${col['name']} ${col['def']}',
           );
         }
       }
-    } catch (e) {
-      debugPrint('Error checking/adding Plan columns to loans: $e');
+    } on Exception catch (_) {
+      // Ignore Plan columns check error
     }
     // V25 Schema Repair: Ensure payments table has _minor columns
     try {
       final paymentsInfo = await db.rawQuery(
         "SELECT COUNT(*) as cnt FROM pragma_table_info('payments') WHERE name='amount_payment_minor'",
       );
-      final hasMinorColumn = (paymentsInfo.first['cnt'] as int) > 0;
+      final hasMinorColumn = (paymentsInfo.first['cnt']! as int) > 0;
 
       if (!hasMinorColumn) {
-        debugPrint(
-          'CRITICAL: V25 Schema missing in payments table. Triggering Repair.',
-        );
         // We will attempt to run the migration logic manually
         await _performV25Migration(db);
       }
-    } catch (e) {
-      debugPrint('Error repairing V25 schema: $e');
+    } on Exception catch (_) {
+      // Ignore V25 schema repair error
     }
 
     // Check and add term fields to payment_plans if missing (Dev migration)
@@ -414,21 +399,18 @@ class DatabaseHelper {
       final termsInfo = await db.rawQuery(
         "SELECT COUNT(*) as cnt FROM pragma_table_info('payment_plans') WHERE name='term_value'",
       );
-      final hasTermColumns = (termsInfo.first['cnt'] as int) > 0;
+      final hasTermColumns = (termsInfo.first['cnt']! as int) > 0;
 
       if (!hasTermColumns) {
-        debugPrint(
-          'Adding missing columns to payment_plans: term_value, term_unit',
-        );
         await db.execute(
-          "ALTER TABLE payment_plans ADD COLUMN term_value INTEGER NOT NULL DEFAULT 0",
+          'ALTER TABLE payment_plans ADD COLUMN term_value INTEGER NOT NULL DEFAULT 0',
         );
         await db.execute(
           "ALTER TABLE payment_plans ADD COLUMN term_unit TEXT NOT NULL DEFAULT 'Months'",
         );
       }
-    } catch (e) {
-      debugPrint('Error adding term fields to payment_plans: $e');
+    } on Exception catch (_) {
+      // Ignore term fields add error
     }
 
     // Fix payment_plans min_amount/max_amount NULL constraint (was NOT NULL, should allow NULL)
@@ -459,9 +441,9 @@ class DatabaseHelper {
           await db.rawDelete(
             "DELETE FROM payment_plans WHERE plan_id = '__test_null__'",
           );
-        } catch (e) {
+        } on Exception catch (_) {
           // NULL insertion failed, need to recreate table with correct schema
-          debugPrint('Fixing payment_plans table schema (NULL constraint)...');
+          // NULL insertion failed, need to recreate table with correct schema
 
           // Backup existing data
           await db.execute('''
@@ -503,12 +485,10 @@ class DatabaseHelper {
 
           // Drop backup table
           await db.execute('DROP TABLE payment_plans_backup');
-
-          debugPrint('payment_plans table schema fixed successfully');
         }
       }
-    } catch (e) {
-      debugPrint('Error fixing payment_plans schema: $e');
+    } on Exception catch (_) {
+      // Ignore payment_plans schema fix error
     }
   }
 
@@ -516,18 +496,18 @@ class DatabaseHelper {
   Future<void> _onConfigure(Database db) async {
     try {
       await db.execute('PRAGMA foreign_keys = ON');
-    } catch (e) {
-      debugPrint('Error setting foreign_keys: $e');
+    } on Exception catch (_) {
+      // Ignore foreign_keys error
     }
     try {
       await db.rawQuery('PRAGMA journal_mode = WAL');
-    } catch (e) {
-      debugPrint('Error setting journal_mode: $e');
+    } on Exception catch (_) {
+      // Ignore journal_mode error
     }
     try {
       await db.execute('PRAGMA busy_timeout = 5000');
-    } catch (e) {
-      debugPrint('Error setting busy_timeout: $e');
+    } on Exception catch (_) {
+      // Ignore busy_timeout error
     }
   }
 
@@ -626,14 +606,14 @@ class DatabaseHelper {
       final result = await db.rawQuery(
         "SELECT COUNT(*) as cnt FROM pragma_table_info('loans') WHERE name='payment_frequency_days'",
       );
-      final hasColumn = (result.first['cnt'] as int) > 0;
+      final hasColumn = (result.first['cnt']! as int) > 0;
       if (!hasColumn) {
         await db.execute(
           'ALTER TABLE loans ADD COLUMN payment_frequency_days INTEGER',
         );
       }
-    } catch (e) {
-      debugPrint('Error adding payment_frequency_days to loans: $e');
+    } on Exception catch (_) {
+      // Ignore payment_frequency_days add error
     }
 
     // Seed default frequencies logic is effectively handled by migration logic on upgrade,
@@ -711,10 +691,41 @@ class DatabaseHelper {
         plan_installments_total INTEGER,
         distribute_capital_and_interest INTEGER DEFAULT 0,
         end_date_calculated TEXT,
+        loan_day_count_convention TEXT,
+        loan_days_per_month INTEGER,
+        loan_days_per_year INTEGER,
+        loan_proration_rule TEXT,
+        loan_rounding_decimals INTEGER,
+        loan_rounding_mode TEXT,
         created_at TEXT NOT NULL,
         updated_at TEXT NOT NULL,
         FOREIGN KEY (customer_id) REFERENCES customers(customer_id) ON DELETE RESTRICT
       )
+    ''');
+
+    // V32: Business Financial Policies table
+    final policyNow = DateTime.now().toIso8601String();
+    await db.execute('''
+      CREATE TABLE business_financial_policies (
+        id TEXT PRIMARY KEY,
+        day_count_convention TEXT NOT NULL DEFAULT '30/360',
+        days_per_month INTEGER NOT NULL DEFAULT 30,
+        days_per_year INTEGER NOT NULL DEFAULT 360,
+        proration_rule TEXT NOT NULL DEFAULT 'CYCLE_PROPORTION',
+        rounding_decimals INTEGER NOT NULL DEFAULT 2,
+        rounding_mode TEXT NOT NULL DEFAULT 'HALF_UP',
+        is_active INTEGER NOT NULL DEFAULT 1,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL
+      )
+    ''');
+
+    // Insert default policy (30/360 standard)
+    await db.execute('''
+      INSERT INTO business_financial_policies
+      (id, day_count_convention, days_per_month, days_per_year, proration_rule,
+       rounding_decimals, rounding_mode, is_active, created_at, updated_at)
+      VALUES ('default', '30/360', 30, 360, 'CYCLE_PROPORTION', 2, 'HALF_UP', 1, '$policyNow', '$policyNow')
     ''');
 
     // Payment Plans table (V29)
@@ -1058,7 +1069,7 @@ class DatabaseHelper {
 
       // Populate existing loan numbers sequentially by creation date
       final loans = await db.query('loans', orderBy: 'created_at ASC');
-      int currentNumber = 1;
+      var currentNumber = 1;
 
       for (final loan in loans) {
         await db.update(
@@ -1085,10 +1096,10 @@ class DatabaseHelper {
       // Safe add dni/coords if they were missed in a broken v9 state
       try {
         await db.execute('ALTER TABLE customers ADD COLUMN dni TEXT');
-      } catch (_) {}
+      } on Exception catch (_) {}
       try {
         await db.execute('ALTER TABLE customers ADD COLUMN coords TEXT');
-      } catch (_) {}
+      } on Exception catch (_) {}
 
       try {
         await db.execute(
@@ -1133,7 +1144,7 @@ class DatabaseHelper {
         await db.execute(
           'ALTER TABLE app_settings ADD COLUMN show_company_logo INTEGER NOT NULL DEFAULT 0',
         );
-      } catch (e) {
+      } on Exception catch (_) {
         // Ignore if columns already exist (though unexpected for v10 columns)
       }
     }
@@ -1143,12 +1154,12 @@ class DatabaseHelper {
         await db.execute(
           'ALTER TABLE customers ADD COLUMN is_restricted INTEGER DEFAULT 0',
         );
-      } catch (_) {}
+      } on Exception catch (_) {}
       try {
         await db.execute(
           'ALTER TABLE customers ADD COLUMN restriction_reason TEXT',
         );
-      } catch (_) {}
+      } on Exception catch (_) {}
     }
     // Migration from v11 to v12 (DNI validation setting)
     if (oldVersion < 12) {
@@ -1156,7 +1167,7 @@ class DatabaseHelper {
         await db.execute(
           'ALTER TABLE app_settings ADD COLUMN validate_dni INTEGER DEFAULT 0',
         );
-      } catch (_) {}
+      } on Exception catch (_) {}
     }
     // Migration from v12 to v13 (Backup path)
     if (oldVersion < 13) {
@@ -1164,7 +1175,7 @@ class DatabaseHelper {
         await db.execute(
           'ALTER TABLE app_settings ADD COLUMN backup_path TEXT',
         );
-      } catch (_) {}
+      } on Exception catch (_) {}
     }
     // Migration from v13 to v14 (WhatsApp receipts sharing)
     if (oldVersion < 14) {
@@ -1172,7 +1183,7 @@ class DatabaseHelper {
         await db.execute(
           'ALTER TABLE app_settings ADD COLUMN share_receipts_whatsapp INTEGER DEFAULT 0',
         );
-      } catch (_) {}
+      } on Exception catch (_) {}
     }
     // Migration from v14 to v15 (Report settings)
     if (oldVersion < 15) {
@@ -1180,32 +1191,32 @@ class DatabaseHelper {
         await db.execute(
           'ALTER TABLE app_settings ADD COLUMN show_disbursement_signatures INTEGER DEFAULT 1',
         );
-      } catch (_) {}
+      } on Exception catch (_) {}
       try {
         await db.execute(
           'ALTER TABLE app_settings ADD COLUMN show_payment_signatures INTEGER DEFAULT 1',
         );
-      } catch (_) {}
+      } on Exception catch (_) {}
       try {
         await db.execute(
           'ALTER TABLE app_settings ADD COLUMN disbursement_legend TEXT',
         );
-      } catch (_) {}
+      } on Exception catch (_) {}
       try {
         await db.execute(
           'ALTER TABLE app_settings ADD COLUMN show_disbursement_legend INTEGER DEFAULT 0',
         );
-      } catch (_) {}
+      } on Exception catch (_) {}
       try {
         await db.execute(
           'ALTER TABLE app_settings ADD COLUMN payment_legend TEXT',
         );
-      } catch (_) {}
+      } on Exception catch (_) {}
       try {
         await db.execute(
           'ALTER TABLE app_settings ADD COLUMN show_payment_legend INTEGER DEFAULT 0',
         );
-      } catch (_) {}
+      } on Exception catch (_) {}
     }
     // Migration from v15 to v16 (Capital Payment Restriction)
     if (oldVersion < 16) {
@@ -1213,12 +1224,12 @@ class DatabaseHelper {
         await db.execute(
           'ALTER TABLE app_settings ADD COLUMN enable_capital_restriction INTEGER DEFAULT 1',
         );
-      } catch (_) {}
+      } on Exception catch (_) {}
       try {
         await db.execute(
           'ALTER TABLE app_settings ADD COLUMN capital_restriction_days INTEGER DEFAULT 10',
         );
-      } catch (_) {}
+      } on Exception catch (_) {}
     }
     // Migration from v16 to v17 (DNI Format Validation)
     if (oldVersion < 17) {
@@ -1226,10 +1237,10 @@ class DatabaseHelper {
         await db.execute(
           'ALTER TABLE app_settings ADD COLUMN validate_dni_format INTEGER DEFAULT 0',
         );
-      } catch (_) {}
+      } on Exception catch (_) {}
       try {
         await db.execute('ALTER TABLE app_settings ADD COLUMN dni_mask TEXT');
-      } catch (_) {}
+      } on Exception catch (_) {}
     }
     // Migration from v17 to v18 (Scheduled Backup)
     if (oldVersion < 18) {
@@ -1237,37 +1248,37 @@ class DatabaseHelper {
         await db.execute(
           "ALTER TABLE app_settings ADD COLUMN backup_frequency TEXT DEFAULT 'NONE'",
         );
-      } catch (_) {}
+      } on Exception catch (_) {}
       try {
         await db.execute(
           'ALTER TABLE app_settings ADD COLUMN backup_retention_days INTEGER DEFAULT 30',
         );
-      } catch (_) {}
+      } on Exception catch (_) {}
       try {
         await db.execute(
           'ALTER TABLE app_settings ADD COLUMN backup_on_loan_creation INTEGER DEFAULT 0',
         );
-      } catch (_) {}
+      } on Exception catch (_) {}
       try {
         await db.execute(
           'ALTER TABLE app_settings ADD COLUMN backup_on_payment INTEGER DEFAULT 0',
         );
-      } catch (_) {}
+      } on Exception catch (_) {}
       try {
         await db.execute(
           'ALTER TABLE app_settings ADD COLUMN backup_schedule_time TEXT',
         );
-      } catch (_) {}
+      } on Exception catch (_) {}
       try {
         await db.execute(
           'ALTER TABLE app_settings ADD COLUMN backup_custom_name TEXT',
         );
-      } catch (_) {}
+      } on Exception catch (_) {}
       try {
         await db.execute(
           'ALTER TABLE app_settings ADD COLUMN backup_retries INTEGER DEFAULT 3',
         );
-      } catch (_) {}
+      } on Exception catch (_) {}
     }
     // Migration from v18 to v19 (Ensure all new columns exist - Safety Check)
     if (oldVersion < 19) {
@@ -1276,49 +1287,49 @@ class DatabaseHelper {
         await db.execute(
           "ALTER TABLE app_settings ADD COLUMN report_currency TEXT DEFAULT 'NIO'",
         );
-      } catch (_) {}
+      } on Exception catch (_) {}
       try {
         await db.execute(
           'ALTER TABLE app_settings ADD COLUMN exchange_rate REAL DEFAULT 1.0',
         );
-      } catch (_) {}
+      } on Exception catch (_) {}
 
       // Backup Columns (if missed in v18 or just ensuring)
       try {
         await db.execute(
           "ALTER TABLE app_settings ADD COLUMN backup_frequency TEXT DEFAULT 'NONE'",
         );
-      } catch (_) {}
+      } on Exception catch (_) {}
       try {
         await db.execute(
           'ALTER TABLE app_settings ADD COLUMN backup_retention_days INTEGER DEFAULT 30',
         );
-      } catch (_) {}
+      } on Exception catch (_) {}
       try {
         await db.execute(
           'ALTER TABLE app_settings ADD COLUMN backup_on_loan_creation INTEGER DEFAULT 0',
         );
-      } catch (_) {}
+      } on Exception catch (_) {}
       try {
         await db.execute(
           'ALTER TABLE app_settings ADD COLUMN backup_on_payment INTEGER DEFAULT 0',
         );
-      } catch (_) {}
+      } on Exception catch (_) {}
       try {
         await db.execute(
           'ALTER TABLE app_settings ADD COLUMN backup_schedule_time TEXT',
         );
-      } catch (_) {}
+      } on Exception catch (_) {}
       try {
         await db.execute(
           'ALTER TABLE app_settings ADD COLUMN backup_custom_name TEXT',
         );
-      } catch (_) {}
+      } on Exception catch (_) {}
       try {
         await db.execute(
           'ALTER TABLE app_settings ADD COLUMN backup_retries INTEGER DEFAULT 3',
         );
-      } catch (_) {}
+      } on Exception catch (_) {}
     }
 
     // Migration from v19 to v20 (Country of Operation)
@@ -1327,7 +1338,7 @@ class DatabaseHelper {
         await db.execute(
           'ALTER TABLE app_settings ADD COLUMN company_country_code TEXT',
         );
-      } catch (_) {}
+      } on Exception catch (_) {}
     }
 
     // Migration v25: Multi-Currency Refactor (Strict Mode)
@@ -1349,12 +1360,12 @@ class DatabaseHelper {
             updated_at TEXT NOT NULL
           )
         ''');
-      } catch (_) {}
+      } on Exception catch (_) {}
 
       // Add category_id column to customers
       try {
         await db.execute('ALTER TABLE customers ADD COLUMN category_id TEXT');
-      } catch (_) {}
+      } on Exception catch (_) {}
     }
     // Migration from v26 to v27: Add payment_frequencies table
     if (oldVersion < 27) {
@@ -1370,7 +1381,7 @@ class DatabaseHelper {
             created_at TEXT NOT NULL
           )
         ''');
-      } catch (e) {
+      } on Exception catch (e) {
         debugPrint('Error creating payment_frequencies table: $e');
       }
 
@@ -1411,7 +1422,7 @@ class DatabaseHelper {
             'is_active': 1,
             'created_at': now,
           });
-        } catch (e) {
+        } on Exception catch (e) {
           debugPrint('Error seeding default frequency ${freq['id']}: $e');
         }
       }
@@ -1423,13 +1434,13 @@ class DatabaseHelper {
         final result = await db.rawQuery(
           "SELECT COUNT(*) as cnt FROM pragma_table_info('loans') WHERE name='payment_frequency_days'",
         );
-        final hasColumn = (result.first['cnt'] as int) > 0;
+        final hasColumn = (result.first['cnt']! as int) > 0;
         if (!hasColumn) {
           await db.execute(
             'ALTER TABLE loans ADD COLUMN payment_frequency_days INTEGER',
           );
         }
-      } catch (e) {
+      } on Exception catch (e) {
         debugPrint('Error adding payment_frequency_days to loans: $e');
       }
     }
@@ -1463,7 +1474,7 @@ class DatabaseHelper {
             FOREIGN KEY (payment_frequency_id) REFERENCES payment_frequencies(id)
           )
         ''');
-      } catch (e) {
+      } on Exception catch (e) {
         debugPrint('Error creating payment_plans table: $e');
       }
 
@@ -1480,13 +1491,13 @@ class DatabaseHelper {
           final result = await db.rawQuery(
             "SELECT COUNT(*) as cnt FROM pragma_table_info('loans') WHERE name='${col['name']}'",
           );
-          final hasColumn = (result.first['cnt'] as int) > 0;
+          final hasColumn = (result.first['cnt']! as int) > 0;
           if (!hasColumn) {
             await db.execute(
               'ALTER TABLE loans ADD COLUMN ${col['name']} ${col['def']}',
             );
           }
-        } catch (e) {
+        } on Exception catch (e) {
           debugPrint('Error adding ${col['name']} to loans: $e');
         }
       }
@@ -1504,20 +1515,20 @@ class DatabaseHelper {
           final result = await db.rawQuery(
             "SELECT COUNT(*) as cnt FROM pragma_table_info('billing_cycles') WHERE name='${col['name']}'",
           );
-          final hasColumn = (result.first['cnt'] as int) > 0;
+          final hasColumn = (result.first['cnt']! as int) > 0;
           if (!hasColumn) {
             await db.execute(
               'ALTER TABLE billing_cycles ADD COLUMN ${col['name']} ${col['def']}',
             );
           }
-        } catch (e) {
+        } on Exception catch (e) {
           debugPrint('Error adding ${col['name']} to billing_cycles: $e');
         }
       }
     }
 
     // Run data fix on upgrade
-    await fixInterestCalculations();
+    await fixInterestCalculations(db: db);
 
     // Migration V30: Fix missing payment_plans columns AND billing_cycles columns
     if (oldVersion < 30) {
@@ -1539,13 +1550,13 @@ class DatabaseHelper {
           final result = await db.rawQuery(
             "SELECT COUNT(*) as cnt FROM pragma_table_info('payment_plans') WHERE name='${col['name']}'",
           );
-          final hasColumn = (result.first['cnt'] as int) > 0;
+          final hasColumn = (result.first['cnt']! as int) > 0;
           if (!hasColumn) {
             await db.execute(
               'ALTER TABLE payment_plans ADD COLUMN ${col['name']} ${col['def']}',
             );
           }
-        } catch (e) {
+        } on Exception catch (e) {
           debugPrint('Error adding ${col['name']} to payment_plans: $e');
         }
       }
@@ -1563,7 +1574,7 @@ class DatabaseHelper {
           final result = await db.rawQuery(
             "SELECT COUNT(*) as cnt FROM pragma_table_info('billing_cycles') WHERE name='${col['name']}'",
           );
-          final hasColumn = (result.first['cnt'] as int) > 0;
+          final hasColumn = (result.first['cnt']! as int) > 0;
           if (!hasColumn) {
             debugPrint(
               'V30: Adding missing column ${col['name']} to billing_cycles',
@@ -1572,7 +1583,7 @@ class DatabaseHelper {
               'ALTER TABLE billing_cycles ADD COLUMN ${col['name']} ${col['def']}',
             );
           }
-        } catch (e) {
+        } on Exception catch (e) {
           debugPrint('Error adding ${col['name']} to billing_cycles: $e');
         }
       }
@@ -1585,8 +1596,145 @@ class DatabaseHelper {
         await db.execute(
           "ALTER TABLE app_settings ADD COLUMN recovery_priority TEXT NOT NULL DEFAULT 'CAPITAL_FIRST'",
         );
-      } catch (e) {
+      } on Exception catch (e) {
         debugPrint('Error adding recovery_priority column: $e');
+      }
+    }
+
+    // Migration V32: Add business_financial_policies table and loan policy snapshot columns
+    if (oldVersion < 32) {
+      debugPrint('Running V32 migration: Financial Policy Configuration');
+      final now = DateTime.now().toIso8601String();
+
+      // 1. Create business_financial_policies table
+      try {
+        await db.execute('''
+          CREATE TABLE IF NOT EXISTS business_financial_policies (
+            id TEXT PRIMARY KEY,
+            day_count_convention TEXT NOT NULL DEFAULT '30/360',
+            days_per_month INTEGER NOT NULL DEFAULT 30,
+            days_per_year INTEGER NOT NULL DEFAULT 360,
+            proration_rule TEXT NOT NULL DEFAULT 'CYCLE_PROPORTION',
+            rounding_decimals INTEGER NOT NULL DEFAULT 2,
+            rounding_mode TEXT NOT NULL DEFAULT 'HALF_UP',
+            is_active INTEGER NOT NULL DEFAULT 1,
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL
+          )
+        ''');
+
+        // Insert default policy
+        await db.execute('''
+          INSERT OR IGNORE INTO business_financial_policies
+          (id, day_count_convention, days_per_month, days_per_year, proration_rule,
+           rounding_decimals, rounding_mode, is_active, created_at, updated_at)
+          VALUES ('default', '30/360', 30, 360, 'CYCLE_PROPORTION', 2, 'HALF_UP', 1, '$now', '$now')
+        ''');
+        debugPrint(
+          'V32: business_financial_policies table created with default policy',
+        );
+      } on Exception catch (e) {
+        debugPrint('Error creating business_financial_policies: $e');
+      }
+
+      // 2. Add policy snapshot columns to loans table
+      final loanColumns = [
+        'loan_day_count_convention TEXT',
+        'loan_days_per_month INTEGER',
+        'loan_days_per_year INTEGER',
+        'loan_proration_rule TEXT',
+        'loan_rounding_decimals INTEGER',
+        'loan_rounding_mode TEXT',
+      ];
+
+      for (final col in loanColumns) {
+        try {
+          await db.execute('ALTER TABLE loans ADD COLUMN $col');
+        } on Exception catch (_) {
+          debugPrint('V32: Column may already exist - $col');
+        }
+      }
+      debugPrint('V32: Loan policy snapshot columns added');
+    }
+
+    // Migration V34: Remove lacero field from customers table
+    if (oldVersion < 34) {
+      debugPrint('Running V34 migration: Remove lacero field from customers');
+      try {
+        // Check if lacero exists
+        final columns = await db.rawQuery('PRAGMA table_info(customers)');
+        final hasLacero = columns.any(
+          (c) => c['name']?.toString().toLowerCase() == 'lacero',
+        );
+
+        if (hasLacero) {
+          // Attempt DROP COLUMN (SQLite 3.35.0+)
+          try {
+            await db.execute('ALTER TABLE customers DROP COLUMN lacero');
+            debugPrint('V34: lacero column dropped using ALTER TABLE');
+          } on Exception catch (e) {
+            debugPrint(
+              'V34: ALTER TABLE DROP COLUMN failed, using recreation: $e',
+            );
+            // Fallback: Recreate table
+            await db.transaction((txn) async {
+              // 1. Create backup
+              await txn.execute(
+                'CREATE TEMPORARY TABLE customers_backup AS SELECT * FROM customers',
+              );
+              // 2. Drop old table
+              await txn.execute('DROP TABLE customers');
+              // 3. Create new table (without lacero)
+              await txn.execute('''
+                CREATE TABLE customers (
+                  customer_id TEXT PRIMARY KEY,
+                  full_name TEXT NOT NULL,
+                  alias TEXT,
+                  phone TEXT,
+                  address TEXT,
+                  notes TEXT,
+                  status TEXT NOT NULL DEFAULT 'ACTIVE',
+                  billing_frequency TEXT NOT NULL,
+                  preferred_pay_day INTEGER,
+                  dni TEXT,
+                  coords TEXT,
+                  is_restricted INTEGER DEFAULT 0,
+                  restriction_reason TEXT,
+                  category_id TEXT,
+                  created_at TEXT NOT NULL,
+                  updated_at TEXT NOT NULL,
+                  FOREIGN KEY (category_id) REFERENCES customer_categories(category_id) ON DELETE SET NULL
+                )
+              ''');
+              // 4. Copy data
+              await txn.execute('''
+                INSERT INTO customers (
+                  customer_id, full_name, alias, phone, address, notes, status,
+                  billing_frequency, preferred_pay_day, dni, coords,
+                  is_restricted, restriction_reason, category_id,
+                  created_at, updated_at
+                ) SELECT 
+                  customer_id, full_name, alias, phone, address, notes, status,
+                  billing_frequency, preferred_pay_day, dni, coords,
+                  is_restricted, restriction_reason, category_id,
+                  created_at, updated_at
+                FROM customers_backup
+              ''');
+              // 5. Recreate indexes
+              await txn.execute(
+                'CREATE INDEX idx_customer_frequency_status ON customers(billing_frequency, status)',
+              );
+              await txn.execute(
+                'CREATE INDEX idx_customer_name ON customers(full_name)',
+              );
+              // 6. Drop backup
+              await txn.execute('DROP TABLE customers_backup');
+            });
+            debugPrint('V34: lacero column removed using table recreation');
+          }
+        }
+      } on Exception catch (e) {
+        debugPrint('V34 migration error: $e');
       }
     }
   }
@@ -1705,7 +1853,7 @@ class DatabaseHelper {
         "ALTER TABLE loans ADD COLUMN currency_code TEXT DEFAULT 'NIO'",
       );
       debugPrint('V25: Added missing currency_code to loans table');
-    } catch (e) {
+    } on Exception catch (e) {
       // Column likely already exists, ignore
       debugPrint('V25: currency_code column check/add: $e');
     }
@@ -1849,11 +1997,11 @@ class DatabaseHelper {
 
   /// Fix billing cycles with incorrectly calculated interest (100x too high)
   /// Call this method to repair data from the interest calculation bug
-  Future<int> fixInterestCalculations() async {
-    final db = await database;
-    int fixedCount = 0;
+  Future<int> fixInterestCalculations({Database? db}) async {
+    final activeDb = db ?? await database;
+    var fixedCount = 0;
 
-    final cycles = await db.rawQuery('''
+    final cycles = await activeDb.rawQuery('''
       SELECT bc.billing_cycle_id, bc.interest_expected, bc.interest_paid, bc.interest_pending,
              l.principal_balance, l.monthly_interest_rate, c.billing_frequency
       FROM billing_cycles bc
@@ -1863,12 +2011,12 @@ class DatabaseHelper {
     ''');
 
     for (final cycle in cycles) {
-      final billingCycleId = cycle['billing_cycle_id'] as String;
-      final currentExpected = (cycle['interest_expected'] as num).toDouble();
-      final interestPaid = (cycle['interest_paid'] as num).toDouble();
-      final principalBalance = (cycle['principal_balance'] as num).toDouble();
-      final monthlyRate = (cycle['monthly_interest_rate'] as num).toDouble();
-      final frequency = cycle['billing_frequency'] as String;
+      final billingCycleId = cycle['billing_cycle_id']! as String;
+      final currentExpected = (cycle['interest_expected']! as num).toDouble();
+      final interestPaid = (cycle['interest_paid']! as num).toDouble();
+      final principalBalance = (cycle['principal_balance']! as num).toDouble();
+      final monthlyRate = (cycle['monthly_interest_rate']! as num).toDouble();
+      final frequency = cycle['billing_frequency']! as String;
 
       // Calculate correct interest (rate as decimal)
       double correctInterest;
@@ -1886,7 +2034,7 @@ class DatabaseHelper {
           correctInterest,
         );
 
-        await db.update(
+        await activeDb.update(
           'billing_cycles',
           {
             'interest_expected': correctInterest,
@@ -1931,7 +2079,7 @@ class DatabaseHelper {
         final result = await db.rawQuery(
           "SELECT COUNT(*) as cnt FROM pragma_table_info('app_settings') WHERE name='share_receipts_whatsapp'",
         );
-        final hasColumn = (result.first['cnt'] as int) > 0;
+        final hasColumn = (result.first['cnt']! as int) > 0;
         if (!hasColumn) {
           debugPrint('Adding missing column: share_receipts_whatsapp');
           await db.execute(
@@ -1941,7 +2089,7 @@ class DatabaseHelper {
         } else {
           debugPrint('Column share_receipts_whatsapp already exists');
         }
-      } catch (e) {
+      } on Exception catch (e) {
         debugPrint('Error checking/adding share_receipts_whatsapp: $e');
       }
 
@@ -1950,7 +2098,7 @@ class DatabaseHelper {
         final result = await db.rawQuery(
           "SELECT COUNT(*) as cnt FROM pragma_table_info('app_settings') WHERE name='backup_path'",
         );
-        final hasColumn = (result.first['cnt'] as int) > 0;
+        final hasColumn = (result.first['cnt']! as int) > 0;
         if (!hasColumn) {
           debugPrint('Adding missing column: backup_path');
           await db.execute(
@@ -1960,7 +2108,7 @@ class DatabaseHelper {
         } else {
           debugPrint('Column backup_path already exists');
         }
-      } catch (e) {
+      } on Exception catch (e) {
         debugPrint('Error checking/adding backup_path: $e');
       }
 
@@ -1975,7 +2123,7 @@ class DatabaseHelper {
           final result = await db.rawQuery(
             "SELECT COUNT(*) as cnt FROM pragma_table_info('app_settings') WHERE name='${col['name']}'",
           );
-          final hasColumn = (result.first['cnt'] as int) > 0;
+          final hasColumn = (result.first['cnt']! as int) > 0;
           if (!hasColumn) {
             debugPrint('Adding missing column: ${col['name']}');
             await db.execute(
@@ -1985,7 +2133,7 @@ class DatabaseHelper {
           } else {
             debugPrint('Column ${col['name']} already exists');
           }
-        } catch (e) {
+        } on Exception catch (e) {
           debugPrint('Error checking/adding ${col['name']}: $e');
         }
       }
@@ -2021,11 +2169,11 @@ class DatabaseHelper {
           await _database!.close();
         }
       }
-    } catch (e) {
+    } on Exception catch (e) {
       debugPrint('Error closing database during reset: $e');
     }
     _database = null;
-    _isMaintenanceMode = false;
+    maintenanceMode = false;
     debugPrint('Database connection reset, will reinitialize on next access');
   }
 
@@ -2034,7 +2182,7 @@ class DatabaseHelper {
     try {
       final db = await database;
       await db.rawQuery('PRAGMA wal_checkpoint(FULL)');
-    } catch (e) {
+    } on Exception catch (e) {
       debugPrint('Error checkpointing WAL: $e');
     }
   }
@@ -2164,6 +2312,7 @@ class DatabaseHelper {
     });
   }
 
+  /// Verifica si existe al menos un préstamo activo o en mora en el sistema.
   Future<bool> hasActiveLoans() async {
     final db = await database;
     final count = Sqflite.firstIntValue(

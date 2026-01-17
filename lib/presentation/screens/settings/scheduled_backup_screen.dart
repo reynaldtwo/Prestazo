@@ -1,15 +1,16 @@
-// ignore_for_file: deprecated_member_use
+// ignore_for_file: deprecated_member_use // Necessary for platform specific time picker compatibility
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../../core/theme/app_colors.dart';
-import '../../../core/theme/app_typography.dart';
-import '../../../core/widgets/widgets.dart';
-import '../../../core/localization/locale_provider.dart';
-import '../../../data/providers/providers.dart';
+import 'package:prestamos_app/core/localization/locale_provider.dart';
+import 'package:prestamos_app/core/theme/app_colors.dart';
+import 'package:prestamos_app/core/theme/app_typography.dart';
+import 'package:prestamos_app/core/widgets/widgets.dart';
+import 'package:prestamos_app/data/providers/providers.dart';
 
-/// Screen for configuring scheduled backups
+/// Pantalla para configurar respaldos programados.
 class ScheduledBackupScreen extends ConsumerStatefulWidget {
+  /// Crea una instancia de [ScheduledBackupScreen].
   const ScheduledBackupScreen({super.key});
 
   @override
@@ -102,7 +103,7 @@ class _ScheduledBackupScreenState extends ConsumerState<ScheduledBackupScreen> {
         );
         context.pop();
       }
-    } catch (e) {
+    } on Exception catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -303,7 +304,7 @@ class _ScheduledBackupScreenState extends ConsumerState<ScheduledBackupScreen> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(Icons.info_outline, color: AppColors.info, size: 20),
+          const Icon(Icons.info_outline, color: AppColors.info, size: 20),
           const SizedBox(width: 8),
           Expanded(
             child: Text(

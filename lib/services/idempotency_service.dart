@@ -32,7 +32,7 @@ class IdempotencyService {
       paymentCurrency,
       amountPaymentMinor.toString(),
       rateType ?? 'NONE',
-      rateValue != null ? rateValue.toStringAsFixed(6) : '0.000000',
+      if (rateValue != null) rateValue.toStringAsFixed(6) else '0.000000',
       timestamp?.toString() ?? DateTime.now().millisecondsSinceEpoch.toString(),
     ];
 

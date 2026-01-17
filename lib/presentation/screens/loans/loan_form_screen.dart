@@ -2,30 +2,31 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:uuid/uuid.dart';
-import '../../../core/theme/app_colors.dart';
-import '../../../core/theme/app_typography.dart';
-import '../../../core/widgets/widgets.dart';
-import '../../../data/models/customer.dart';
-import '../../../data/models/loan.dart';
-import '../../../data/providers/providers.dart';
-
-import '../../../core/localization/locale_provider.dart';
-import '../../../data/models/payment_frequency.dart';
-import '../../../data/providers/payment_frequency_provider.dart';
-import '../../../services/whatsapp_service.dart';
-
-import '../../../data/models/currency_context.dart';
+import 'package:prestamos_app/core/localization/locale_provider.dart';
+import 'package:prestamos_app/core/logic/loan_calculator.dart';
+import 'package:prestamos_app/core/theme/app_colors.dart';
+import 'package:prestamos_app/core/theme/app_typography.dart';
+import 'package:prestamos_app/core/widgets/widgets.dart';
+import 'package:prestamos_app/data/models/currency_context.dart';
+import 'package:prestamos_app/data/models/customer.dart';
+import 'package:prestamos_app/data/models/loan.dart';
+import 'package:prestamos_app/data/models/payment_frequency.dart';
+import 'package:prestamos_app/data/models/payment_plan.dart';
+import 'package:prestamos_app/data/providers/business_policy_provider.dart';
+import 'package:prestamos_app/data/providers/providers.dart';
+import 'package:prestamos_app/presentation/screens/frequencies/payment_frequency_selection_screen.dart';
+import 'package:prestamos_app/services/backup_service.dart';
+import 'package:prestamos_app/services/whatsapp_service.dart';
 import 'package:sealed_currencies/sealed_currencies.dart';
-import '../frequencies/payment_frequency_selection_screen.dart';
-import '../../../data/models/payment_plan.dart';
-import '../../../data/providers/payment_plan_provider.dart';
-import '../../../core/logic/loan_calculator.dart';
+import 'package:uuid/uuid.dart';
 
-/// Loan form screen for creating new loans with Riverpod
+/// Pantalla de formulario de préstamo para crear nuevos préstamos con Riverpod.
 class LoanFormScreen extends ConsumerStatefulWidget {
+  /// Crea una instancia de [LoanFormScreen].
+  const LoanFormScreen({required this.customerId, super.key});
+
+  /// The ID of the customer for whom the loan is being created.
   final String customerId;
-  const LoanFormScreen({super.key, required this.customerId});
 
   @override
   ConsumerState<LoanFormScreen> createState() => _LoanFormScreenState();
@@ -46,7 +47,6 @@ class _LoanFormScreenState extends ConsumerState<LoanFormScreen> {
   final TextEditingController _exchangeRateController = TextEditingController();
 
   bool _isLoading = false;
-  bool _hasValidRate = true;
   Customer? _customer;
 
   @override
@@ -69,7 +69,7 @@ class _LoanFormScreenState extends ConsumerState<LoanFormScreen> {
           _selectedFrequency = monthly ?? frequencies.first;
         });
       }
-    } catch (_) {
+    } on Exception catch (_) {
       // Ignore error, user will select manually
     }
   }
@@ -93,7 +93,6 @@ class _LoanFormScreenState extends ConsumerState<LoanFormScreen> {
         _appliedExchangeRate = null;
         _exchangeRateController.clear();
         _isLoadingRate = false;
-        _hasValidRate = true;
       });
       return;
     }
@@ -115,7 +114,6 @@ class _LoanFormScreenState extends ConsumerState<LoanFormScreen> {
             _appliedExchangeRate = null;
             _exchangeRateController.clear();
             _isLoadingRate = false;
-            _hasValidRate = false;
           });
           _showNoRateDialog();
         }
@@ -134,16 +132,14 @@ class _LoanFormScreenState extends ConsumerState<LoanFormScreen> {
           _appliedExchangeRate = rate;
           _exchangeRateController.text = rate.toStringAsFixed(4);
           _isLoadingRate = false;
-          _hasValidRate = true;
         });
       }
-    } catch (e) {
+    } on Exception catch (_) {
       if (mounted) {
         setState(() {
           _appliedExchangeRate = null;
           _exchangeRateController.clear();
           _isLoadingRate = false;
-          _hasValidRate = false;
         });
         _showNoRateDialog();
       }
@@ -152,7 +148,7 @@ class _LoanFormScreenState extends ConsumerState<LoanFormScreen> {
 
   /// Show dialog when no TODAY's rate exists
   void _showNoRateDialog() {
-    showDialog(
+    showDialog<void>(
       context: context,
       barrierDismissible: false,
       builder: (ctx) => AlertDialog(
@@ -166,7 +162,6 @@ class _LoanFormScreenState extends ConsumerState<LoanFormScreen> {
               final settings = ref.read(appSettingsProvider).value;
               setState(() {
                 _selectedCurrencyCode = settings?.baseCurrency ?? 'NIO';
-                _hasValidRate = true;
               });
             },
             child: Text(S.of(context).cancel),
@@ -194,10 +189,13 @@ class _LoanFormScreenState extends ConsumerState<LoanFormScreen> {
         // CHECK RESTRICTION
         if (customer.isRestricted) {
           // Show dialog after build
-          Future.microtask(() => _showRestrictionDialog(customer));
+          // ignore: unawaited_futures
+          Future.microtask(() async {
+            if (mounted) await _showRestrictionDialog(customer);
+          });
         }
       }
-    } catch (e) {
+    } on Exception catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -210,7 +208,7 @@ class _LoanFormScreenState extends ConsumerState<LoanFormScreen> {
   }
 
   Future<void> _showRestrictionDialog(Customer customer) async {
-    await showDialog(
+    await showDialog<void>(
       context: context,
       barrierDismissible: false,
       builder: (ctx) => AlertDialog(
@@ -306,7 +304,7 @@ class _LoanFormScreenState extends ConsumerState<LoanFormScreen> {
             AppMoneyField(
               label: S.of(context).loanAmountLabel,
               controller: _principalController,
-              currencySymbol: displayCurrency?.symbol ?? '\$',
+              currencySymbol: displayCurrency?.symbol ?? r'$',
               validator: (v) {
                 if (v == null || v.isEmpty) return S.of(context).fieldRequired;
                 final amount = double.tryParse(v.replaceAll(',', ''));
@@ -358,7 +356,6 @@ class _LoanFormScreenState extends ConsumerState<LoanFormScreen> {
             const SizedBox(height: 32),
             AppButton(
               label: S.of(context).createLoanAction,
-              variant: AppButtonVariant.primary,
               isFullWidth: true,
               isLoading: _isLoading,
               onPressed: _submitForm,
@@ -605,8 +602,8 @@ class _LoanFormScreenState extends ConsumerState<LoanFormScreen> {
       if (match != null && mounted) {
         setState(() => _selectedFrequency = match);
       }
-    } catch (e) {
-      debugPrint('Error loading frequencies for plan: $e');
+    } on Exception catch (_) {
+      // Ignore error loading frequencies
     }
 
     // 3. Rate
@@ -689,13 +686,17 @@ class _LoanFormScreenState extends ConsumerState<LoanFormScreen> {
         double.tryParse(_principalController.text.replaceAll(',', '')) ?? 0;
     final rate = double.tryParse(_rateController.text) ?? 0;
 
-    if (principal <= 0 || rate <= 0 || _selectedFrequency == null)
+    if (principal <= 0 || rate <= 0 || _selectedFrequency == null) {
       return const SizedBox.shrink();
+    }
 
     // Calculate interest for the selected frequency interval
-    // Monthly Rate (20%) -> Daily Rate (20% / 30) -> Frequency Rate (Daily * Interval)
-    // Formula: Principal * (MonthlyRate / 100 / 30 * Interval)
-    final dailyInterest = principal * (rate / 100) / 30;
+    // Monthly Rate (20%) -> Daily Rate (20% / daysPerMonth) -> Frequency Rate (Daily * Interval)
+    // Formula: Principal * (MonthlyRate / 100 / daysPerMonth * Interval)
+    final policy = ref.watch(activePolicyProvider).value;
+    final daysPerMonth =
+        policy?.daysPerMonth ?? 30; // Prioriza política, cae a 30
+    final dailyInterest = principal * (rate / 100) / daysPerMonth;
     final periodInterest = dailyInterest * _selectedFrequency!.daysInterval;
 
     final frequencyLabel = _selectedFrequency!.name;
@@ -816,7 +817,7 @@ class _LoanFormScreenState extends ConsumerState<LoanFormScreen> {
                       );
                       if (result != null && result.isNotEmpty && mounted) {
                         setState(() => _selectedCurrencyCode = result);
-                        _loadExchangeRate();
+                        await _loadExchangeRate();
                       }
                     },
             ),
@@ -848,19 +849,15 @@ class _LoanFormScreenState extends ConsumerState<LoanFormScreen> {
 
             return AppCard(
               child: DropdownButtonFormField<String>(
-                value: _selectedPlan?.planId,
+                initialValue: _selectedPlan?.planId,
                 decoration: InputDecoration(
-                  labelText:
-                      S.of(context).selectPlan ?? 'Seleccionar Plan (Opcional)',
+                  labelText: S.of(context).selectPlan,
                   border: InputBorder.none,
                   contentPadding: const EdgeInsets.symmetric(horizontal: 16),
                   prefixIcon: const Icon(Icons.assignment_outlined),
                 ),
                 items: [
-                  DropdownMenuItem<String>(
-                    value: null,
-                    child: Text(S.of(context).optional ?? 'Ninguno (Manual)'),
-                  ),
+                  DropdownMenuItem<String>(child: Text(S.of(context).optional)),
                   ...visiblePlans.map((plan) {
                     return DropdownMenuItem<String>(
                       value: plan.planId,
@@ -1026,7 +1023,6 @@ class _LoanFormScreenState extends ConsumerState<LoanFormScreen> {
     if (principal <= 0) return const SizedBox.shrink();
 
     return AppCard(
-      showBorder: true,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -1046,7 +1042,7 @@ class _LoanFormScreenState extends ConsumerState<LoanFormScreen> {
     );
   }
 
-  void _submitForm() async {
+  Future<void> _submitForm() async {
     if (!_formKey.currentState!.validate()) return;
     if (_customer == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -1087,10 +1083,9 @@ class _LoanFormScreenState extends ConsumerState<LoanFormScreen> {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(
-                  'El monto C\$ ${principal.toStringAsFixed(0)} sobrepasa el saldo disponible de C\$ ${saldoDisponible.toStringAsFixed(0)}',
+                  'El monto C\$ ${principal.toStringAsFixed(2)} sobrepasa el saldo disponible de C\$ ${saldoDisponible.toStringAsFixed(2)}',
                 ),
                 backgroundColor: AppColors.danger,
-                duration: const Duration(seconds: 4),
               ),
             );
           }
@@ -1141,7 +1136,7 @@ class _LoanFormScreenState extends ConsumerState<LoanFormScreen> {
 
         if (activeLoans.isNotEmpty) {
           if (mounted) {
-            showDialog(
+            await showDialog<void>(
               context: context,
               builder: (ctx) => AlertDialog(
                 title: const Row(
@@ -1171,8 +1166,8 @@ class _LoanFormScreenState extends ConsumerState<LoanFormScreen> {
       // Validate Plan Limits
       // Validate Plan Limits
       if (_selectedPlan != null) {
-        bool hasError = false;
-        String errorMessage = '';
+        var hasError = false;
+        var errorMessage = '';
 
         if (_selectedPlan!.minAmount != null &&
             principal < _selectedPlan!.minAmount!) {
@@ -1189,7 +1184,7 @@ class _LoanFormScreenState extends ConsumerState<LoanFormScreen> {
 
         if (hasError) {
           if (mounted) {
-            showDialog(
+            await showDialog<void>(
               context: context,
               builder: (ctx) => AlertDialog(
                 title: const Row(
@@ -1212,7 +1207,7 @@ class _LoanFormScreenState extends ConsumerState<LoanFormScreen> {
           return;
         }
       }
-    } catch (e) {
+    } on Exception catch (_) {
       // Continue if settings check fails
     }
 
@@ -1254,29 +1249,32 @@ class _LoanFormScreenState extends ConsumerState<LoanFormScreen> {
       if (mounted) {
         if (createdLoan != null) {
           // Refresh dashboard stats
-          ref.read(dashboardProvider.notifier).refresh();
-
-          // Invalidate loans by customer so detail screen refreshes
-          ref.invalidate(loansByCustomerProvider(widget.customerId));
+          await ref.read(dashboardProvider.notifier).refresh();
 
           // Invalidate settings to update loan sequence number
-          ref.invalidate(appSettingsProvider);
+          ref
+            ..invalidate(loansByCustomerProvider(widget.customerId))
+            ..invalidate(appSettingsProvider);
 
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Préstamo creado exitosamente'),
-              backgroundColor: AppColors.success,
-            ),
-          );
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Préstamo creado exitosamente'),
+                backgroundColor: AppColors.success,
+              ),
+            );
+          }
 
           // TRIGGER AUTO BACKUP
           final settings = ref.read(appSettingsProvider).value;
           if (settings != null && settings.backupOnLoanCreation) {
-            // Run in background
-            ref
-                .read(backupServiceProvider)
-                .createBackup(customName: settings.backupCustomName)
-                .then((_) => debugPrint('Auto backup triggered'));
+            // ignore: unawaited_futures // Background backup
+            BackupService.instance.checkScheduledBackup(
+              frequency: settings.backupFrequency,
+              retentionDays: settings.backupRetentionDays,
+              retries: settings.backupRetries,
+              customName: settings.backupCustomName,
+            );
           }
 
           // Send WhatsApp notification with PDF if enabled (use createdLoan with loanNumber)
@@ -1290,16 +1288,19 @@ class _LoanFormScreenState extends ConsumerState<LoanFormScreen> {
               FiatCurrency loanCurrency;
               try {
                 loanCurrency = FiatCurrency.fromCode(createdLoan.currencyCode);
-              } catch (_) {
+              } on Exception catch (_) {
                 loanCurrency = FiatCurrency.fromCode('NIO');
               }
-              await WhatsAppService.shareDisbursementReceipt(
-                loan: createdLoan,
-                customer: _customer!,
-                settings: settings,
-                locale: Localizations.localeOf(context),
-                currencySymbol: loanCurrency.symbol ?? loanCurrency.code,
-              );
+
+              if (mounted) {
+                await WhatsAppService.shareDisbursementReceipt(
+                  loan: createdLoan,
+                  customer: _customer!,
+                  settings: settings,
+                  locale: Localizations.localeOf(context),
+                  currencySymbol: loanCurrency.symbol ?? loanCurrency.code,
+                );
+              }
             } else if (mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
@@ -1310,8 +1311,8 @@ class _LoanFormScreenState extends ConsumerState<LoanFormScreen> {
             }
           }
 
-          // ignore: use_build_context_synchronously
-          context.pop();
+          // ignore: use_build_context_synchronously // Pop after async operation if mounted
+          if (context.mounted) context.pop();
         } else {
           final error = ref.read(loansProvider).error;
           ScaffoldMessenger.of(context).showSnackBar(
@@ -1322,7 +1323,7 @@ class _LoanFormScreenState extends ConsumerState<LoanFormScreen> {
           );
         }
       }
-    } catch (e) {
+    } on Exception catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -1340,10 +1341,9 @@ class _LoanFormScreenState extends ConsumerState<LoanFormScreen> {
 }
 
 class _SummaryRow extends StatelessWidget {
+  const _SummaryRow({required this.label, required this.value});
   final String label;
   final String value;
-
-  const _SummaryRow({required this.label, required this.value});
 
   @override
   Widget build(BuildContext context) {
@@ -1363,82 +1363,6 @@ class _SummaryRow extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _FrequencyOption extends StatelessWidget {
-  final String label;
-  final String subtitle;
-  final IconData icon;
-  final bool isSelected;
-  final VoidCallback onTap;
-  final bool isCompact;
-
-  const _FrequencyOption({
-    required this.label,
-    required this.subtitle,
-    required this.icon,
-    required this.isSelected,
-    required this.onTap,
-    this.isCompact = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final primaryColor = isDark ? AppColors.info : AppColors.primary;
-
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        padding: EdgeInsets.all(isCompact ? 8 : 16),
-        decoration: BoxDecoration(
-          border: Border.all(
-            color: isSelected
-                ? primaryColor
-                : Theme.of(context).colorScheme.outline,
-            width: isSelected ? 2 : 1,
-          ),
-          borderRadius: BorderRadius.circular(12),
-          color: isSelected ? primaryColor.withValues(alpha: 0.1) : null,
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              icon,
-              color: isSelected
-                  ? primaryColor
-                  : Theme.of(context).colorScheme.onSurfaceVariant,
-              size: isCompact ? 24 : 28,
-            ),
-            SizedBox(height: isCompact ? 4 : 8),
-            Text(
-              label,
-              style:
-                  (isCompact
-                          ? AppTypography.bodySmall
-                          : AppTypography.titleSmall)
-                      .copyWith(
-                        color: isSelected ? primaryColor : null,
-                        fontWeight: isSelected ? FontWeight.bold : null,
-                        fontSize: isCompact ? 10 : null,
-                      ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-            if (!isCompact)
-              Text(
-                subtitle,
-                style: AppTypography.bodySmall.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
-              ),
-          ],
-        ),
       ),
     );
   }

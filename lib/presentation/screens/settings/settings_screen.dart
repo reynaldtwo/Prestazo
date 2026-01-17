@@ -1,26 +1,28 @@
-// ignore_for_file: deprecated_member_use
-import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart'; // For kIsWeb
+// ignore_for_file: deprecated_member_use // Using some older platform pickers for legacy support
 import 'dart:io';
-import 'package:path_provider/path_provider.dart';
-import 'package:path/path.dart' as path;
+
+import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart'; // For kIsWeb
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../../core/theme/app_colors.dart';
-import '../../../core/theme/app_typography.dart';
-import '../../../core/widgets/widgets.dart';
-import '../../../data/providers/database_providers.dart';
-import '../../../data/models/app_settings.dart';
-import '../../../services/services.dart';
-import '../../../core/theme/theme_provider.dart';
-import 'package:file_picker/file_picker.dart';
-import '../../../core/localization/locale_provider.dart';
+import 'package:path/path.dart' as path;
+import 'package:path_provider/path_provider.dart';
+import 'package:prestamos_app/core/localization/locale_provider.dart';
+import 'package:prestamos_app/core/theme/app_colors.dart';
+import 'package:prestamos_app/core/theme/app_typography.dart';
+import 'package:prestamos_app/core/theme/theme_provider.dart';
+import 'package:prestamos_app/core/widgets/app_info_dialog.dart';
+import 'package:prestamos_app/core/widgets/widgets.dart';
+import 'package:prestamos_app/data/models/app_settings.dart';
+import 'package:prestamos_app/data/providers/database_providers.dart';
+import 'package:prestamos_app/presentation/screens/settings/financial_policy_screen.dart';
+import 'package:prestamos_app/services/services.dart';
 
-import '../../../core/widgets/app_info_dialog.dart';
-
-/// Settings screen for app configuration
+/// Pantalla de ajustes para la configuración de la aplicación.
 class SettingsScreen extends ConsumerStatefulWidget {
+  /// Crea una instancia de [SettingsScreen].
   const SettingsScreen({super.key});
 
   @override
@@ -106,7 +108,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     if (code == '1') return '0';
     if (code.isEmpty) return '';
 
-    final RegExp regex = RegExp(r'(\d+)$');
+    final regex = RegExp(r'(\d+)$');
     final match = regex.firstMatch(code);
 
     if (match != null) {
@@ -117,7 +119,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       if (number > 0) {
         final newNumber = number - 1;
         // Preserve padding
-        String newNumberStr = newNumber.toString();
+        var newNumberStr = newNumber.toString();
         if (newNumberStr.length < numberStr.length) {
           newNumberStr = newNumberStr.padLeft(numberStr.length, '0');
         }
@@ -131,7 +133,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   String _incrementStringCode(String code) {
     if (code.isEmpty) return '1';
 
-    final RegExp regex = RegExp(r'(\d+)$');
+    final regex = RegExp(r'(\d+)$');
     final match = regex.firstMatch(code);
 
     if (match != null) {
@@ -140,7 +142,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       final number = int.parse(numberStr);
       final newNumber = number + 1;
 
-      String newNumberStr = newNumber.toString();
+      var newNumberStr = newNumber.toString();
       if (newNumberStr.length < numberStr.length) {
         newNumberStr = newNumberStr.padLeft(numberStr.length, '0');
       }
@@ -298,7 +300,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               },
               borderRadius: BorderRadius.circular(12),
               child: Padding(
-                padding: const EdgeInsets.all(8.0),
+                padding: const EdgeInsets.all(8),
                 child: Icon(
                   Icons.info_outline_rounded,
                   color: Theme.of(context).colorScheme.primary,
@@ -332,7 +334,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   },
                   borderRadius: BorderRadius.circular(12),
                   child: Padding(
-                    padding: const EdgeInsets.all(8.0),
+                    padding: const EdgeInsets.all(8),
                     child: Icon(
                       Icons.info_outline_rounded,
                       color: Theme.of(context).colorScheme.primary,
@@ -362,7 +364,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   },
                   borderRadius: BorderRadius.circular(12),
                   child: Padding(
-                    padding: const EdgeInsets.all(8.0),
+                    padding: const EdgeInsets.all(8),
                     child: Icon(
                       Icons.info_outline_rounded,
                       color: Theme.of(context).colorScheme.primary,
@@ -390,6 +392,22 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     return AppCard(
       child: Column(
         children: [
+          // V32: Financial Policy Configuration
+          ListTile(
+            leading: const Icon(
+              Icons.calculate_outlined,
+              color: AppColors.primary,
+            ),
+            title: const Text('Convención Financiera'),
+            subtitle: const Text('Días/mes, redondeo, fórmulas de interés'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) => const FinancialPolicyScreen(),
+              ),
+            ),
+          ),
+          const Divider(height: 1),
           SwitchListTile(
             title: Text(S.of(context).capitalizeInterest),
             subtitle: Text(S.of(context).capitalizeInterestDesc),
@@ -408,7 +426,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               },
               borderRadius: BorderRadius.circular(12),
               child: Padding(
-                padding: const EdgeInsets.all(8.0),
+                padding: const EdgeInsets.all(8),
                 child: Icon(
                   Icons.info_outline_rounded,
                   color: Theme.of(context).colorScheme.primary,
@@ -434,7 +452,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               },
               borderRadius: BorderRadius.circular(12),
               child: Padding(
-                padding: const EdgeInsets.all(8.0),
+                padding: const EdgeInsets.all(8),
                 child: Icon(
                   Icons.info_outline_rounded,
                   color: Theme.of(context).colorScheme.primary,
@@ -467,7 +485,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               },
               borderRadius: BorderRadius.circular(12),
               child: Padding(
-                padding: const EdgeInsets.all(8.0),
+                padding: const EdgeInsets.all(8),
                 child: Icon(
                   Icons.info_outline_rounded,
                   color: Theme.of(context).colorScheme.primary,
@@ -498,7 +516,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               },
               borderRadius: BorderRadius.circular(12),
               child: Padding(
-                padding: const EdgeInsets.all(8.0),
+                padding: const EdgeInsets.all(8),
                 child: Icon(
                   Icons.info_outline_rounded,
                   color: Theme.of(context).colorScheme.primary,
@@ -524,7 +542,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               },
               borderRadius: BorderRadius.circular(12),
               child: Padding(
-                padding: const EdgeInsets.all(8.0),
+                padding: const EdgeInsets.all(8),
                 child: Icon(
                   Icons.info_outline_rounded,
                   color: Theme.of(context).colorScheme.primary,
@@ -693,7 +711,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       },
                       borderRadius: BorderRadius.circular(12),
                       child: Padding(
-                        padding: const EdgeInsets.all(4.0),
+                        padding: const EdgeInsets.all(4),
                         child: Icon(
                           Icons.info_outline_rounded,
                           size: 20,
@@ -833,7 +851,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   },
                   borderRadius: BorderRadius.circular(12),
                   child: Padding(
-                    padding: const EdgeInsets.all(4.0),
+                    padding: const EdgeInsets.all(4),
                     child: Icon(
                       Icons.info_outline_rounded,
                       size: 20,
@@ -886,7 +904,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   },
                   borderRadius: BorderRadius.circular(12),
                   child: Padding(
-                    padding: const EdgeInsets.all(4.0),
+                    padding: const EdgeInsets.all(4),
                     child: Icon(
                       Icons.info_outline_rounded,
                       size: 20,
@@ -921,7 +939,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 border: const OutlineInputBorder(),
                 suffixIcon: IconButton(
                   icon: const Icon(Icons.check, color: AppColors.success),
-                  onPressed: () => _saveLoanNumber(),
+                  onPressed: _saveLoanNumber,
                 ),
               ),
               onSubmitted: (_) => _saveLoanNumber(),
@@ -955,7 +973,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 border: const OutlineInputBorder(),
                 suffixIcon: IconButton(
                   icon: const Icon(Icons.check, color: AppColors.success),
-                  onPressed: () => _saveReceiptNumber(),
+                  onPressed: _saveReceiptNumber,
                 ),
               ),
               onSubmitted: (_) => _saveReceiptNumber(),
@@ -1010,7 +1028,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         children: [
           // Header for Report Settings Info
           Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: const EdgeInsets.all(16),
             child: Row(
               children: [
                 Expanded(
@@ -1031,7 +1049,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   },
                   borderRadius: BorderRadius.circular(12),
                   child: Padding(
-                    padding: const EdgeInsets.all(4.0),
+                    padding: const EdgeInsets.all(4),
                     child: Icon(
                       Icons.info_outline_rounded,
                       size: 20,
@@ -1145,7 +1163,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         children: [
           // Header for Maintenance
           Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: const EdgeInsets.all(16),
             child: Row(
               children: [
                 Expanded(
@@ -1166,7 +1184,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   },
                   borderRadius: BorderRadius.circular(12),
                   child: Padding(
-                    padding: const EdgeInsets.all(4.0),
+                    padding: const EdgeInsets.all(4),
                     child: Icon(
                       Icons.info_outline_rounded,
                       size: 20,
@@ -1339,7 +1357,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         }
       }
 
-      _confirmAndExecuteDeletion(option);
+      await _confirmAndExecuteDeletion(option);
     }
   }
 
@@ -1352,22 +1370,18 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         title = '¿Borrar solo PAGOS?';
         message =
             'Se eliminarán todos los registros de pagos. Los préstamos volverán a estado pendiente si corresponde.';
-        break;
       case 'LOANS':
         title = '¿Borrar PRÉSTAMOS?';
         message =
             'Se eliminarán todos los préstamos y sus pagos asociados. Los clientes se mantendrán.';
-        break;
       case 'CUSTOMERS':
         title = '¿Borrar CLIENTES?';
         message =
             'Se eliminarán los clientes seleccionados. (Esta opción borrará todo si no hay préstamos activos)';
-        break;
       case 'ALL':
         title =
             '${S.of(context).confirmDeleteTitle} ${S.of(context).deleteAll}';
         message = S.of(context).deleteAllDesc;
-        break;
       default:
         return;
     }
@@ -1402,7 +1416,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       ),
     );
 
-    if (confirmed == true && mounted) {
+    if ((confirmed ?? false) && mounted) {
       try {
         // 1. Create Backup
         ScaffoldMessenger.of(
@@ -1424,10 +1438,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         switch (option) {
           case 'PAYMENTS':
             await dbHelper.deletePaymentsOnly();
-            break;
           case 'LOANS':
             await dbHelper.deleteLoansAndRelated();
-            break;
           case 'CUSTOMERS':
             // Logic handled by check above + generic call or specific
             // If we reached here, it's safe to delete customers (no active loans)
@@ -1435,10 +1447,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             // But the requirement said "cannot... but indicate".
             // If we passed the check, we use deleteCustomersAndRelated which cleans up.
             await dbHelper.deleteCustomersAndRelated();
-            break;
           case 'ALL':
             await dbHelper.deleteAllData();
-            break;
         }
 
         // 3. Global Refresh
@@ -1453,7 +1463,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             ),
           );
         }
-      } catch (e) {
+      } on Exception catch (e) {
         if (mounted) {
           _showErrorDialog('Error', e.toString());
         }
@@ -1462,7 +1472,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   void _showErrorDialog(String title, String message) {
-    showDialog(
+    showDialog<void>(
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text(title),
@@ -1508,7 +1518,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   },
                   borderRadius: BorderRadius.circular(12),
                   child: Padding(
-                    padding: const EdgeInsets.all(4.0),
+                    padding: const EdgeInsets.all(4),
                     child: Icon(
                       Icons.info_outline_rounded,
                       size: 20,
@@ -1544,7 +1554,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   ),
                 ],
                 selected: {
-                  themeMode == ThemeMode.system ? ThemeMode.light : themeMode,
+                  if (themeMode == ThemeMode.system)
+                    ThemeMode.light
+                  else
+                    themeMode,
                 },
                 onSelectionChanged: (Set<ThemeMode> selected) {
                   themeNotifier.setThemeMode(selected.first);
@@ -1571,7 +1584,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   },
                   borderRadius: BorderRadius.circular(12),
                   child: Padding(
-                    padding: const EdgeInsets.all(4.0),
+                    padding: const EdgeInsets.all(4),
                     child: Icon(
                       Icons.info_outline_rounded,
                       size: 20,
@@ -1600,31 +1613,73 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final currentLocale = ref.watch(localeProvider);
     final localeNotifier = ref.read(localeProvider.notifier);
 
-    return SizedBox(
-      width: double.infinity,
-      child: SegmentedButton<Locale?>(
-        segments: [
-          ButtonSegment<Locale?>(
-            value: null,
-            label: Text(S.of(context).languageSystem),
-            icon: const Icon(Icons.settings_system_daydream),
+    // Define options: null = system, es, en
+    final options = <Locale?>[null, AppLocales.es, AppLocales.en];
+    final labels = ['Sistema', 'Español', 'English'];
+    final flags = ['📱', '🇪🇸', '🇺🇸'];
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return Container(
+          width: double.infinity,
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surfaceContainerHighest,
+            borderRadius: BorderRadius.circular(32),
           ),
-          ButtonSegment<Locale?>(
-            value: AppLocales.es,
-            label: const Text('Español'),
-            icon: const Text('🇪🇸'),
+          padding: const EdgeInsets.all(4),
+          child: Row(
+            children: List.generate(options.length, (index) {
+              final isSelected = currentLocale == options[index];
+              return Expanded(
+                child: GestureDetector(
+                  onTap: () => localeNotifier.setLocale(options[index]),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    curve: Curves.easeInOut,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 12,
+                    ),
+                    decoration: BoxDecoration(
+                      color: isSelected
+                          ? Theme.of(context).colorScheme.primary
+                          : Colors.transparent,
+                      borderRadius: BorderRadius.circular(28),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          flags[index],
+                          style: const TextStyle(fontSize: 16),
+                        ),
+                        const SizedBox(width: 4),
+                        Flexible(
+                          child: Text(
+                            labels[index],
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: isSelected
+                                  ? FontWeight.w600
+                                  : FontWeight.normal,
+                              color: isSelected
+                                  ? Theme.of(context).colorScheme.onPrimary
+                                  : Theme.of(context).colorScheme.onSurface,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            }),
           ),
-          ButtonSegment<Locale?>(
-            value: AppLocales.en,
-            label: const Text('English'),
-            icon: const Text('🇺🇸'),
-          ),
-        ],
-        selected: {currentLocale},
-        onSelectionChanged: (Set<Locale?> selected) {
-          localeNotifier.setLocale(selected.first);
-        },
-      ),
+        );
+      },
     );
   }
 
@@ -1633,7 +1688,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       child: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: const EdgeInsets.all(16),
             child: Row(
               children: [
                 Expanded(
@@ -1654,7 +1709,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   },
                   borderRadius: BorderRadius.circular(12),
                   child: Padding(
-                    padding: const EdgeInsets.all(4.0),
+                    padding: const EdgeInsets.all(4),
                     child: Icon(
                       Icons.info_outline_rounded,
                       size: 20,
@@ -1678,7 +1733,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   void _showPaymentOrderDialog() {
-    showDialog(
+    showDialog<void>(
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text(S.of(context).paymentOrder),
@@ -1711,13 +1766,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
   }
 
-  void _viewBackups() async {
+  Future<void> _viewBackups() async {
     final backupService = BackupService.instance;
     final backups = await backupService.getLocalBackups();
 
     if (!mounted) return;
 
-    showModalBottomSheet(
+    await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       builder: (ctx) => Container(
@@ -1745,7 +1800,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             const Divider(),
             if (backups.isEmpty)
               Padding(
-                padding: EdgeInsets.all(32),
+                padding: const EdgeInsets.all(32),
                 child: Center(child: Text(S.of(context).noBackupsAvailable)),
               )
             else
@@ -1780,16 +1835,16 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                                     .deleteBackup(backup.filePath);
                                 if (deleted && ctx.mounted) {
                                   Navigator.pop(ctx);
-                                  _viewBackups(); // Refresh
+                                  await _viewBackups(); // Refresh
                                 }
                               },
                             ),
                         ],
                       ),
                       onTap: () async {
-                        // ignore: use_build_context_synchronously
+                        // ignore: use_build_context_synchronously // ctx is from builder and used immediately for pop
                         Navigator.pop(ctx);
-                        _confirmRestore(backup.filePath);
+                        await _confirmRestore(backup.filePath);
                       },
                     );
                   },
@@ -1826,7 +1881,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     return '${date.day}/${date.month}/${date.year} ${date.hour}:${date.minute.toString().padLeft(2, '0')}';
   }
 
-  void _confirmRestore(String backupPath, {bool isExternal = false}) async {
+  Future<void> _confirmRestore(
+    String backupPath, {
+    bool isExternal = false,
+  }) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -1856,7 +1914,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       ),
     );
 
-    if (confirmed == true && mounted) {
+    if ((confirmed ?? false) && mounted) {
       try {
         final backupService = BackupService.instance;
         final success = isExternal
@@ -1897,7 +1955,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             ),
           );
         }
-      } catch (e) {
+      } on Exception catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -1912,18 +1970,18 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
   Future<void> _pickAndRestoreBackup() async {
     try {
-      final result = await FilePicker.platform.pickFiles(type: FileType.any);
+      final result = await FilePicker.platform.pickFiles();
 
       if (result != null && result.files.isNotEmpty) {
         final path = result.files.single.path;
         if (path != null) {
-          // ignore: use_build_context_synchronously
+          // ignore: use_build_context_synchronously // used immediately after await that doesn't block UI
           Navigator.pop(context); // Close the bottom sheet
-          _confirmRestore(path, isExternal: true);
+          await _confirmRestore(path, isExternal: true);
         }
       }
-    } catch (e) {
-      // ignore: use_build_context_synchronously
+    } on Exception catch (e) {
+      // ignore: use_build_context_synchronously // error handling UI feedback
       _showError('Error al seleccionar archivo: $e');
     }
   }
@@ -1941,7 +1999,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   // NEW METHODS FOR BACKUP FOLDER & EXPORT
 
   Future<void> _pickBackupFolder() async {
-    final String? path = await FilePicker.platform.getDirectoryPath(
+    final path = await FilePicker.platform.getDirectoryPath(
       dialogTitle: 'Seleccionar carpeta para respaldos',
       lockParentWindow: true,
     );
@@ -1958,7 +2016,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
         // Refresh provider
         ref.invalidate(appSettingsProvider);
-      } catch (e) {
+      } on Exception catch (e) {
         if (mounted) _showError('Error al guardar configuración: $e');
       }
     }
@@ -1975,7 +2033,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final hasCustomFolder = settingsAsync.value?.backupPath != null;
     final backupPath = settingsAsync.value?.backupPath;
 
-    showDialog(
+    showDialog<void>(
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text(S.of(context).createBackup),
@@ -2054,99 +2112,94 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
   }
 
-  void _executeExport(String baseName, {required bool useCustomFolder}) async {
+  Future<void> _executeExport(
+    String baseName, {
+    required bool useCustomFolder,
+  }) async {
     if (baseName.isEmpty) return;
 
-    final fileName = '$baseName.db';
-    debugPrint('=== EXPORT START ===');
-    debugPrint(
-      'baseName: $baseName, fileName: $fileName, useCustomFolder: $useCustomFolder',
-    );
+    Future<void> exportDatabase(
+      String baseName, {
+      required bool useCustomFolder,
+    }) async {
+      final fileName = '$baseName.db';
 
-    try {
-      // Show loading
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(S.of(context).backupProcessing)));
-      }
-
-      if (!useCustomFolder) {
-        // Desktop "Save As" or Mobile "Share"
-        if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
-          var outputPath = await FilePicker.platform.saveFile(
-            dialogTitle: S.of(context).backupSaveDialogTitle,
-            fileName: fileName,
-            type: FileType.custom,
-            allowedExtensions: ['db'],
-            lockParentWindow: true,
+      try {
+        // Show loading
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(S.of(context).backupProcessing)),
           );
+        }
 
-          if (outputPath == null) {
-            debugPrint('User cancelled save dialog');
+        if (!useCustomFolder) {
+          // Desktop "Save As" or Mobile "Share"
+          if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+            var outputPath = await FilePicker.platform.saveFile(
+              dialogTitle: S.of(context).backupSaveDialogTitle,
+              fileName: fileName,
+              type: FileType.custom,
+              allowedExtensions: ['db'],
+              lockParentWindow: true,
+            );
+
+            if (outputPath == null) {
+              return;
+            }
+
+            // Ensure .db extension
+            if (!outputPath.toLowerCase().endsWith('.db')) {
+              outputPath = '$outputPath.db';
+            }
+
+            await _performBackup(customPath: outputPath);
+            return;
+          } else {
+            // Mobile Share
+            final tempDir = await getTemporaryDirectory();
+            final tempPath = path.join(tempDir.path, fileName);
+            await _performBackup(customPath: tempPath, isShare: true);
+            return;
+          }
+        }
+
+        // Save to Custom Folder
+        final settingsAsync = ref.read(appSettingsProvider);
+        final backupPath = settingsAsync.value?.backupPath;
+
+        if (backupPath != null) {
+          final targetPath = path.join(backupPath, fileName);
+
+          // Check if folder exists
+          final folder = Directory(backupPath);
+          if (!folder.existsSync()) {
+            if (mounted) _showError(S.of(context).backupFolderNotExist);
             return;
           }
 
-          // Ensure .db extension
-          if (!outputPath.toLowerCase().endsWith('.db')) {
-            outputPath = '$outputPath.db';
+          // Check if file already exists - require name change
+          final targetFile = File(targetPath);
+          if (targetFile.existsSync()) {
+            if (mounted) {
+              await _showFileExistsDialog();
+              // Reopen export dialog so user can change name
+              _showExportDialog();
+            }
+            return;
           }
-          debugPrint('Save As path: $outputPath');
 
-          await _performBackup(customPath: outputPath);
-          return;
+          await _performBackup(customPath: targetPath);
         } else {
-          // Mobile Share
-          final tempDir = await getTemporaryDirectory();
-          final tempPath = path.join(tempDir.path, fileName);
-          debugPrint('Mobile share temp path: $tempPath');
-          await _performBackup(customPath: tempPath, isShare: true);
-          return;
+          if (mounted) _showError(S.of(context).backupNoFolderConfigured);
         }
-      }
-
-      // Save to Custom Folder
-      final settingsAsync = ref.read(appSettingsProvider);
-      final backupPath = settingsAsync.value?.backupPath;
-      debugPrint('Custom backup folder from settings: $backupPath');
-
-      if (backupPath != null) {
-        final targetPath = path.join(backupPath, fileName);
-        debugPrint('Target path: $targetPath');
-
-        // Check if folder exists
-        final folder = Directory(backupPath);
-        if (!await folder.exists()) {
-          debugPrint('ERROR: Custom folder does not exist!');
-          if (mounted) _showError(S.of(context).backupFolderNotExist);
-          return;
+      } on Exception catch (e) {
+        if (mounted) {
+          _showError('Error: $e');
         }
-
-        // Check if file already exists - require name change
-        final targetFile = File(targetPath);
-        if (await targetFile.exists()) {
-          debugPrint('File already exists, showing rename dialog...');
-          if (mounted) {
-            await _showFileExistsDialog();
-            // Reopen export dialog so user can change name
-            _showExportDialog();
-          }
-          return;
-        }
-
-        await _performBackup(customPath: targetPath);
-      } else {
-        debugPrint('ERROR: No custom backup path configured');
-        if (mounted) _showError(S.of(context).backupNoFolderConfigured);
-      }
-    } catch (e, stackTrace) {
-      debugPrint('=== EXPORT ERROR ===');
-      debugPrint('Error: $e');
-      debugPrint('Stack: $stackTrace');
-      if (mounted) {
-        _showError('Error: $e');
       }
     }
+
+    await exportDatabase(baseName, useCustomFolder: useCustomFolder);
   }
 
   Future<void> _performBackup({
@@ -2154,18 +2207,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     bool isShare = false,
     bool allowOverwrite = false,
   }) async {
-    debugPrint('=== PERFORM BACKUP ===');
-    debugPrint(
-      'customPath: $customPath, isShare: $isShare, allowOverwrite: $allowOverwrite',
-    );
-
     final backupService = BackupService.instance;
     final backup = await backupService.createBackup(
       customPath: customPath,
       allowOverwrite: allowOverwrite,
     );
-
-    debugPrint('Backup result: ${backup != null ? "SUCCESS" : "FAILED"}');
 
     if (backup != null && mounted) {
       if (isShare) {

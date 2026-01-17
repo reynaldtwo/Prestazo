@@ -1,13 +1,21 @@
 // FxService for Foreign Exchange logic
 
+/// Dirección de la conversión de divisas.
 enum FxDirection {
-  baseToForeign, // e.g. NIO -> USD
-  foreignToBase, // e.g. USD -> NIO
-  foreignToForeign, // e.g. USD -> EUR (via NIO)
-  sameCurrency, // e.g. USD -> USD
+  /// De moneda base a moneda extranjera (ej: NIO -> USD).
+  baseToForeign,
+
+  /// De moneda extranjera a moneda base (ej: USD -> NIO).
+  foreignToBase,
+
+  /// Entre dos monedas extranjeras (ej: USD -> EUR vía NIO).
+  foreignToForeign,
+
+  /// Misma moneda (ej: USD -> USD).
+  sameCurrency,
 }
 
-/// Service for Foreign Exchange logic and Profit calculations.
+/// Servicio para la lógica de intercambio de divisas (FX) y cálculos de ganancias.
 class FxService {
   /// Determine the direction of conversion relative to Base Currency.
   static FxDirection getDirection({
@@ -60,8 +68,8 @@ class FxService {
     // Bank receives AmountFrom (Foreign). Value = AmountFrom * RefRate.
     // Bank pays AmountTo (Base). Cost = AmountTo.
     if (direction == FxDirection.foreignToBase) {
-      double valueInBase = amountFromMinor * referenceRate;
-      double costInBase = amountToMinor.toDouble();
+      final valueInBase = amountFromMinor * referenceRate;
+      final costInBase = amountToMinor.toDouble();
       return (valueInBase - costInBase).round();
     }
 
@@ -69,8 +77,8 @@ class FxService {
     // Bank receives AmountFrom (Base). Value = AmountFrom.
     // Bank pays AmountTo (Foreign). Cost = AmountTo * RefRate.
     if (direction == FxDirection.baseToForeign) {
-      double valueInBase = amountFromMinor.toDouble();
-      double costInBase = amountToMinor * referenceRate;
+      final valueInBase = amountFromMinor.toDouble();
+      final costInBase = amountToMinor * referenceRate;
       return (valueInBase - costInBase).round();
     }
 

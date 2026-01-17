@@ -1,20 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:uuid/uuid.dart';
 
-import '../../../core/logic/loan_calculator.dart';
+import 'package:prestamos_app/data/models/payment_plan.dart';
+import 'package:prestamos_app/data/providers/payment_plan_provider.dart';
+import 'package:prestamos_app/l10n/app_localizations.dart';
 
-import '../../../data/models/payment_plan.dart';
-import '../../../data/models/payment_frequency.dart';
-import '../../../data/providers/payment_plan_provider.dart';
-import '../../../data/providers/payment_frequency_provider.dart';
-import '../../../data/providers/database_providers.dart';
-import '../../../l10n/app_localizations.dart';
-import '../../../data/providers/customer_category_provider.dart';
-
-/// Screen for managing Payment Plans (CRUD)
+/// Pantalla para gestionar los planes de pago (operaciones CRUD).
 class PaymentPlansScreen extends ConsumerStatefulWidget {
+  /// Crea una instancia de [PaymentPlansScreen].
   const PaymentPlansScreen({super.key});
 
   @override
@@ -26,8 +20,8 @@ class _PaymentPlansScreenState extends ConsumerState<PaymentPlansScreen> {
   void initState() {
     super.initState();
     // Refresh plans on load
-    Future.microtask(() {
-      ref.read(paymentPlansProvider.notifier).refresh();
+    Future.microtask(() async {
+      await ref.read(paymentPlansProvider.notifier).refresh();
     });
   }
 
@@ -106,7 +100,7 @@ class _PaymentPlansScreenState extends ConsumerState<PaymentPlansScreen> {
           ),
         ),
         subtitle: Text(
-          '${plan.installmentsTotal} ${l10n.installments} · ${plan.monthlyInterestRate}% ${l10n.monthly}',
+          '${plan.installmentsTotal} ${l10n.installments} · ${plan.monthlyInterestRate.toStringAsFixed(2)}% ${l10n.monthly}',
         ),
         trailing: PopupMenuButton<String>(
           onSelected: (value) => _handleMenuAction(value, plan, l10n),
@@ -157,8 +151,7 @@ class _PaymentPlansScreenState extends ConsumerState<PaymentPlansScreen> {
   ) async {
     switch (action) {
       case 'edit':
-        context.push('/settings/payment-plans/edit/${plan.planId}');
-        break;
+        await context.push('/settings/payment-plans/edit/${plan.planId}');
       case 'toggle':
         final success = await ref
             .read(paymentPlansProvider.notifier)
@@ -171,10 +164,8 @@ class _PaymentPlansScreenState extends ConsumerState<PaymentPlansScreen> {
             ),
           );
         }
-        break;
       case 'delete':
-        _confirmDelete(plan, l10n);
-        break;
+        await _confirmDelete(plan, l10n);
     }
   }
 
@@ -200,7 +191,7 @@ class _PaymentPlansScreenState extends ConsumerState<PaymentPlansScreen> {
       ),
     );
 
-    if (confirmed == true) {
+    if (confirmed ?? false) {
       final success = await ref
           .read(paymentPlansProvider.notifier)
           .delete(plan.planId);

@@ -1,21 +1,27 @@
 import 'package:flutter/material.dart';
-import '../constants/app_status.dart';
-import '../theme/app_typography.dart';
-import '../../core/localization/locale_provider.dart';
+import 'package:prestamos_app/core/constants/app_status.dart';
+import 'package:prestamos_app/core/localization/locale_provider.dart';
+import 'package:prestamos_app/core/theme/app_typography.dart';
 
 /// Status badge for visual status indication
 /// Uses [AppStatus] to determine colors and labels
 class StatusBadge extends StatelessWidget {
-  final String status;
-  final String? customLabel;
-  final bool isCompact;
-
+  /// Crea una [StatusBadge] para indicar visualmente un estado.
   const StatusBadge({
-    super.key,
     required this.status,
+    super.key,
     this.customLabel,
     this.isCompact = false,
   });
+
+  /// El identificador del estado (ej: 'ACTIVE', 'PAID').
+  final String status;
+
+  /// Etiqueta de texto personalizada (si es nula, usa la localizada por defecto).
+  final String? customLabel;
+
+  /// Indica si se debe mostrar en formato compacto (sin icono y menor padding).
+  final bool isCompact;
 
   @override
   Widget build(BuildContext context) {
@@ -85,7 +91,7 @@ class StatusBadge extends StatelessWidget {
         default:
           return AppStatus.getLabel(status);
       }
-    } catch (_) {
+    } on Exception catch (_) {
       return AppStatus.getLabel(status);
     }
   }
@@ -118,10 +124,14 @@ class StatusBadge extends StatelessWidget {
 
 /// Quick indicator dot for compact status display
 class StatusDot extends StatelessWidget {
-  final String status;
-  final double size;
+  /// Crea un [StatusDot] como indicador minimalista de estado.
+  const StatusDot({required this.status, super.key, this.size = 8});
 
-  const StatusDot({super.key, required this.status, this.size = 8});
+  /// Identificador del estado para determinar el color.
+  final String status;
+
+  /// Tamaño (diámetro) del punto en píxeles.
+  final double size;
 
   @override
   Widget build(BuildContext context) {

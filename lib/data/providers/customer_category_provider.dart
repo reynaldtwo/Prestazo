@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../repositories/customer_category_repository.dart';
-import '../models/customer_category.dart';
+import 'package:prestamos_app/data/models/customer_category.dart';
+import 'package:prestamos_app/data/repositories/customer_category_repository.dart';
 
 /// Provider for customer category repository
 final customerCategoryRepositoryProvider = Provider<CustomerCategoryRepository>(

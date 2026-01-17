@@ -1,22 +1,22 @@
+import 'package:prestamos_app/core/constants/app_status.dart';
+import 'package:prestamos_app/core/utils/string_utils.dart';
+import 'package:prestamos_app/data/database/database_helper.dart';
+import 'package:prestamos_app/data/models/loan.dart';
+import 'package:prestamos_app/services/backup_service.dart';
 import 'package:sqflite/sqflite.dart';
-import '../database/database_helper.dart';
-import '../models/loan.dart';
-import '../../core/constants/app_status.dart';
-import '../../core/utils/string_utils.dart';
-import '../../services/backup_service.dart';
 
 /// Repository for Loan CRUD operations
 class LoanRepository {
-  final DatabaseHelper _databaseHelper;
-
+  /// Crea un [LoanRepository] con el [DatabaseHelper] proporcionado.
   LoanRepository({DatabaseHelper? databaseHelper})
     : _databaseHelper = databaseHelper ?? DatabaseHelper();
+  final DatabaseHelper _databaseHelper;
 
   /// Get all loans
   Future<List<Loan>> getAllLoans() async {
     final db = await _databaseHelper.database;
     final maps = await db.query('loans', orderBy: 'created_at DESC');
-    return maps.map((map) => Loan.fromMap(map)).toList();
+    return maps.map(Loan.fromMap).toList();
   }
 
   /// Get active loans only
@@ -28,7 +28,7 @@ class LoanRepository {
       whereArgs: [AppStatus.loanActive],
       orderBy: 'disbursement_date DESC',
     );
-    return maps.map((map) => Loan.fromMap(map)).toList();
+    return maps.map(Loan.fromMap).toList();
   }
 
   /// Get loan by ID
@@ -53,7 +53,7 @@ class LoanRepository {
       whereArgs: [customerId],
       orderBy: 'created_at DESC',
     );
-    return maps.map((map) => Loan.fromMap(map)).toList();
+    return maps.map(Loan.fromMap).toList();
   }
 
   /// Get active loans by customer ID
@@ -65,7 +65,7 @@ class LoanRepository {
       whereArgs: [customerId, AppStatus.loanActive],
       orderBy: 'disbursement_date DESC',
     );
-    return maps.map((map) => Loan.fromMap(map)).toList();
+    return maps.map(Loan.fromMap).toList();
   }
 
   /// Get loans with customer info (JOIN query)
@@ -75,7 +75,7 @@ class LoanRepository {
     int? offset,
   }) async {
     final db = await _databaseHelper.database;
-    String query = '''
+    var query = '''
       SELECT 
         l.*,
         c.full_name as customer_name,
@@ -86,7 +86,7 @@ class LoanRepository {
       INNER JOIN customers c ON l.customer_id = c.customer_id
     ''';
 
-    List<dynamic> args = [];
+    final args = <dynamic>[];
     if (status != null) {
       query += ' WHERE l.status = ?';
       args.add(status);
@@ -103,7 +103,7 @@ class LoanRepository {
       }
     }
 
-    return await db.rawQuery(query, args);
+    return db.rawQuery(query, args);
   }
 
   /// Get consolidated active loans with customer info
@@ -112,7 +112,7 @@ class LoanRepository {
     // Includes ACTIVE and IN_MORA (Overdue)
     // Assuming 'ACTIVE' covers both in typical status flow, or we explicitly include Overdue
     // Based on user request "vigentes"
-    return await db.rawQuery('''
+    return db.rawQuery('''
       SELECT 
         l.*,
         c.full_name as customer_name,
@@ -126,7 +126,7 @@ class LoanRepository {
     ''');
   }
 
-  /// Insert new loan (auto-assigns loan number)
+  /// Insert new loan (auto-assigns loan number and policy snapshot)
   Future<Loan> insertLoan(Loan loan) async {
     final db = await _databaseHelper.database;
     Loan? resultLoan;
@@ -142,17 +142,39 @@ class LoanRepository {
       final nextNumber =
           settingsResult.first['loan_next_number']?.toString() ?? '1';
 
-      // 2. Assign number to loan
-      final loanWithNumber = loan.copyWith(loanNumber: nextNumber);
+      // 2. Get active financial policy for snapshot (V32)
+      final policyResult = await txn.query(
+        'business_financial_policies',
+        where: 'is_active = ?',
+        whereArgs: [1],
+        limit: 1,
+      );
 
-      // 3. Insert loan
+      // Apply policy snapshot only if fields are not already set on loan
+      var loanWithPolicy = loan;
+      if (policyResult.isNotEmpty && loan.loanDaysPerMonth == null) {
+        final p = policyResult.first;
+        loanWithPolicy = loan.copyWith(
+          loanDayCountConvention: p['day_count_convention'] as String?,
+          loanDaysPerMonth: p['days_per_month'] as int?,
+          loanDaysPerYear: p['days_per_year'] as int?,
+          loanProrationRule: p['proration_rule'] as String?,
+          loanRoundingDecimals: p['rounding_decimals'] as int?,
+          loanRoundingMode: p['rounding_mode'] as String?,
+        );
+      }
+
+      // 3. Assign number to loan
+      final loanWithNumber = loanWithPolicy.copyWith(loanNumber: nextNumber);
+
+      // 4. Insert loan
       await txn.insert(
         'loans',
         loanWithNumber.toMap(),
         conflictAlgorithm: ConflictAlgorithm.replace,
       );
 
-      // 4. Increment setting
+      // 5. Increment setting
       final newNextNumber = incrementStringCode(nextNumber);
       await txn.rawUpdate(
         'UPDATE app_settings SET loan_next_number = ?, updated_at = ? WHERE settings_id = ?',
@@ -189,7 +211,7 @@ class LoanRepository {
           BackupService.instance.createBackup(customName: customName);
         }
       }
-    } catch (_) {
+    } on Exception catch (_) {
       // Ignore backup errors to not affect loan creation flow
     }
   }
@@ -206,7 +228,7 @@ class LoanRepository {
   /// Update existing loan
   Future<int> updateLoan(Loan loan) async {
     final db = await _databaseHelper.database;
-    return await db.update(
+    return db.update(
       'loans',
       loan.copyWith(updatedAt: DateTime.now()).toMap(),
       where: 'loan_id = ?',
@@ -217,7 +239,7 @@ class LoanRepository {
   /// Update principal balance
   Future<int> updatePrincipalBalance(String loanId, double newBalance) async {
     final db = await _databaseHelper.database;
-    return await db.update(
+    return db.update(
       'loans',
       {
         'principal_balance': newBalance,
@@ -231,7 +253,7 @@ class LoanRepository {
   /// Close loan (mark as PAID_OFF or CANCELLED)
   Future<int> closeLoan(String loanId, String closeStatus) async {
     final db = await _databaseHelper.database;
-    return await db.update(
+    return db.update(
       'loans',
       {
         'status': closeStatus,
@@ -246,7 +268,7 @@ class LoanRepository {
   /// Delete loan (use with caution)
   Future<int> deleteLoan(String loanId) async {
     final db = await _databaseHelper.database;
-    return await db.delete('loans', where: 'loan_id = ?', whereArgs: [loanId]);
+    return db.delete('loans', where: 'loan_id = ?', whereArgs: [loanId]);
   }
 
   /// Get loan count
@@ -268,7 +290,7 @@ class LoanRepository {
     final today = DateTime(now.year, now.month, now.day);
 
     // Get moratorium days from settings
-    int moratoriumDays = 0;
+    var moratoriumDays = 0;
     final settingsResult = await db.query(
       'app_settings',
       columns: ['moratorium_days'],
@@ -310,6 +332,7 @@ class LoanRepository {
     return (result.first['total'] as num?)?.toDouble() ?? 0.0;
   }
 
+  /// Obtiene el saldo principal total agrupado por moneda para todos los préstamos activos.
   Future<Map<String, double>> getTotalPrincipalBalanceByCurrency() async {
     final db = await _databaseHelper.database;
     final result = await db.rawQuery(
@@ -317,7 +340,7 @@ class LoanRepository {
       [AppStatus.loanActive],
     );
 
-    final Map<String, double> totals = {};
+    final totals = <String, double>{};
     for (final row in result) {
       final currency = row['currency_code'] as String? ?? 'NIO';
       final total = (row['total'] as num?)?.toDouble() ?? 0.0;
@@ -358,6 +381,7 @@ class LoanRepository {
     return (result.first['total'] as num?)?.toDouble() ?? 0.0;
   }
 
+  /// Obtiene el capital original total agrupado por moneda para todos los préstamos activos.
   Future<Map<String, double>> getTotalOriginalPrincipalByCurrency() async {
     final db = await _databaseHelper.database;
     final result = await db.rawQuery(
@@ -365,7 +389,7 @@ class LoanRepository {
       [AppStatus.loanActive],
     );
 
-    final Map<String, double> totals = {};
+    final totals = <String, double>{};
     for (final row in result) {
       final currency = row['currency_code'] as String? ?? 'NIO';
       final total = (row['total'] as num?)?.toDouble() ?? 0.0;
@@ -388,7 +412,7 @@ class LoanRepository {
   Future<double> getProjectedMonthlyEarnings() async {
     final activeLoans = await getActiveLoans();
     double total = 0;
-    for (var loan in activeLoans) {
+    for (final loan in activeLoans) {
       total += loan.principalBalance * (loan.monthlyInterestRate / 100);
     }
     return total;
@@ -397,8 +421,8 @@ class LoanRepository {
   /// Get projected monthly earnings based on active loans grouped by currency
   Future<Map<String, double>> getProjectedMonthlyEarningsByCurrency() async {
     final activeLoans = await getActiveLoans();
-    final Map<String, double> totals = {};
-    for (var loan in activeLoans) {
+    final totals = <String, double>{};
+    for (final loan in activeLoans) {
       final currency = loan.currencyCode; // Assuming already uses 'NIO' if null
       final monthlyReturn =
           loan.principalBalance * (loan.monthlyInterestRate / 100);

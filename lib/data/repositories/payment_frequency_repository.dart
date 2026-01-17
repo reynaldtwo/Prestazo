@@ -1,21 +1,24 @@
+import 'package:prestamos_app/data/database/database_helper.dart';
+import 'package:prestamos_app/data/models/payment_frequency.dart';
 import 'package:sqflite/sqflite.dart';
-import '../database/database_helper.dart';
-import '../models/payment_frequency.dart';
 
+/// Repositorio para gestionar las frecuencias de pago en la base de datos.
 class PaymentFrequencyRepository {
+  /// Crea un [PaymentFrequencyRepository] con el [DatabaseHelper] proporcionado.
+  PaymentFrequencyRepository(this._dbHelper);
   final DatabaseHelper _dbHelper;
 
-  PaymentFrequencyRepository(this._dbHelper);
-
+  /// Obtiene todas las frecuencias de pago registradas.
   Future<List<PaymentFrequency>> getAll() async {
     final db = await _dbHelper.database;
     final maps = await db.query(
       'payment_frequencies',
       orderBy: 'days_interval ASC',
     );
-    return maps.map((m) => PaymentFrequency.fromMap(m)).toList();
+    return maps.map(PaymentFrequency.fromMap).toList();
   }
 
+  /// Obtiene solo las frecuencias de pago que están marcadas como activas.
   Future<List<PaymentFrequency>> getActive() async {
     final db = await _dbHelper.database;
     final maps = await db.query(
@@ -24,9 +27,10 @@ class PaymentFrequencyRepository {
       whereArgs: [1],
       orderBy: 'days_interval ASC',
     );
-    return maps.map((m) => PaymentFrequency.fromMap(m)).toList();
+    return maps.map(PaymentFrequency.fromMap).toList();
   }
 
+  /// Obtiene una frecuencia de pago por su ID.
   Future<PaymentFrequency?> getById(String id) async {
     final db = await _dbHelper.database;
     final maps = await db.query(
@@ -38,11 +42,13 @@ class PaymentFrequencyRepository {
     return PaymentFrequency.fromMap(maps.first);
   }
 
+  /// Crea una nueva frecuencia de pago.
   Future<void> create(PaymentFrequency frequency) async {
     final db = await _dbHelper.database;
     await db.insert('payment_frequencies', frequency.toMap());
   }
 
+  /// Actualiza una frecuencia de pago existente.
   Future<void> update(PaymentFrequency frequency) async {
     final db = await _dbHelper.database;
     await db.update(
@@ -53,6 +59,7 @@ class PaymentFrequencyRepository {
     );
   }
 
+  /// Elimina una frecuencia de pago por su ID.
   Future<void> delete(String id) async {
     final db = await _dbHelper.database;
     await db.delete('payment_frequencies', where: 'id = ?', whereArgs: [id]);

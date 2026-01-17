@@ -8,22 +8,18 @@
 library;
 
 import 'dart:math';
-import '../core/utils/currency_utils.dart';
-import '../data/models/billing_cycle.dart';
-import '../data/models/customer.dart';
-import '../data/models/loan.dart';
-import '../data/repositories/billing_cycle_repository.dart';
-import '../data/repositories/customer_repository.dart';
-import '../data/repositories/loan_repository.dart';
-import '../data/repositories/payment_plan_repository.dart';
+import 'package:prestamos_app/core/utils/currency_utils.dart';
+import 'package:prestamos_app/data/models/billing_cycle.dart';
+import 'package:prestamos_app/data/models/customer.dart';
+import 'package:prestamos_app/data/models/loan.dart';
+import 'package:prestamos_app/data/repositories/billing_cycle_repository.dart';
+import 'package:prestamos_app/data/repositories/customer_repository.dart';
+import 'package:prestamos_app/data/repositories/loan_repository.dart';
+import 'package:prestamos_app/data/repositories/payment_plan_repository.dart';
 
 /// Service for billing cycle management
 class BillingCycleService {
-  final BillingCycleRepository _cycleRepo;
-  final CustomerRepository _customerRepo;
-  final LoanRepository _loanRepo;
-  final PaymentPlanRepository _planRepo;
-
+  /// Crea un [BillingCycleService] con los repositorios necesarios.
   BillingCycleService({
     required BillingCycleRepository cycleRepository,
     required CustomerRepository customerRepository,
@@ -33,12 +29,16 @@ class BillingCycleService {
        _customerRepo = customerRepository,
        _loanRepo = loanRepository,
        _planRepo = planRepository;
+  final BillingCycleRepository _cycleRepo;
+  final CustomerRepository _customerRepo;
+  final LoanRepository _loanRepo;
+  final PaymentPlanRepository _planRepo;
 
   /// Validates if a customer can have a new loan based on settings
   Future<bool> validateNewLoan(
-    String customerId,
-    bool allowMultipleLoans,
-  ) async {
+    String customerId, {
+    bool allowMultipleLoans = false,
+  }) async {
     if (allowMultipleLoans) return true;
 
     final loans = await _loanRepo.getLoansByCustomerId(customerId);
@@ -111,7 +111,7 @@ class BillingCycleService {
     double? baseInstallment;
     double? basePrincipal;
     double? baseInterest;
-    double totalPrincipal = loan.principalOriginal;
+    final totalPrincipal = loan.principalOriginal;
     double totalInterest = 0;
 
     // Accumulators (Must be initialized with sums from EXISTING cycles if partial update,
@@ -140,7 +140,8 @@ class BillingCycleService {
           equivalentMonths = n.toDouble();
         } else {
           final totalDays = n * cycleDays;
-          equivalentMonths = totalDays / 30.0;
+          final daysPerMonth = loan.loanDaysPerMonth ?? 30;
+          equivalentMonths = totalDays / daysPerMonth;
         }
 
         totalInterest = _roundMoney(
@@ -176,16 +177,16 @@ class BillingCycleService {
       final nextEnd = nextStart.add(Duration(days: cycleDays - 1));
 
       // Determine overrides for Level Installment (Banking Rounding)
-      double? overrideInst;
-      double? overridePrin;
-      double? overrideInt;
+      double overrideInst = 0;
+      double overridePrin = 0;
+      double overrideInt = 0;
 
       if (baseInstallment != null) {
         final precision = CurrencyUtils.getCurrencyPrecision(loan.currencyCode);
         if (nextCycleNumber < maxPlanCycles) {
           overrideInst = baseInstallment;
-          overridePrin = basePrincipal;
-          overrideInt = baseInterest;
+          overridePrin = basePrincipal!;
+          overrideInt = baseInterest!;
         } else {
           // Last Cycle: Adjust for rounding
           overrideInst = _roundMoney(
@@ -202,8 +203,8 @@ class BillingCycleService {
           );
         }
 
-        accumInstallment += overrideInst ?? 0;
-        accumPrincipal += overridePrin!;
+        accumInstallment += overrideInst;
+        accumPrincipal += overridePrin;
       }
 
       final cycle = _createCycle(
@@ -296,7 +297,7 @@ class BillingCycleService {
   /// Generate initial schedule for a new loan
   Future<void> generateInitialSchedule(Loan loan) async {
     // Determine number of cycles to generate
-    int cyclesToGenerate = 1;
+    var cyclesToGenerate = 1;
 
     // If it's a planned loan (Plan ID exists + Total Installments > 0)
     // We generate the full schedule
@@ -318,7 +319,7 @@ class BillingCycleService {
 
     // Calculate start/end dates for each cycle
     // Cycle 1 starts on Disbursement Date
-    DateTime nextStart = loan.disbursementDate;
+    var nextStart = loan.disbursementDate;
     final now = DateTime.now();
 
     final cycles = <BillingCycle>[];
@@ -326,12 +327,31 @@ class BillingCycleService {
     // START FIX: V30 Fallback for Plan Data
     // If loan snapshot says distribute is FALSE (or null), but it IS a plan loan,
     // verify against the actual Plan in DB to be safe (handling snapshot failures).
-    bool effectiveDistribute = loan.distributeCapitalAndInterest ?? false;
+    var effectiveDistribute = loan.distributeCapitalAndInterest ?? false;
 
-    if (!effectiveDistribute && loan.planId != null) {
+    // V33: Also get termValue and termUnit from plan for correct interest calculation
+    double? planTermMonths;
+
+    if (loan.planId != null) {
       final plan = await _planRepo.getById(loan.planId!);
       if (plan != null) {
-        effectiveDistribute = plan.distributeCapitalAndInterest;
+        if (!effectiveDistribute) {
+          effectiveDistribute = plan.distributeCapitalAndInterest;
+        }
+        // V33: Calculate term in months from plan's termValue and termUnit
+        // termUnit can be: Months, Weeks, Days
+        final termValue = plan.termValue;
+        final termUnit = plan.termUnit.toLowerCase();
+        if (termUnit.contains('month') || termUnit == 'meses') {
+          planTermMonths = termValue.toDouble();
+        } else if (termUnit.contains('week') || termUnit == 'semanas') {
+          planTermMonths = termValue * 7 / 30.0;
+        } else if (termUnit.contains('day') || termUnit == 'días') {
+          planTermMonths = termValue / 30.0;
+        } else {
+          // Default: assume months
+          planTermMonths = termValue.toDouble();
+        }
       }
     }
     // END FIX
@@ -340,7 +360,7 @@ class BillingCycleService {
     double? baseInstallment;
     double? basePrincipal;
     double? baseInterest;
-    double totalPrincipal = loan.principalOriginal;
+    final totalPrincipal = loan.principalOriginal;
     double totalInterest = 0;
 
     // Accumulators
@@ -357,13 +377,19 @@ class BillingCycleService {
       final n = loan.planInstallmentsTotal!;
       final r = loan.monthlyInterestRate;
 
-      // Helper to calculate equivalent months match _createCycle logic
+      // V33: Use planTermMonths from plan if available, otherwise calculate
       double equivalentMonths;
-      if (cycleDays >= 28 && cycleDays <= 31) {
+      if (planTermMonths != null) {
+        // USE PLAN'S TERM (CORRECT)
+        equivalentMonths = planTermMonths;
+      } else if (cycleDays >= 28 && cycleDays <= 31) {
+        // Monthly frequency = number of cycles equals months
         equivalentMonths = n.toDouble();
       } else {
+        // Fallback: calculate from days (legacy behavior)
         final totalDays = n * cycleDays;
-        equivalentMonths = totalDays / 30.0;
+        final daysPerMonth = loan.loanDaysPerMonth ?? 30;
+        equivalentMonths = totalDays / daysPerMonth;
       }
 
       totalInterest = _roundMoney(
@@ -382,20 +408,20 @@ class BillingCycleService {
       // but Installment = Principal + Interest holds.
     }
 
-    for (int i = 1; i <= cyclesToGenerate; i++) {
+    for (var i = 1; i <= cyclesToGenerate; i++) {
       // End date = Start + Duration - 1
       final nextEnd = nextStart.add(Duration(days: cycleDays - 1));
 
       // Determine overrides for Level Installment
-      double? overrideInst;
-      double? overridePrin;
-      double? overrideInt;
+      double overrideInst = 0;
+      double overridePrin = 0;
+      double overrideInt = 0;
 
       if (effectiveDistribute && baseInstallment != null) {
         if (i < cyclesToGenerate) {
           overrideInst = baseInstallment;
-          overridePrin = basePrincipal;
-          overrideInt = baseInterest;
+          overridePrin = basePrincipal!;
+          overrideInt = baseInterest!;
         } else {
           // Last Cycle: Adjust for rounding
           overrideInst = _roundMoney(
@@ -412,9 +438,9 @@ class BillingCycleService {
           );
         }
 
-        accumInstallment += overrideInst!;
-        accumPrincipal += overridePrin!;
-        // accumInterest += overrideInt!;
+        accumInstallment += overrideInst;
+        accumPrincipal += overridePrin;
+        // accumInterest += overrideInt;
       }
 
       final cycle = _createCycle(
@@ -496,7 +522,8 @@ class BillingCycleService {
         equivalentMonths = n.toDouble();
       } else {
         final totalDays = n * cycleDurationDays;
-        equivalentMonths = totalDays / 30.0;
+        final daysPerMonth = loan.loanDaysPerMonth ?? 30;
+        equivalentMonths = totalDays / daysPerMonth;
       }
 
       final precision = CurrencyUtils.getCurrencyPrecision(loan.currencyCode);
@@ -543,9 +570,7 @@ class BillingCycleService {
       periodEndDate: endDate,
       dueDate: endDate, // Due on last day of cycle
       interestExpected: interestExpected,
-      interestPaid: 0,
       interestPending: interestExpected,
-      status: 'PENDING',
       createdAt: now,
       updatedAt: now,
       // V29: Plan fields
@@ -598,7 +623,7 @@ class BillingCycleService {
         );
         return !today.isBefore(startDate) && !today.isAfter(endDate);
       });
-    } catch (_) {
+    } on Exception catch (_) {
       return null;
     }
   }

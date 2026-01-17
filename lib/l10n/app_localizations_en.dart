@@ -2167,6 +2167,27 @@ class SEn extends S {
   String get categoryColor => 'Color';
 
   @override
+  String get recoveryPriority => 'Recovery Priority';
+
+  @override
+  String get recoveryPriorityDesc =>
+      'Defines how the payment is applied when using the \"Recover\" option.';
+
+  @override
+  String get recoveryPriorityAffects =>
+      'Affects the order of debt reduction in recovery payments.';
+
+  @override
+  String get recoveryPriorityEx =>
+      'Prioritize Principal: The payment first reduces the loaned principal. Prioritize Interest: The payment first reduces overdue interest.';
+
+  @override
+  String get prioritizeCapital => 'Prioritize Principal (Recommended)';
+
+  @override
+  String get prioritizeInterest => 'Prioritize Overdue Interest';
+
+  @override
   String get categoryRequired => 'Category name is required';
 
   @override

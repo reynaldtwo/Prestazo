@@ -1,13 +1,13 @@
-import '../database/database_helper.dart';
-import '../models/payment_plan.dart';
+import 'package:prestamos_app/data/database/database_helper.dart';
+import 'package:prestamos_app/data/models/payment_plan.dart';
 
 /// Repository for PaymentPlan CRUD operations
 class PaymentPlanRepository {
-  final DatabaseHelper _dbHelper;
 
   /// Creates a PaymentPlanRepository
   PaymentPlanRepository({DatabaseHelper? dbHelper})
     : _dbHelper = dbHelper ?? DatabaseHelper();
+  final DatabaseHelper _dbHelper;
 
   /// Get all payment plans
   Future<List<PaymentPlan>> getAll() async {
@@ -83,7 +83,7 @@ class PaymentPlanRepository {
     ''',
       [planId],
     );
-    final count = result.first['cnt'] as int;
+    final count = result.first['cnt']! as int;
     return count > 0;
   }
 

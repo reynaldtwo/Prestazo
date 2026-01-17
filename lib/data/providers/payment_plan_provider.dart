@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../repositories/payment_plan_repository.dart';
-import '../models/payment_plan.dart';
+import 'package:prestamos_app/data/models/payment_plan.dart';
+import 'package:prestamos_app/data/repositories/payment_plan_repository.dart';
 
 /// Provider for payment plan repository
 final paymentPlanRepositoryProvider = Provider<PaymentPlanRepository>((ref) {

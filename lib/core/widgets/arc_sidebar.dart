@@ -3,19 +3,11 @@ import 'package:flutter/material.dart';
 /// Custom Arc Sidebar Widget with curved edge design
 /// Inspired by professional arc_sidebar implementations
 class ArcSideBar extends StatefulWidget {
-  final Widget header;
-  final List<ArcSideBarItem> items;
-  final Widget? footer;
-  final Color? backgroundColor;
-  final Color? accentColor;
-  final double width;
-  final int selectedIndex;
-  final ValueChanged<int>? onItemSelected;
-
+  /// Crea un [ArcSideBar] con diseño curvo.
   const ArcSideBar({
-    super.key,
     required this.header,
     required this.items,
+    super.key,
     this.footer,
     this.backgroundColor,
     this.accentColor,
@@ -24,10 +16,35 @@ class ArcSideBar extends StatefulWidget {
     this.onItemSelected,
   });
 
+  /// Widget de cabecera que se muestra en la parte superior.
+  final Widget header;
+
+  /// Lista de elementos de menú a mostrar.
+  final List<ArcSideBarItem> items;
+
+  /// Widget opcional de pie de página.
+  final Widget? footer;
+
+  /// Color de fondo de la barra lateral.
+  final Color? backgroundColor;
+
+  /// Color de acento para el elemento seleccionado.
+  final Color? accentColor;
+
+  /// Ancho de la barra lateral.
+  final double width;
+
+  /// Índice del elemento seleccionado actualmente.
+  final int selectedIndex;
+
+  /// Callback cuando el índice seleccionado cambia.
+  final ValueChanged<int>? onItemSelected;
+
   @override
   State<ArcSideBar> createState() => ArcSideBarState();
 }
 
+/// Estado público para permitir el control externo (abrir/cerrar) mediante GlobalKey.
 class ArcSideBarState extends State<ArcSideBar>
     with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
@@ -43,7 +60,7 @@ class ArcSideBarState extends State<ArcSideBar>
       duration: const Duration(milliseconds: 300),
     );
 
-    _slideAnimation = Tween<double>(begin: -1.0, end: 0.0).animate(
+    _slideAnimation = Tween<double>(begin: -1, end: 0).animate(
       CurvedAnimation(
         parent: _animationController,
         curve: Curves.easeOutCubic,
@@ -51,10 +68,10 @@ class ArcSideBarState extends State<ArcSideBar>
       ),
     );
 
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+    _fadeAnimation = Tween<double>(begin: 0, end: 1).animate(
       CurvedAnimation(
         parent: _animationController,
-        curve: const Interval(0.0, 0.5, curve: Curves.easeOut),
+        curve: const Interval(0, 0.5, curve: Curves.easeOut),
       ),
     );
   }
@@ -65,6 +82,7 @@ class ArcSideBarState extends State<ArcSideBar>
     super.dispose();
   }
 
+  /// Alterna el estado de apertura de la barra lateral.
   void toggle() {
     if (_isOpen) {
       close();
@@ -73,16 +91,19 @@ class ArcSideBarState extends State<ArcSideBar>
     }
   }
 
+  /// Abre la barra lateral con una animación.
   void open() {
     _animationController.forward();
     setState(() => _isOpen = true);
   }
 
+  /// Cierra la barra lateral con una animación.
   void close() {
     _animationController.reverse();
     setState(() => _isOpen = false);
   }
 
+  /// Indica si la barra lateral está actualmente abierta.
   bool get isOpen => _isOpen;
 
   @override
@@ -132,7 +153,7 @@ class ArcSideBarState extends State<ArcSideBar>
             ),
             child: ClipPath(
               clipper: _ArcClipper(),
-              child: Container(
+              child: ColoredBox(
                 color: backgroundColor,
                 child: SafeArea(
                   child: Column(
@@ -145,12 +166,7 @@ class ArcSideBarState extends State<ArcSideBar>
                       Expanded(
                         child: ListView.builder(
                           // Left padding normal, right padding extra for arc curve
-                          padding: const EdgeInsets.only(
-                            left: 12,
-                            right: 40,
-                            top: 0,
-                            bottom: 0,
-                          ),
+                          padding: const EdgeInsets.only(left: 12, right: 40),
                           itemCount: widget.items.length,
                           itemBuilder: (context, index) {
                             final item = widget.items[index];
@@ -174,7 +190,7 @@ class ArcSideBarState extends State<ArcSideBar>
                         const Divider(),
                         Padding(
                           padding: const EdgeInsets.all(12),
-                          child: widget.footer!,
+                          child: widget.footer,
                         ),
                       ],
                     ],
@@ -203,48 +219,6 @@ class ArcSideBarState extends State<ArcSideBar>
             ),
           ),
       ],
-    );
-  }
-
-  Widget _buildArcHandle(Color accentColor) {
-    return Container(
-      width: 28,
-      height: 100,
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        borderRadius: const BorderRadius.only(
-          topRight: Radius.circular(20),
-          bottomRight: Radius.circular(20),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: accentColor.withValues(alpha: 0.2),
-            blurRadius: 8,
-            offset: const Offset(3, 0),
-          ),
-        ],
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          _buildHandleDot(accentColor),
-          const SizedBox(height: 6),
-          _buildHandleDot(accentColor),
-          const SizedBox(height: 6),
-          _buildHandleDot(accentColor),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildHandleDot(Color color) {
-    return Container(
-      width: 6,
-      height: 6,
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.6),
-        shape: BoxShape.circle,
-      ),
     );
   }
 
@@ -340,52 +314,50 @@ class ArcSideBarState extends State<ArcSideBar>
   }
 }
 
-/// Menu item for Arc Sidebar
+/// Elemento de menú para la barra lateral Arc.
 class ArcSideBarItem {
-  final IconData icon;
-  final String title;
-  final String? subtitle;
-  final VoidCallback? onTap;
-
+  /// Crea un elemento para la barra lateral.
   const ArcSideBarItem({
     required this.icon,
     required this.title,
     this.subtitle,
     this.onTap,
   });
+
+  /// Icono representativo del elemento.
+  final IconData icon;
+
+  /// Título del elemento de menú.
+  final String title;
+
+  /// Subtítulo opcional informativo.
+  final String? subtitle;
+
+  /// Callback que se ejecuta al presionar este elemento.
+  final VoidCallback? onTap;
 }
 
 /// Custom clipper for the curved right edge
 class _ArcClipper extends CustomClipper<Path> {
   @override
   Path getClip(Size size) {
-    final path = Path();
-
-    // Start from top-left
-    path.moveTo(0, 0);
-
-    // Top edge
-    path.lineTo(size.width - 30, 0);
-
-    // Right curved edge with arc
-    path.quadraticBezierTo(
-      size.width,
-      size.height * 0.25,
-      size.width,
-      size.height * 0.5,
-    );
-    path.quadraticBezierTo(
-      size.width,
-      size.height * 0.75,
-      size.width - 30,
-      size.height,
-    );
-
-    // Bottom edge
-    path.lineTo(0, size.height);
-
-    // Close path
-    path.close();
+    final path = Path()
+      ..moveTo(0, 0)
+      ..lineTo(size.width - 30, 0)
+      ..quadraticBezierTo(
+        size.width,
+        size.height * 0.25,
+        size.width,
+        size.height * 0.5,
+      )
+      ..quadraticBezierTo(
+        size.width,
+        size.height * 0.75,
+        size.width - 30,
+        size.height,
+      )
+      ..lineTo(0, size.height)
+      ..close();
 
     return path;
   }

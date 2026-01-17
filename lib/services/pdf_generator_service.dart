@@ -1,23 +1,26 @@
+import 'dart:io';
 import 'dart:ui';
+
+import 'package:flutter/widgets.dart' show FileImage; // For loading image
 import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
+import 'package:prestamos_app/core/localization/locale_provider.dart';
+import 'package:prestamos_app/data/models/app_settings.dart';
+import 'package:prestamos_app/data/models/customer.dart';
+import 'package:prestamos_app/data/models/loan.dart';
+import 'package:prestamos_app/data/models/payment.dart';
+import 'package:prestamos_app/data/models/payment_allocation.dart';
 import 'package:printing/printing.dart';
-import '../data/models/loan.dart';
-import '../data/models/customer.dart';
-import '../data/models/payment.dart';
-import 'dart:io';
-import 'package:flutter/widgets.dart' show FileImage; // For loading image
-import '../data/models/app_settings.dart';
-import '../data/models/payment_allocation.dart';
-import '../core/localization/locale_provider.dart';
 import 'package:sealed_currencies/sealed_currencies.dart';
 
+/// Servicio encargado de la generación de documentos PDF (recibos, estados de cuenta, reportes).
 class PdfGeneratorService {
   // Removed static currencyFormat to allow dynamic symbols
   final _dateFormat = DateFormat('dd/MM/yyyy');
   final _dateTimeFormat = DateFormat('dd/MM/yyyy h:mm a');
 
+  /// Genera un estado de cuenta de préstamo y lo envía a la cola de impresión.
   Future<void> generateLoanStatement({
     required Loan loan,
     required Customer customer,
@@ -44,7 +47,7 @@ class PdfGeneratorService {
           FileImage(File(settings.companyLogoPath!)),
         );
         profileImage = image;
-      } catch (e) {
+      } on Exception catch (_) {
         // Ignore image error
       }
     }
@@ -100,7 +103,7 @@ class PdfGeneratorService {
           FileImage(File(settings.companyLogoPath!)),
         );
         profileImage = image;
-      } catch (e) {
+      } on Exception catch (_) {
         // Ignore image error
       }
     }
@@ -125,6 +128,7 @@ class PdfGeneratorService {
     return pdf.save();
   }
 
+  /// Genera un recibo de pago y lo envía a la cola de impresión.
   Future<void> generatePaymentReceipt({
     required Payment payment,
     required Loan loan,
@@ -163,6 +167,7 @@ class PdfGeneratorService {
     );
   }
 
+  /// Genera un recibo de desembolso y lo envía a la cola de impresión.
   Future<void> generateDisbursementReceipt({
     required Loan loan,
     required Customer customer,
@@ -270,6 +275,7 @@ class PdfGeneratorService {
     return pdf.save();
   }
 
+  /// Genera un PDF del reporte consolidado de todos los préstamos activos.
   Future<void> generateConsolidatedActiveLoansReport({
     required List<Map<String, dynamic>> loansData,
     required AppSettings settings,
@@ -297,7 +303,7 @@ class PdfGeneratorService {
     final currencyTotalsBalance = totalsByCurrencyBalance ?? <String, double>{};
 
     if (totalsByCurrencyOriginal == null) {
-      for (var row in loansData) {
+      for (final row in loansData) {
         final currency =
             row['currency_code'] as String? ?? settings.baseCurrency;
         final original = (row['principal_original'] as num).toDouble();
@@ -311,15 +317,12 @@ class PdfGeneratorService {
 
     // Get unique currencies sorted
     final uniqueCurrencies = currencyTotalsBalance.keys.toList()..sort();
-    final int clientCount = loansData
-        .map((r) => r['customer_id'])
-        .toSet()
-        .length;
+    final clientCount = loansData.map((r) => r['customer_id']).toSet().length;
 
     // Use aggregated values if provided
     final displayTotalBalance =
         aggregatedTotalBalance ??
-        currencyTotalsBalance.values.fold<double>(0.0, (a, b) => a + b);
+        currencyTotalsBalance.values.fold<double>(0, (a, b) => a + b);
     final baseTotalBalance = totalInBaseCurrency ?? displayTotalBalance;
 
     pdf.addPage(
@@ -463,7 +466,7 @@ class PdfGeneratorService {
               fontSize: 9,
             ),
             headerDecoration: const pw.BoxDecoration(
-              border: pw.Border(bottom: pw.BorderSide(width: 1)),
+              border: pw.Border(bottom: pw.BorderSide()),
             ),
             cellStyle: const pw.TextStyle(fontSize: 9),
             cellAlignment: pw.Alignment.centerLeft,
@@ -496,6 +499,7 @@ class PdfGeneratorService {
     return NumberFormat('#,##0.00').format(value);
   }
 
+  /// Genera un PDF del reporte de utilidades (ganancias por intereses) entre dos fechas.
   Future<void> generateEarningsReport({
     required DateTime startDate,
     required DateTime endDate,
@@ -520,7 +524,7 @@ class PdfGeneratorService {
     double totalMora = 0;
     double totalPrincipal = 0;
 
-    for (var row in paymentsData) {
+    for (final row in paymentsData) {
       totalInterest += (row['interest_paid'] as num?)?.toDouble() ?? 0;
       totalMora += (row['mora_paid'] as num?)?.toDouble() ?? 0;
       totalPrincipal += (row['principal_paid'] as num?)?.toDouble() ?? 0;
@@ -638,8 +642,8 @@ class PdfGeneratorService {
     required List<PaymentAllocation> allocations,
     required AppSettings settings,
     required S s,
-    pw.ImageProvider? profileImage,
     required NumberFormat currencyFormat,
+    pw.ImageProvider? profileImage,
   }) {
     return [
       _buildHeader(
@@ -809,8 +813,8 @@ class PdfGeneratorService {
     ];
 
     // Sort payments by date
-    final sortedPayments = List<Payment>.from(payments);
-    sortedPayments.sort((a, b) => b.paymentDate.compareTo(a.paymentDate));
+    final sortedPayments = List<Payment>.from(payments)
+      ..sort((a, b) => b.paymentDate.compareTo(a.paymentDate));
 
     return pw.TableHelper.fromTextArray(
       headers: headers,
@@ -824,11 +828,11 @@ class PdfGeneratorService {
               (a) =>
                   a.allocationType == 'INTEREST' || a.allocationType == 'MORA',
             )
-            .fold(0.0, (sum, a) => sum + a.amount);
+            .fold<double>(0, (sum, a) => sum + a.amount);
 
         final capital = paymentAllocations
             .where((a) => a.allocationType == 'PRINCIPAL')
-            .fold(0.0, (sum, a) => sum + a.amount);
+            .fold<double>(0, (sum, a) => sum + a.amount);
 
         return [
           _dateFormat.format(p.paymentDate),
@@ -873,7 +877,6 @@ class PdfGeneratorService {
   }) {
     return pw.Column(
       mainAxisSize: pw.MainAxisSize.min,
-      crossAxisAlignment: pw.CrossAxisAlignment.center,
       children: [
         if (settings.showCompanyName && settings.companyName != null)
           pw.Text(
@@ -1008,7 +1011,7 @@ class PdfGeneratorService {
           pw.SizedBox(height: 20),
           pw.Text(
             settings.disbursementLegend!,
-            style: pw.TextStyle(fontSize: 8.0, fontStyle: pw.FontStyle.italic),
+            style: pw.TextStyle(fontSize: 8, fontStyle: pw.FontStyle.italic),
             textAlign: pw.TextAlign.center,
           ),
         ],
@@ -1055,15 +1058,14 @@ class PdfGeneratorService {
         .where(
           (a) => a.allocationType == 'INTEREST' || a.allocationType == 'MORA',
         )
-        .fold(0.0, (sum, a) => sum + a.amount);
+        .fold<double>(0, (sum, a) => sum + a.amount);
 
     final principalPaid = allocations
         .where((a) => a.allocationType == 'PRINCIPAL')
-        .fold(0.0, (sum, a) => sum + a.amount);
+        .fold<double>(0, (sum, a) => sum + a.amount);
 
     return pw.Column(
       mainAxisSize: pw.MainAxisSize.min,
-      crossAxisAlignment: pw.CrossAxisAlignment.center,
       children: [
         if (settings.showCompanyName && settings.companyName != null)
           pw.Text(
@@ -1157,7 +1159,7 @@ class PdfGeneratorService {
           pw.SizedBox(height: 20),
           pw.Text(
             settings.paymentLegend!,
-            style: pw.TextStyle(fontSize: 8.0, fontStyle: pw.FontStyle.italic),
+            style: pw.TextStyle(fontSize: 8, fontStyle: pw.FontStyle.italic),
             textAlign: pw.TextAlign.center,
           ),
         ],

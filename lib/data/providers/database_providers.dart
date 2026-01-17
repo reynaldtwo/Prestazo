@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../database/database_helper.dart';
-import '../models/app_settings.dart';
-import '../repositories/repositories.dart';
+import 'package:prestamos_app/data/database/database_helper.dart';
+import 'package:prestamos_app/data/models/app_settings.dart';
+import 'package:prestamos_app/data/repositories/repositories.dart';
 
 /// Global trigger for data refresh
 final refreshTriggerProvider = StateProvider<int>((ref) => 0);
@@ -51,4 +51,12 @@ final appSettingsProvider = FutureProvider<AppSettings>((ref) async {
 final exchangeRateRepositoryProvider = Provider<ExchangeRateRepository>((ref) {
   final dbHelper = ref.watch(databaseHelperProvider);
   return ExchangeRateRepository(dbHelper: dbHelper);
+});
+
+/// BusinessPolicy repository provider (Financial Convention)
+final businessPolicyRepositoryProvider = Provider<BusinessPolicyRepository>((
+  ref,
+) {
+  final dbHelper = ref.watch(databaseHelperProvider);
+  return BusinessPolicyRepository(databaseHelper: dbHelper);
 });

@@ -1,25 +1,23 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:prestamos_app/core/logic/loan_calculator.dart';
+import 'package:prestamos_app/core/theme/app_colors.dart';
+import 'package:prestamos_app/core/widgets/widgets.dart';
+import 'package:prestamos_app/data/models/currency_context.dart';
+import 'package:prestamos_app/data/models/payment_frequency.dart';
+import 'package:prestamos_app/data/models/payment_plan.dart';
+import 'package:prestamos_app/data/providers/providers.dart';
+import 'package:prestamos_app/l10n/app_localizations.dart';
 import 'package:uuid/uuid.dart';
 
-import '../../../l10n/app_localizations.dart';
-import '../../../core/logic/loan_calculator.dart';
-import '../../../core/theme/app_colors.dart';
-
-import '../../../core/widgets/widgets.dart';
-import '../../../data/models/currency_context.dart';
-import '../../../data/models/payment_frequency.dart';
-import '../../../data/models/payment_plan.dart';
-import '../../../data/providers/providers.dart';
-import '../../../data/providers/customer_category_provider.dart';
-import '../../../data/providers/payment_plan_provider.dart';
-
+/// Pantalla de formulario para crear o editar un plan de pago.
 class PlanFormScreen extends ConsumerStatefulWidget {
-  final String? planId;
-
+  /// Crea una instancia de [PlanFormScreen].
   const PlanFormScreen({super.key, this.planId});
+
+  /// ID opcional del plan de pago a editar.
+  final String? planId;
 
   @override
   ConsumerState<PlanFormScreen> createState() => _PlanFormScreenState();
@@ -194,7 +192,7 @@ class _PlanFormScreenState extends ConsumerState<PlanFormScreen> {
           SnackBar(content: Text(S.of(context).savedSuccessfully)),
         );
       }
-    } catch (e) {
+    } on Exception catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -212,7 +210,6 @@ class _PlanFormScreenState extends ConsumerState<PlanFormScreen> {
   Widget build(BuildContext context) {
     final l10n = S.of(context);
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
       appBar: AppBar(
@@ -233,7 +230,7 @@ class _PlanFormScreenState extends ConsumerState<PlanFormScreen> {
                     label: l10n.planName,
                     hint: l10n.planNameHint,
                     validator: (v) =>
-                        v?.isEmpty == true ? l10n.fieldRequired : null,
+                        v?.isEmpty ?? false ? l10n.fieldRequired : null,
                   ),
                   const SizedBox(height: 16),
 
@@ -253,9 +250,10 @@ class _PlanFormScreenState extends ConsumerState<PlanFormScreen> {
                           keyboardType: TextInputType.number,
                           onChanged: (_) => _calculateInstallments(),
                           validator: (v) {
-                            if (v?.isEmpty == true) return l10n.fieldRequired;
-                            if (int.tryParse(v!) == null)
+                            if (v?.isEmpty ?? false) return l10n.fieldRequired;
+                            if (int.tryParse(v!) == null) {
                               return l10n.invalidAmount;
+                            }
                             return null;
                           },
                         ),
@@ -264,13 +262,13 @@ class _PlanFormScreenState extends ConsumerState<PlanFormScreen> {
                       Expanded(
                         flex: 5,
                         child: DropdownButtonFormField<String>(
-                          value: _termUnit,
+                          initialValue: _termUnit,
                           decoration: InputDecoration(
                             labelText: l10n.planTermUnit,
                             prefixIcon: const Icon(Icons.category),
                           ),
                           items: _termUnits.map((u) {
-                            String label = u;
+                            var label = u;
                             if (u == 'Days') label = l10n.termDays;
                             if (u == 'Weeks') label = l10n.termWeeks;
                             if (u == 'Months') label = l10n.termMonths;
@@ -301,7 +299,7 @@ class _PlanFormScreenState extends ConsumerState<PlanFormScreen> {
                         error: (e, _) => Text('Error: $e'),
                         data: (frequencies) {
                           return DropdownButtonFormField<PaymentFrequency>(
-                            value: _selectedFrequency,
+                            initialValue: _selectedFrequency,
                             decoration: InputDecoration(
                               labelText: l10n.billingFrequency,
                               prefixIcon: const Icon(Icons.calendar_month),
@@ -378,7 +376,7 @@ class _PlanFormScreenState extends ConsumerState<PlanFormScreen> {
                       decimal: true,
                     ),
                     validator: (v) {
-                      if (v?.isEmpty == true) return l10n.fieldRequired;
+                      if (v?.isEmpty ?? false) return l10n.fieldRequired;
                       final n = double.tryParse(v!);
                       if (n == null || n < 0) return l10n.invalidAmount;
                       return null;
@@ -491,11 +489,12 @@ class _PlanFormScreenState extends ConsumerState<PlanFormScreen> {
                                 );
                               }
                               return DropdownButtonFormField<String>(
-                                value: _selectedCategoryId, // Single Selection
+                                initialValue:
+                                    _selectedCategoryId, // Single Selection
                                 isExpanded: true,
                                 decoration: InputDecoration(
                                   labelText: l10n.labelSelectCategory,
-                                  border: OutlineInputBorder(),
+                                  border: const OutlineInputBorder(),
                                 ),
                                 items: categories
                                     .map(
@@ -523,7 +522,6 @@ class _PlanFormScreenState extends ConsumerState<PlanFormScreen> {
                   AppButton(
                     label: l10n.save,
                     onPressed: _save,
-                    variant: AppButtonVariant.primary,
                     isFullWidth: true,
                   ),
                   const SizedBox(height: 32),

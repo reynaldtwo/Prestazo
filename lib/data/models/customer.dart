@@ -1,49 +1,27 @@
 import 'package:equatable/equatable.dart';
-import '../../core/constants/app_status.dart';
+import 'package:prestamos_app/core/constants/app_status.dart';
 
 /// Customer model - Client master data
 class Customer extends Equatable {
-  final String customerId;
-  final String fullName;
-  final String? alias;
-  final String? phone;
-  final String? address;
-  final String? notes;
-  final String status;
-  final String billingFrequency;
-  final int? preferredPayDay;
-  final String? dni;
-  final String? coords;
-  final bool isRestricted;
-  final String? restrictionReason;
-  final String? categoryId;
-  final DateTime createdAt;
-  final DateTime updatedAt;
-
+  /// Crea un [Customer] que contiene los datos maestros de un cliente.
   const Customer({
     required this.customerId,
     required this.fullName,
+    required this.billingFrequency,
+    required this.createdAt,
+    required this.updatedAt,
     this.alias,
     this.phone,
     this.address,
     this.notes,
     this.status = AppStatus.customerActive,
-    required this.billingFrequency,
     this.preferredPayDay,
     this.dni,
     this.coords,
     this.isRestricted = false,
     this.restrictionReason,
     this.categoryId,
-    required this.createdAt,
-    required this.updatedAt,
   });
-
-  /// Check if customer is active
-  bool get isActive => status == AppStatus.customerActive;
-
-  /// Display name (alias if available, otherwise full name)
-  String get displayName => alias?.isNotEmpty == true ? alias! : fullName;
 
   /// Create from database map
   factory Customer.fromMap(Map<String, dynamic> map) {
@@ -66,6 +44,60 @@ class Customer extends Equatable {
       updatedAt: DateTime.parse(map['updated_at'] as String),
     );
   }
+
+  /// Identificador único del cliente.
+  final String customerId;
+
+  /// Nombre completo del cliente.
+  final String fullName;
+
+  /// Alias o nombre corto del cliente (opcional).
+  final String? alias;
+
+  /// Número de teléfono de contacto.
+  final String? phone;
+
+  /// Dirección física del cliente.
+  final String? address;
+
+  /// Notas u observaciones adicionales.
+  final String? notes;
+
+  /// Estado actual del cliente (ACTIVE, INACTIVE, etc).
+  final String status;
+
+  /// Frecuencia de cobro preferida o habitual.
+  final String billingFrequency;
+
+  /// Día del mes preferido para realizar pagos (1-31).
+  final int? preferredPayDay;
+
+  /// Cédula o documento de identidad.
+  final String? dni;
+
+  /// Coordenadas de ubicación (lat,lng).
+  final String? coords;
+
+  /// Indica si el cliente tiene restricciones para nuevos créditos.
+  final bool isRestricted;
+
+  /// Motivo de la restricción (si aplica).
+  final String? restrictionReason;
+
+  /// Referencia a la categoría del cliente.
+  final String? categoryId;
+
+  /// Fecha de registro en el sistema.
+  final DateTime createdAt;
+
+  /// Fecha de última actualización de los datos.
+  final DateTime updatedAt;
+
+  /// Check if customer is active
+  bool get isActive => status == AppStatus.customerActive;
+
+  /// Display name (alias if available, otherwise full name)
+  String get displayName => alias?.isNotEmpty ?? false ? alias! : fullName;
 
   /// Convert to database map
   Map<String, dynamic> toMap() {

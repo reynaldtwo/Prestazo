@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../core/localization/locale_provider.dart';
+import 'package:prestamos_app/core/localization/locale_provider.dart';
 
-/// Shell screen with bottom navigation
+/// Pantalla principal que actúa como contenedor (Shell) con navegación inferior.
 class ShellScreen extends StatelessWidget {
-  final Widget child;
+  /// Crea una instancia de [ShellScreen].
+  const ShellScreen({required this.child, super.key});
 
-  const ShellScreen({super.key, required this.child});
+  /// El widget hijo que se muestra dentro del shell (generalmente la página actual).
+  final Widget child;
 
   @override
   Widget build(BuildContext context) {
@@ -79,12 +81,6 @@ class ShellScreen extends StatelessWidget {
 }
 
 class _NavItem extends StatelessWidget {
-  final IconData icon;
-  final IconData activeIcon;
-  final String label;
-  final bool isActive;
-  final VoidCallback onTap;
-
   const _NavItem({
     required this.icon,
     required this.activeIcon,
@@ -92,6 +88,11 @@ class _NavItem extends StatelessWidget {
     required this.isActive,
     required this.onTap,
   });
+  final IconData icon;
+  final IconData activeIcon;
+  final String label;
+  final bool isActive;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {

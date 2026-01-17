@@ -1,13 +1,13 @@
-import 'package:test/test.dart';
 import 'package:mockito/mockito.dart';
-import 'package:prestamos_app/services/payment_service.dart';
-import 'package:prestamos_app/data/models/loan.dart';
 import 'package:prestamos_app/data/models/billing_cycle.dart';
+import 'package:prestamos_app/data/models/loan.dart';
 import 'package:prestamos_app/data/models/payment_allocation.dart';
-import 'package:prestamos_app/data/repositories/payment_repository.dart';
-import 'package:prestamos_app/data/repositories/loan_repository.dart';
 import 'package:prestamos_app/data/repositories/billing_cycle_repository.dart';
+import 'package:prestamos_app/data/repositories/loan_repository.dart';
+import 'package:prestamos_app/data/repositories/payment_repository.dart';
 import 'package:prestamos_app/services/interest_calculation_service.dart';
+import 'package:prestamos_app/services/payment_service.dart';
+import 'package:test/test.dart';
 
 // Mocks
 class MockPaymentRepository extends Mock implements PaymentRepository {}
@@ -32,7 +32,7 @@ class MockInterestCalculationService extends Mock
     required String paymentType,
     bool dailyAccrualEnabled = false,
   }) {
-    return LoanCalculationResult(
+    return const LoanCalculationResult(
       principalBalance: 10000,
       overdueInterest: 0,
       overdueCycles: [],
@@ -82,9 +82,9 @@ void main() {
           loanId: 'l1',
           cycleNumber: 1,
           frequency: 'B',
-          periodStartDate: DateTime.now().subtract(Duration(days: 20)),
-          periodEndDate: DateTime.now().subtract(Duration(days: 5)),
-          dueDate: DateTime.now().subtract(Duration(days: 5)), // Past
+          periodStartDate: DateTime.now().subtract(const Duration(days: 20)),
+          periodEndDate: DateTime.now().subtract(const Duration(days: 5)),
+          dueDate: DateTime.now().subtract(const Duration(days: 5)), // Past
           interestExpected: 500,
           interestPending: 500,
           installmentExpected: 2166.67,
@@ -100,14 +100,13 @@ void main() {
           loanId: 'l1',
           cycleNumber: 2,
           frequency: 'B',
-          periodStartDate: DateTime.now().subtract(Duration(days: 5)),
-          periodEndDate: DateTime.now().add(Duration(days: 10)),
-          dueDate: DateTime.now().add(Duration(days: 10)), // Future
+          periodStartDate: DateTime.now().subtract(const Duration(days: 5)),
+          periodEndDate: DateTime.now().add(const Duration(days: 10)),
+          dueDate: DateTime.now().add(const Duration(days: 10)), // Future
           interestExpected: 500,
           interestPending: 500,
           installmentExpected: 2166.67,
           installmentPending: 2166.67,
-          status: 'PENDING',
           createdAt: DateTime.now(),
           updatedAt: DateTime.now(),
         );

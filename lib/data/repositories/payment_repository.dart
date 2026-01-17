@@ -1,18 +1,18 @@
+import 'package:prestamos_app/core/utils/string_utils.dart';
+import 'package:prestamos_app/data/database/database_helper.dart';
+import 'package:prestamos_app/data/models/client_credit_ledger.dart';
+import 'package:prestamos_app/data/models/payment.dart';
+import 'package:prestamos_app/data/models/payment_allocation.dart';
+import 'package:prestamos_app/services/backup_service.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:uuid/uuid.dart';
-import '../database/database_helper.dart';
-import '../models/payment.dart';
-import '../models/payment_allocation.dart';
-import '../models/client_credit_ledger.dart';
-import '../../core/utils/string_utils.dart';
-import '../../services/backup_service.dart';
 
 /// Repository for Payment CRUD operations
 class PaymentRepository {
-  final DatabaseHelper _databaseHelper;
-
+  /// Crea un [PaymentRepository] con el [DatabaseHelper] proporcionado.
   PaymentRepository({DatabaseHelper? databaseHelper})
     : _databaseHelper = databaseHelper ?? DatabaseHelper();
+  final DatabaseHelper _databaseHelper;
 
   /// Expose database for complex report queries
   Future<Database> get database => _databaseHelper.database;
@@ -26,7 +26,7 @@ class PaymentRepository {
       whereArgs: ['VALID'],
       orderBy: 'created_at DESC', // V25: payment_date -> created_at
     );
-    return maps.map((map) => Payment.fromMap(map)).toList();
+    return maps.map(Payment.fromMap).toList();
   }
 
   /// Get payment by ID
@@ -51,7 +51,7 @@ class PaymentRepository {
       whereArgs: [loanId, 'VALID'],
       orderBy: 'created_at DESC', // V25
     );
-    return maps.map((map) => Payment.fromMap(map)).toList();
+    return maps.map(Payment.fromMap).toList();
   }
 
   /// Get payments by customer ID
@@ -63,7 +63,7 @@ class PaymentRepository {
       whereArgs: [customerId, 'VALID'],
       orderBy: 'created_at DESC', // V25
     );
-    return maps.map((map) => Payment.fromMap(map)).toList();
+    return maps.map(Payment.fromMap).toList();
   }
 
   /// Get payments by date range
@@ -85,7 +85,7 @@ class PaymentRepository {
         'VALID',
       ],
     );
-    return maps.map((map) => Payment.fromMap(map)).toList();
+    return maps.map(Payment.fromMap).toList();
   }
 
   /// Get today's payments
@@ -105,7 +105,7 @@ class PaymentRepository {
     int? limit,
   }) async {
     final db = await _databaseHelper.database;
-    String query = '''
+    var query = '''
       SELECT 
         p.*,
         c.full_name as customer_name,
@@ -122,7 +122,7 @@ class PaymentRepository {
       WHERE p.status = 'VALID'
     ''';
 
-    List<dynamic> args = [];
+    final args = <dynamic>[];
 
     if (loanId != null) {
       query += ' AND p.loan_id = ?';
@@ -151,13 +151,13 @@ class PaymentRepository {
       args.add(limit);
     }
 
-    return await db.rawQuery(query, args);
+    return db.rawQuery(query, args);
   }
 
   /// Get all payments with customer info (for history screen)
   Future<List<Map<String, dynamic>>> getAllPaymentsWithCustomer() async {
     final db = await _databaseHelper.database;
-    return await db.rawQuery('''
+    return db.rawQuery('''
       SELECT 
         p.*,
         c.full_name as customer_name,
@@ -244,7 +244,7 @@ class PaymentRepository {
           whereArgs: [payment.loanId],
         );
         if (loanResult.isNotEmpty) {
-          final balance = (loanResult.first['principal_balance'] as num)
+          final balance = (loanResult.first['principal_balance']! as num)
               .toDouble();
           if (balance < 1) {
             // Close the loan
@@ -379,7 +379,7 @@ class PaymentRepository {
   Future<int> voidPayment(String paymentId, String reason) async {
     final db = await _databaseHelper.database;
 
-    return await db.transaction((txn) async {
+    return db.transaction((txn) async {
       // 1. Get the payment details
       final paymentResult = await txn.query(
         'payments',
@@ -401,7 +401,7 @@ class PaymentRepository {
         limit: 1,
       );
       final customerId = loanResult.isNotEmpty
-          ? loanResult.first['customer_id'] as String
+          ? loanResult.first['customer_id']! as String
           : '';
 
       // 3. Get allocations to reverse
@@ -412,10 +412,10 @@ class PaymentRepository {
       );
 
       // 4. Reverse principal allocations (add back to loan balance)
-      int principalReversed = 0;
+      var principalReversed = 0;
       for (final alloc in allocations) {
         if (alloc['allocation_type'] == 'PRINCIPAL') {
-          final amount = alloc['amount_loan_minor'] as int;
+          final amount = alloc['amount_loan_minor']! as int;
           principalReversed += amount;
         }
       }
@@ -435,7 +435,7 @@ class PaymentRepository {
       for (final alloc in allocations) {
         if (alloc['allocation_type'] == 'INTEREST' &&
             alloc['billing_cycle_id'] != null) {
-          final amount = alloc['amount_loan_minor'] as int;
+          final amount = alloc['amount_loan_minor']! as int;
           await txn.rawUpdate(
             'UPDATE billing_cycles SET interest_paid = interest_paid - ?, interest_pending = interest_pending + ?, status = ?, updated_at = ? WHERE billing_cycle_id = ?',
             [
@@ -482,7 +482,7 @@ class PaymentRepository {
   /// Update exchange profit
   Future<int> updateExchangeProfit(String paymentId, double profit) async {
     final db = await _databaseHelper.database;
-    return await db.update(
+    return db.update(
       'payments',
       {
         'exchange_profit': profit,
@@ -513,7 +513,7 @@ class PaymentRepository {
       where: 'payment_id = ?',
       whereArgs: [paymentId],
     );
-    return maps.map((map) => PaymentAllocation.fromMap(map)).toList();
+    return maps.map(PaymentAllocation.fromMap).toList();
   }
 
   /// Get all allocations for a specific loan (for statement report)
@@ -532,7 +532,7 @@ class PaymentRepository {
     ''',
       [loanId],
     );
-    return maps.map((map) => PaymentAllocation.fromMap(map)).toList();
+    return maps.map(PaymentAllocation.fromMap).toList();
   }
 
   /// Get total collected today
@@ -568,7 +568,7 @@ class PaymentRepository {
       [today],
     );
 
-    final Map<String, double> totals = {};
+    final totals = <String, double>{};
     for (final row in result) {
       final currency = row['loan_currency'] as String? ?? 'NIO';
       final total = (row['total'] as num?)?.toDouble() ?? 0.0;
@@ -609,7 +609,7 @@ class PaymentRepository {
       [today],
     );
 
-    final Map<String, double> totals = {};
+    final totals = <String, double>{};
     for (final row in result) {
       final currency = row['currency_code'] as String? ?? 'NIO';
       final total = (row['total'] as num?)?.toDouble() ?? 0.0;
@@ -688,7 +688,7 @@ class PaymentRepository {
       [startDate.toIso8601String(), endDate.toIso8601String()],
     );
 
-    final Map<String, double> totals = {};
+    final totals = <String, double>{};
     for (final row in result) {
       final currency = row['currency_code'] as String? ?? 'NIO';
       final total = (row['total'] as num?)?.toDouble() ?? 0.0;
@@ -869,7 +869,7 @@ class PaymentRepository {
           BackupService.instance.createBackup(customName: customName);
         }
       }
-    } catch (_) {
+    } on Exception catch (_) {
       // Ignore backup errors
     }
   }

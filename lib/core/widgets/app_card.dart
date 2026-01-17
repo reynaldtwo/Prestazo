@@ -1,25 +1,15 @@
 import 'package:flutter/material.dart';
-import '../theme/app_colors.dart';
-import '../theme/app_typography.dart';
+import 'package:prestamos_app/core/theme/app_colors.dart';
+import 'package:prestamos_app/core/theme/app_typography.dart';
 
 /// Reusable card component with optional header and actions
 class AppCard extends StatelessWidget {
-  final String? title;
-  final String? subtitle;
-  final Widget child;
-  final List<Widget>? actions;
-  final VoidCallback? onTap;
-  final EdgeInsetsGeometry? padding;
-  final Color? backgroundColor;
-  final bool showBorder;
-  final Widget? leading;
-  final Widget? trailing;
-
+  /// Crea un [AppCard] con contenido y cabecera opcional.
   const AppCard({
+    required this.child,
     super.key,
     this.title,
     this.subtitle,
-    required this.child,
     this.actions,
     this.onTap,
     this.padding,
@@ -28,6 +18,36 @@ class AppCard extends StatelessWidget {
     this.leading,
     this.trailing,
   });
+
+  /// Título opcional de la tarjeta.
+  final String? title;
+
+  /// Subtítulo opcional de la tarjeta.
+  final String? subtitle;
+
+  /// Widget principal que se muestra en el cuerpo de la tarjeta.
+  final Widget child;
+
+  /// Lista de widgets de acción que se muestran al final de la tarjeta.
+  final List<Widget>? actions;
+
+  /// Acción a ejecutar al presionar la tarjeta completa.
+  final VoidCallback? onTap;
+
+  /// Espaciado interno de la tarjeta.
+  final EdgeInsetsGeometry? padding;
+
+  /// Color de fondo personalizado de la tarjeta.
+  final Color? backgroundColor;
+
+  /// Indica si se debe mostrar el borde de la tarjeta.
+  final bool showBorder;
+
+  /// Widget que se muestra antes del título.
+  final Widget? leading;
+
+  /// Widget que se muestra después del título o al final de la cabecera.
+  final Widget? trailing;
 
   @override
   Widget build(BuildContext context) {
@@ -134,19 +154,11 @@ class AppCard extends StatelessWidget {
 
 /// Simple stat card for dashboard KPIs
 class AppStatCard extends StatelessWidget {
-  final String label;
-  final String value;
-  final IconData? icon;
-  final Color? iconColor;
-  final Color? valueColor;
-  final VoidCallback? onTap;
-  final String? trend;
-  final bool isTrendPositive;
-
+  /// Crea un [AppStatCard] para mostrar métricas e indicadores.
   const AppStatCard({
-    super.key,
     required this.label,
     required this.value,
+    super.key,
     this.icon,
     this.iconColor,
     this.valueColor,
@@ -154,6 +166,30 @@ class AppStatCard extends StatelessWidget {
     this.trend,
     this.isTrendPositive = true,
   });
+
+  /// Etiqueta descriptiva del dato estadístico.
+  final String label;
+
+  /// Valor numérico o textual de la estadística.
+  final String value;
+
+  /// Icono representativo de la métrica.
+  final IconData? icon;
+
+  /// Color del icono decorativo.
+  final Color? iconColor;
+
+  /// Color del texto del valor.
+  final Color? valueColor;
+
+  /// Acción al presionar la tarjeta estadística.
+  final VoidCallback? onTap;
+
+  /// Texto opcional que indica una tendencia (ej: "+5%").
+  final String? trend;
+
+  /// Indica si la tendencia es positiva (éxito) o negativa (peligro).
+  final bool isTrendPositive;
 
   @override
   Widget build(BuildContext context) {

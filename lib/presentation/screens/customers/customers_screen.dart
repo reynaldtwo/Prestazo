@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:prestamos_app/core/constants/app_status.dart';
+import 'package:prestamos_app/core/localization/locale_provider.dart';
+import 'package:prestamos_app/core/theme/app_colors.dart';
+import 'package:prestamos_app/core/theme/app_typography.dart';
+import 'package:prestamos_app/core/widgets/widgets.dart';
+import 'package:prestamos_app/data/models/customer.dart';
+import 'package:prestamos_app/data/providers/providers.dart';
 import 'package:sealed_currencies/sealed_currencies.dart';
-import '../../../core/theme/app_colors.dart';
-import '../../../core/theme/app_typography.dart';
-import '../../../core/widgets/widgets.dart';
-import '../../../data/models/customer.dart';
-import '../../../data/providers/providers.dart';
-import '../../../data/providers/customer_category_provider.dart';
-import '../../../core/constants/app_status.dart';
-import '../../../core/localization/locale_provider.dart';
 
-/// Customers list screen with Riverpod integration
+/// Pantalla de lista de clientes con integración de Riverpod.
 class CustomersScreen extends ConsumerStatefulWidget {
+  /// Crea una instancia de [CustomersScreen].
   const CustomersScreen({super.key});
 
   @override
@@ -104,20 +104,16 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
     switch (_filterType) {
       case 'active':
         customers = customers.where((c) => c.status == 'ACTIVE').toList();
-        break;
       case 'inactive':
         customers = customers.where((c) => c.status == 'INACTIVE').toList();
-        break;
       case 'biweekly':
         customers = customers
             .where((c) => c.billingFrequency == 'BIWEEKLY')
             .toList();
-        break;
       case 'monthly':
         customers = customers
             .where((c) => c.billingFrequency == 'MONTHLY')
             .toList();
-        break;
     }
 
     return customers;
@@ -169,7 +165,7 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
   }
 
   void _showFilterDialog() {
-    showModalBottomSheet(
+    showModalBottomSheet<void>(
       context: context,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
@@ -244,10 +240,9 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
 }
 
 class _CustomerListItem extends ConsumerWidget {
+  const _CustomerListItem({required this.customer, required this.onTap});
   final Customer customer;
   final VoidCallback onTap;
-
-  const _CustomerListItem({required this.customer, required this.onTap});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -261,7 +256,7 @@ class _CustomerListItem extends ConsumerWidget {
     final loansAsync = ref.watch(loansByCustomerProvider(customer.customerId));
 
     // Determine avatar text: currency symbol or first initial
-    String avatarText = displayName.isNotEmpty
+    var avatarText = displayName.isNotEmpty
         ? displayName[0].toUpperCase()
         : '?';
 
@@ -295,8 +290,7 @@ class _CustomerListItem extends ConsumerWidget {
     Color? categoryColor;
     Color? contrastTextColor;
     if (customer.categoryId != null) {
-      final categoriesAsync = ref.watch(customerCategoriesProvider);
-      categoriesAsync.whenData((categories) {
+      ref.watch(customerCategoriesProvider).whenData((categories) {
         final category = categories
             .where((c) => c.categoryId == customer.categoryId)
             .firstOrNull;
@@ -313,7 +307,7 @@ class _CustomerListItem extends ConsumerWidget {
                     0xFFF5F5F5,
                   ) // Light smoke white for dark backgrounds
                 : const Color(0xFF212121); // Dark gray for light backgrounds
-          } catch (_) {}
+          } on Object catch (_) {}
         }
       });
     }
@@ -340,8 +334,6 @@ class _CustomerListItem extends ConsumerWidget {
             ? BoxDecoration(
                 borderRadius: BorderRadius.circular(12),
                 gradient: LinearGradient(
-                  begin: Alignment.centerLeft,
-                  end: Alignment.centerRight,
                   colors: [
                     categoryColor!.withValues(alpha: 0.85),
                     categoryColor!.withValues(alpha: 0.4),
@@ -435,8 +427,8 @@ class _CustomerListItem extends ConsumerWidget {
 
             // Status indicator
             if (!isActive)
-              Padding(
-                padding: const EdgeInsets.only(left: 8),
+              const Padding(
+                padding: EdgeInsets.only(left: 8),
                 child: StatusBadge(
                   status: AppStatus.customerInactive,
                   isCompact: true,
@@ -452,10 +444,9 @@ class _CustomerListItem extends ConsumerWidget {
 }
 
 class _FrequencyBadge extends StatelessWidget {
+  const _FrequencyBadge({required this.isQuincenal, this.textColor});
   final bool isQuincenal;
   final Color? textColor;
-
-  const _FrequencyBadge({required this.isQuincenal, this.textColor});
 
   @override
   Widget build(BuildContext context) {

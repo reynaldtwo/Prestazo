@@ -1,21 +1,21 @@
 import 'package:flutter/material.dart';
-import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
+import 'package:prestamos_app/core/localization/locale_provider.dart';
+import 'package:prestamos_app/core/theme/app_colors.dart';
+import 'package:prestamos_app/core/widgets/widgets.dart';
+import 'package:prestamos_app/data/models/customer.dart';
+import 'package:prestamos_app/data/providers/providers.dart';
 import 'package:uuid/uuid.dart';
-import '../../../core/theme/app_colors.dart';
-import '../../../core/localization/locale_provider.dart';
 
-import '../../../core/widgets/widgets.dart';
-import '../../../data/models/customer.dart';
-import '../../../data/providers/providers.dart';
-import '../../../data/providers/customer_category_provider.dart';
-
-/// Customer form screen for create/edit with Riverpod integration
+/// Pantalla de formulario de cliente para creación y edición con integración de Riverpod.
 class CustomerFormScreen extends ConsumerStatefulWidget {
-  final String? customerId;
-
+  /// Crea una instancia de [CustomerFormScreen].
   const CustomerFormScreen({super.key, this.customerId});
+
+  /// Identificador opcional del cliente para el modo edición.
+  final String? customerId;
 
   @override
   ConsumerState<CustomerFormScreen> createState() => _CustomerFormScreenState();
@@ -37,7 +37,7 @@ class _CustomerFormScreenState extends ConsumerState<CustomerFormScreen> {
   int? _preferredPayDay;
   bool _isRestricted = false;
   bool _isLoading = false;
-  Customer? _existingCustomer;
+  late Customer _existingCustomer;
   String? _selectedCategoryId;
 
   bool get isEditing => widget.customerId != null && widget.customerId != 'new';
@@ -74,7 +74,7 @@ class _CustomerFormScreenState extends ConsumerState<CustomerFormScreen> {
         _selectedCategoryId = customer.categoryId;
         setState(() {});
       }
-    } catch (e) {
+    } on Exception catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -160,11 +160,10 @@ class _CustomerFormScreenState extends ConsumerState<CustomerFormScreen> {
                             MaskTextInputFormatter(
                               mask: settings.dniMask,
                               filter: {
-                                "#": RegExp(r'[0-9]'),
-                                "@": RegExp(r'[a-zA-Z]'),
-                                "*": RegExp(r'.'),
+                                '#': RegExp('[0-9]'),
+                                '@': RegExp('[a-zA-Z]'),
+                                '*': RegExp('.'),
                               },
-                              type: MaskAutoCompletionType.lazy,
                             ),
                           ]
                         : null,
@@ -187,7 +186,7 @@ class _CustomerFormScreenState extends ConsumerState<CustomerFormScreen> {
                         }
 
                         // Character check
-                        for (int i = 0; i < mask.length; i++) {
+                        for (var i = 0; i < mask.length; i++) {
                           final maskChar = mask[i];
                           final inputChar = input[i];
 
@@ -196,7 +195,7 @@ class _CustomerFormScreenState extends ConsumerState<CustomerFormScreen> {
                               return 'Posición ${i + 1} debe ser un dígito';
                             }
                           } else if (maskChar == '@') {
-                            if (!RegExp(r'[a-zA-Z]').hasMatch(inputChar)) {
+                            if (!RegExp('[a-zA-Z]').hasMatch(inputChar)) {
                               return 'Posición ${i + 1} debe ser una letra';
                             }
                           } else if (maskChar == '*') {
@@ -366,7 +365,6 @@ class _CustomerFormScreenState extends ConsumerState<CustomerFormScreen> {
                     label: isEditing
                         ? S.of(context).save
                         : S.of(context).createCustomer,
-                    variant: AppButtonVariant.primary,
                     isFullWidth: true,
                     isLoading: _isLoading,
                     onPressed: _submitForm,
@@ -382,12 +380,12 @@ class _CustomerFormScreenState extends ConsumerState<CustomerFormScreen> {
 
     return categoriesAsync.when(
       loading: () => const SizedBox.shrink(),
-      error: (_, __) => const SizedBox.shrink(),
+      error: (_, _) => const SizedBox.shrink(),
       data: (categories) {
         if (categories.isEmpty) return const SizedBox.shrink();
 
         return DropdownButtonFormField<String?>(
-          value: _selectedCategoryId,
+          initialValue: _selectedCategoryId,
           decoration: InputDecoration(
             labelText:
                 '${S.of(context).customerCategory} (${S.of(context).optional})',
@@ -396,7 +394,6 @@ class _CustomerFormScreenState extends ConsumerState<CustomerFormScreen> {
           ),
           items: [
             DropdownMenuItem<String?>(
-              value: null,
               child: Text(
                 S.of(context).selectCategory,
                 style: TextStyle(
@@ -426,7 +423,7 @@ class _CustomerFormScreenState extends ConsumerState<CustomerFormScreen> {
     );
   }
 
-  void _submitForm() async {
+  Future<void> _submitForm() async {
     // 1. Force validation of UI fields
     final isFormValid = _formKey.currentState?.validate() ?? false;
     if (!isFormValid) {
@@ -435,7 +432,7 @@ class _CustomerFormScreenState extends ConsumerState<CustomerFormScreen> {
 
     // 2. EXTRA SAFETY: Manual Validation of DNI logic
     final settings = ref.read(appSettingsProvider).value;
-    if (settings?.validateDniFormat == true && settings?.dniMask != null) {
+    if ((settings?.validateDniFormat ?? false) && settings?.dniMask != null) {
       final mask = settings!.dniMask!;
       final dni = _dniController.text.trim();
 
@@ -447,14 +444,14 @@ class _CustomerFormScreenState extends ConsumerState<CustomerFormScreen> {
         return;
       }
 
-      for (int i = 0; i < mask.length; i++) {
+      for (var i = 0; i < mask.length; i++) {
         final maskChar = mask[i];
         final inputChar = dni[i];
-        bool error = false;
+        var error = false;
         if (maskChar == '#') {
           if (!RegExp(r'\d').hasMatch(inputChar)) error = true;
         } else if (maskChar == '@') {
-          if (!RegExp(r'[a-zA-Z]').hasMatch(inputChar)) error = true;
+          if (!RegExp('[a-zA-Z]').hasMatch(inputChar)) error = true;
         } else if (maskChar == '*') {
           // ok
         } else {
@@ -475,7 +472,7 @@ class _CustomerFormScreenState extends ConsumerState<CustomerFormScreen> {
       final settings = ref.read(appSettingsProvider).value;
       final dni = _dniController.text.trim();
 
-      if (settings?.validateDni == true && dni.isNotEmpty) {
+      if ((settings?.validateDni ?? false) && dni.isNotEmpty) {
         final repo = ref.read(customerRepositoryProvider);
         final existingCustomer = await repo.getCustomerByDni(
           dni,
@@ -485,7 +482,7 @@ class _CustomerFormScreenState extends ConsumerState<CustomerFormScreen> {
         if (existingCustomer != null) {
           if (mounted) {
             setState(() => _isLoading = false);
-            await showDialog(
+            await showDialog<void>(
               context: context,
               builder: (ctx) => AlertDialog(
                 title: Row(
@@ -516,7 +513,7 @@ class _CustomerFormScreenState extends ConsumerState<CustomerFormScreen> {
 
       final now = DateTime.now();
       final customer = isEditing
-          ? _existingCustomer!.copyWith(
+          ? _existingCustomer.copyWith(
               fullName: _nameController.text.trim(),
               alias: _aliasController.text.trim().isEmpty
                   ? null
@@ -591,7 +588,7 @@ class _CustomerFormScreenState extends ConsumerState<CustomerFormScreen> {
           );
         }
       }
-    } catch (e) {
+    } on Exception catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(

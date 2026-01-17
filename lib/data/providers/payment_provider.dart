@@ -1,15 +1,11 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../models/payment.dart';
-import '../models/payment_allocation.dart';
-import 'database_providers.dart';
+import 'package:prestamos_app/data/models/payment.dart';
+import 'package:prestamos_app/data/models/payment_allocation.dart';
+import 'package:prestamos_app/data/providers/database_providers.dart';
 
 /// State for payments list
 class PaymentsState {
-  final List<Payment> payments;
-  final bool isLoading;
-  final String? error;
-  final DateTime? filterDate;
-
+  /// Crea el estado para la lista de pagos.
   const PaymentsState({
     this.payments = const [],
     this.isLoading = false,
@@ -17,6 +13,19 @@ class PaymentsState {
     this.filterDate,
   });
 
+  /// Lista de pagos realizados.
+  final List<Payment> payments;
+
+  /// Indica si los pagos se están cargando.
+  final bool isLoading;
+
+  /// Mensaje de error, si existe.
+  final String? error;
+
+  /// Fecha opcional para filtrar los pagos.
+  final DateTime? filterDate;
+
+  /// Crea una copia del estado de pagos con los campos actualizados.
   PaymentsState copyWith({
     List<Payment>? payments,
     bool? isLoading,
@@ -39,20 +48,20 @@ class PaymentsState {
 
 /// Notifier for managing payments state
 class PaymentsNotifier extends StateNotifier<PaymentsState> {
-  final Ref _ref;
-
+  /// Crea un [PaymentsNotifier] e inicia la carga de pagos.
   PaymentsNotifier(this._ref) : super(const PaymentsState()) {
     loadPayments();
   }
+  final Ref _ref;
 
   /// Load all payments
   Future<void> loadPayments() async {
-    state = state.copyWith(isLoading: true, error: null);
+    state = state.copyWith(isLoading: true);
     try {
       final repo = _ref.read(paymentRepositoryProvider);
       final payments = await repo.getAllPayments();
       state = state.copyWith(payments: payments, isLoading: false);
-    } catch (e) {
+    } on Exception catch (e) {
       state = state.copyWith(isLoading: false, error: e.toString());
     }
   }
@@ -71,7 +80,7 @@ class PaymentsNotifier extends StateNotifier<PaymentsState> {
       await loadPayments();
       _ref.read(refreshTriggerProvider.notifier).state++;
       return createdPayment;
-    } catch (e) {
+    } on Exception catch (e) {
       state = state.copyWith(error: e.toString());
       return null;
     }
@@ -85,7 +94,7 @@ class PaymentsNotifier extends StateNotifier<PaymentsState> {
       await loadPayments();
       _ref.read(refreshTriggerProvider.notifier).state++;
       return true;
-    } catch (e) {
+    } on Exception catch (e) {
       state = state.copyWith(error: e.toString());
       return false;
     }
@@ -99,7 +108,7 @@ class PaymentsNotifier extends StateNotifier<PaymentsState> {
       await loadPayments();
       _ref.read(refreshTriggerProvider.notifier).state++;
       return true;
-    } catch (e) {
+    } on Exception catch (e) {
       state = state.copyWith(error: e.toString());
       return false;
     }
@@ -112,7 +121,7 @@ class PaymentsNotifier extends StateNotifier<PaymentsState> {
 
   /// Clear error
   void clearError() {
-    state = state.copyWith(error: null);
+    state = state.copyWith();
   }
 }
 

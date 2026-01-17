@@ -1,14 +1,16 @@
+import 'package:country_picker/country_picker.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:file_picker/file_picker.dart';
-import '../../../core/theme/app_colors.dart';
-import '../../../core/widgets/widgets.dart';
-import '../../../data/providers/providers.dart';
-import '../../../core/localization/locale_provider.dart';
-import 'package:country_picker/country_picker.dart';
+import 'package:prestamos_app/core/localization/locale_provider.dart';
+import 'package:prestamos_app/core/theme/app_colors.dart';
+import 'package:prestamos_app/core/widgets/widgets.dart';
+import 'package:prestamos_app/data/providers/providers.dart';
 
+/// Pantalla de configuración de datos de la empresa.
 class CompanySettingsScreen extends ConsumerStatefulWidget {
+  /// Crea una instancia de [CompanySettingsScreen].
   const CompanySettingsScreen({super.key});
 
   @override
@@ -155,7 +157,6 @@ class _CompanySettingsScreenState extends ConsumerState<CompanySettingsScreen> {
             const SizedBox(height: 32),
             AppButton(
               label: S.of(context).saveChanges,
-              variant: AppButtonVariant.primary,
               isFullWidth: true,
               isLoading: _isLoading,
               onPressed: _saveSettings,
@@ -357,7 +358,7 @@ class _CompanySettingsScreenState extends ConsumerState<CompanySettingsScreen> {
           _showLogo = true; // Auto-enable visibility when selected
         });
       }
-    } catch (e) {
+    } on Exception catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -463,7 +464,7 @@ class _CompanySettingsScreenState extends ConsumerState<CompanySettingsScreen> {
         );
         context.pop();
       }
-    } catch (e) {
+    } on Exception catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(

@@ -2,28 +2,18 @@ import 'package:equatable/equatable.dart';
 
 /// LoanEvent model - Audit trail for loan events
 class LoanEvent extends Equatable {
-  final String loanEventId;
-  final String loanId;
-  final String eventType;
-  final String? relatedBillingCycleId;
-  final String? relatedPaymentId;
-  final double? amount;
-  final String? oldValue;
-  final String? newValue;
-  final String? notes;
-  final DateTime createdAt;
-
+  /// Crea un [LoanEvent] para registrar un hito en la vida de un préstamo.
   const LoanEvent({
     required this.loanEventId,
     required this.loanId,
     required this.eventType,
+    required this.createdAt,
     this.relatedBillingCycleId,
     this.relatedPaymentId,
     this.amount,
     this.oldValue,
     this.newValue,
     this.notes,
-    required this.createdAt,
   });
 
   /// Create from database map
@@ -41,6 +31,36 @@ class LoanEvent extends Equatable {
       createdAt: DateTime.parse(map['created_at'] as String),
     );
   }
+
+  /// Identificador único del evento.
+  final String loanEventId;
+
+  /// Identificador del préstamo asociado.
+  final String loanId;
+
+  /// Tipo de evento ocurrido (ej: 'PAYMENT_RECORDED').
+  final String eventType;
+
+  /// Identificador del ciclo de facturación relacionado (opcional).
+  final String? relatedBillingCycleId;
+
+  /// Identificador del pago relacionado (opcional).
+  final String? relatedPaymentId;
+
+  /// Monto monetario asociado al evento (opcional).
+  final double? amount;
+
+  /// Valor anterior antes del cambio (opcional).
+  final String? oldValue;
+
+  /// Valor nuevo después del cambio (opcional).
+  final String? newValue;
+
+  /// Notas adicionales descriptivas.
+  final String? notes;
+
+  /// Fecha y hora en que ocurrió el evento.
+  final DateTime createdAt;
 
   /// Convert to database map
   Map<String, dynamic> toMap() {
@@ -60,27 +80,38 @@ class LoanEvent extends Equatable {
 
   @override
   List<Object?> get props => [
-        loanEventId,
-        loanId,
-        eventType,
-        relatedBillingCycleId,
-        relatedPaymentId,
-        amount,
-        oldValue,
-        newValue,
-        notes,
-        createdAt,
-      ];
+    loanEventId,
+    loanId,
+    eventType,
+    relatedBillingCycleId,
+    relatedPaymentId,
+    amount,
+    oldValue,
+    newValue,
+    notes,
+    createdAt,
+  ];
 }
 
 /// Event type constants
 class LoanEventType {
   LoanEventType._();
-  
+
+  /// Interés capitalizado aplicado.
   static const String capitalizationApplied = 'CAPITALIZATION_APPLIED';
+
+  /// Cambio de estado del préstamo.
   static const String statusChanged = 'STATUS_CHANGED';
+
+  /// Registro de un nuevo pago.
   static const String paymentRecorded = 'PAYMENT_RECORDED';
+
+  /// Anulación de un pago.
   static const String paymentVoided = 'PAYMENT_VOIDED';
+
+  /// Creación del préstamo.
   static const String loanCreated = 'LOAN_CREATED';
+
+  /// Cierre definitivo del préstamo.
   static const String loanClosed = 'LOAN_CLOSED';
 }

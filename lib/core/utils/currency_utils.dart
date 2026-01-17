@@ -1,5 +1,6 @@
 /// Utility to map country codes to currency codes
 class CurrencyUtils {
+  /// Obtiene el código de moneda a partir del código de país (ISO 3166-1 alpha-2).
   static String getCurrencyCodeFromCountry(String? countryCode) {
     if (countryCode == null) return 'USD';
 
@@ -25,14 +26,14 @@ class CurrencyUtils {
   /// Get currency symbol from currency code
   static String getCurrencySymbol(String currencyCode) {
     const symbols = {
-      'NIO': 'C\$',
-      'USD': '\$',
+      'NIO': r'C$',
+      'USD': r'$',
       'EUR': '€',
       'CRC': '₡',
       'HNL': 'L',
       'GTQ': 'Q',
-      'MXN': '\$',
-      'COP': '\$',
+      'MXN': r'$',
+      'COP': r'$',
       'PEN': 'S/',
     };
     return symbols[currencyCode.toUpperCase()] ?? currencyCode;

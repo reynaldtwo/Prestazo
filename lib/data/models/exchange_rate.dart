@@ -2,14 +2,7 @@ import 'package:equatable/equatable.dart';
 
 /// ExchangeRate model - Historical exchange rates
 class ExchangeRate extends Equatable {
-  final String rateId;
-  final String sourceCurrency;
-  final String targetCurrency;
-  final DateTime date;
-  final double buyRate;
-  final double sellRate;
-  final DateTime createdAt;
-
+  /// Crea un [ExchangeRate] para registrar una tasa de cambio histórica.
   const ExchangeRate({
     required this.rateId,
     required this.sourceCurrency,
@@ -19,9 +12,6 @@ class ExchangeRate extends Equatable {
     required this.sellRate,
     required this.createdAt,
   });
-
-  /// Get average rate (mid-market rate)
-  double get averageRate => (buyRate + sellRate) / 2;
 
   /// Create from database map
   factory ExchangeRate.fromMap(Map<String, dynamic> map) {
@@ -35,6 +25,30 @@ class ExchangeRate extends Equatable {
       createdAt: DateTime.parse(map['created_at'] as String),
     );
   }
+
+  /// Identificador único de la tasa de cambio.
+  final String rateId;
+
+  /// Código de la moneda de origen.
+  final String sourceCurrency;
+
+  /// Código de la moneda de destino.
+  final String targetCurrency;
+
+  /// Fecha a la que corresponde la tasa.
+  final DateTime date;
+
+  /// Tasa de compra.
+  final double buyRate;
+
+  /// Tasa de venta.
+  final double sellRate;
+
+  /// Fecha de registro en el sistema.
+  final DateTime createdAt;
+
+  /// Get average rate (mid-market rate)
+  double get averageRate => (buyRate + sellRate) / 2;
 
   /// Convert to database map
   Map<String, dynamic> toMap() {

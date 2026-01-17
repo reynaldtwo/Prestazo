@@ -7,38 +7,42 @@
 /// - Loan closure logic
 library;
 
-import '../data/models/payment.dart';
-import '../data/models/payment_allocation.dart';
-import '../data/models/loan.dart';
-import '../data/repositories/payment_repository.dart';
-import '../data/repositories/loan_repository.dart';
-import '../data/repositories/billing_cycle_repository.dart';
-import '../data/repositories/payment_plan_repository.dart';
-import 'interest_calculation_service.dart';
+import 'package:prestamos_app/data/models/loan.dart';
+import 'package:prestamos_app/data/models/payment.dart';
+import 'package:prestamos_app/data/models/payment_allocation.dart';
+import 'package:prestamos_app/data/repositories/billing_cycle_repository.dart';
+import 'package:prestamos_app/data/repositories/loan_repository.dart';
+import 'package:prestamos_app/data/repositories/payment_plan_repository.dart';
+import 'package:prestamos_app/data/repositories/payment_repository.dart';
+import 'package:prestamos_app/services/interest_calculation_service.dart';
 
 /// Result of a payment operation
+/// Resultado de una operación de pago.
 class PaymentResult {
-  final Payment payment;
-  final bool loanClosed;
-  final double remainingBalance;
-  final String? message;
-
+  /// Crea una instancia de [PaymentResult].
   const PaymentResult({
     required this.payment,
-    this.loanClosed = false,
     required this.remainingBalance,
+    this.loanClosed = false,
     this.message,
   });
+
+  /// El objeto de pago registrado.
+  final Payment payment;
+
+  /// Indica si el préstamo fue cancelado totalmente con este pago.
+  final bool loanClosed;
+
+  /// Saldo principal pendiente después del pago.
+  final double remainingBalance;
+
+  /// Mensaje informativo opcional sobre el resultado.
+  final String? message;
 }
 
 /// Service for processing payments with business logic
 class PaymentService {
-  final PaymentRepository _paymentRepository;
-  final LoanRepository _loanRepository;
-  final BillingCycleRepository _billingCycleRepository;
-  final InterestCalculationService _interestService;
-  final PaymentPlanRepository? _paymentPlanRepository;
-
+  /// Crea un [PaymentService] con los repositorios y servicios necesarios.
   PaymentService({
     required PaymentRepository paymentRepository,
     required LoanRepository loanRepository,
@@ -51,6 +55,11 @@ class PaymentService {
        _interestService =
            interestService ?? InterestCalculationService.instance,
        _paymentPlanRepository = paymentPlanRepository;
+  final PaymentRepository _paymentRepository;
+  final LoanRepository _loanRepository;
+  final BillingCycleRepository _billingCycleRepository;
+  final InterestCalculationService _interestService;
+  final PaymentPlanRepository? _paymentPlanRepository;
 
   /// Process a payment with full business logic
   ///
@@ -126,23 +135,23 @@ class PaymentService {
     // If the Loan has a Plan ID, but the 'distributeCapitalAndInterest' snapshot is missing or false
     // (typical for loans created before V30 fix or migrated incorrectly),
     // we MUST fetch the original Plan to know the intended behavior.
-    bool robustDistribute = loan.distributeCapitalAndInterest ?? false;
+    var robustDistribute = loan.distributeCapitalAndInterest ?? false;
 
     if (!robustDistribute &&
         loan.planId != null &&
         _paymentPlanRepository != null) {
       try {
-        final plan = await _paymentPlanRepository!.getById(loan.planId!);
+        final plan = await _paymentPlanRepository.getById(loan.planId!);
         if (plan != null && plan.distributeCapitalAndInterest) {
           robustDistribute = true;
         }
-      } catch (_) {
+      } on Exception catch (_) {
         // Fail silently if repo fails, fall back to snapshot
       }
     }
     // ----------------------------------------------------------------
 
-    double remaining = paymentAmount;
+    var remaining = paymentAmount;
 
     // Allocate to billing cycles (oldest first)
     if (remaining > 0) {
@@ -171,7 +180,7 @@ class PaymentService {
               cycle.installmentPending ?? interestPending;
 
           // Principal portion = Installment - Interest
-          double principalNeeded = (installmentPending - interestPending).clamp(
+          var principalNeeded = (installmentPending - interestPending).clamp(
             0.0,
             double.infinity,
           );
@@ -341,10 +350,13 @@ class PaymentService {
 }
 
 /// Exception thrown when payment validation fails
+/// Excepción lanzada cuando falla la validación de un pago.
 class PaymentValidationException implements Exception {
-  final String message;
-
+  /// Crea una instancia de [PaymentValidationException] con el mensaje proporcionado.
   PaymentValidationException(this.message);
+
+  /// Mensaje descriptivo del error de validación.
+  final String message;
 
   @override
   String toString() => 'PaymentValidationException: $message';

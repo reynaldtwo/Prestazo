@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:prestamos_app/core/utils/string_utils.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 /// Tests for loan numbering system
 ///
@@ -73,7 +73,7 @@ void main() {
 
     test('should increment loan number after insert', () async {
       // Simulate inserting a loan with number assignment
-      final currentNumber = '100';
+      const currentNumber = '100';
       final nextNumber = incrementStringCode(currentNumber);
 
       // Insert loan with current number
@@ -132,7 +132,7 @@ void main() {
         whereArgs: ['global'],
       );
 
-      final currentNumber = result.first['loan_next_number'] as String;
+      final currentNumber = result.first['loan_next_number']! as String;
       final nextNumber = incrementStringCode(currentNumber);
 
       expect(nextNumber, 'PREST-002');

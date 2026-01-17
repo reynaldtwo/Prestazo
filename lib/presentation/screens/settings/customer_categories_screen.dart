@@ -1,16 +1,16 @@
+import 'package:flex_color_picker/flex_color_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flex_color_picker/flex_color_picker.dart';
+import 'package:prestamos_app/core/localization/locale_provider.dart';
+import 'package:prestamos_app/core/theme/app_colors.dart';
+import 'package:prestamos_app/core/theme/app_typography.dart';
+import 'package:prestamos_app/data/models/customer.dart';
+import 'package:prestamos_app/data/models/customer_category.dart';
+import 'package:prestamos_app/data/providers/customer_category_provider.dart';
 
-import '../../../core/localization/locale_provider.dart';
-import '../../../core/theme/app_colors.dart';
-import '../../../core/theme/app_typography.dart';
-import '../../../data/models/customer_category.dart';
-import '../../../data/providers/customer_category_provider.dart';
-
-/// Screen for managing customer categories (CRUD operations)
+/// Pantalla para gestionar las categorías de los clientes (operaciones CRUD).
 class CustomerCategoriesScreen extends ConsumerStatefulWidget {
-  /// Creates a CustomerCategoriesScreen
+  /// Crea una instancia de [CustomerCategoriesScreen].
   const CustomerCategoriesScreen({super.key});
 
   @override
@@ -27,7 +27,7 @@ class _CustomerCategoriesScreenState
     return Scaffold(
       appBar: AppBar(title: Text(S.of(context).customerCategories)),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => _showCategoryDialog(),
+        onPressed: _showCategoryDialog,
         child: const Icon(Icons.add),
       ),
       body: categoriesAsync.when(
@@ -77,7 +77,7 @@ class _CustomerCategoriesScreenState
     return ListView.separated(
       padding: const EdgeInsets.all(16),
       itemCount: categories.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 8),
+      separatorBuilder: (_, _) => const SizedBox(height: 8),
       itemBuilder: (context, index) {
         final category = categories[index];
         return _buildCategoryCard(category);
@@ -139,7 +139,7 @@ class _CustomerCategoriesScreenState
     try {
       final hex = hexColor.replaceFirst('#', '');
       return Color(int.parse('FF$hex', radix: 16));
-    } catch (_) {
+    } on Exception catch (_) {
       return null;
     }
   }
@@ -148,7 +148,7 @@ class _CustomerCategoriesScreenState
     final isEditing = category != null;
     final nameController = TextEditingController(text: category?.name ?? '');
     final formKey = GlobalKey<FormState>();
-    String? selectedColorHex = category?.colorHex;
+    var selectedColorHex = category?.colorHex;
 
     final result = await showDialog<Map<String, String?>>(
       context: context,
@@ -170,7 +170,6 @@ class _CustomerCategoriesScreenState
                   children: [
                     TextFormField(
                       controller: nameController,
-                      autofocus: false,
                       decoration: InputDecoration(
                         labelText: S.of(context).categoryName,
                         border: const OutlineInputBorder(),
@@ -194,8 +193,10 @@ class _CustomerCategoriesScreenState
                           : Colors.blue,
                       onColorChanged: (Color color) {
                         setDialogState(() {
-                          selectedColorHex = color.value
+                          selectedColorHex = color
+                              .toARGB32()
                               .toRadixString(16)
+                              .padLeft(8, '0')
                               .substring(2)
                               .toUpperCase();
                         });
@@ -207,7 +208,6 @@ class _CustomerCategoriesScreenState
                       runSpacing: 6,
                       wheelDiameter: 140,
                       wheelWidth: 12,
-                      wheelHasBorder: false,
                       enableShadesSelection: false,
                       pickersEnabled: const <ColorPickerType, bool>{
                         ColorPickerType.wheel: true,
@@ -216,13 +216,8 @@ class _CustomerCategoriesScreenState
                         ColorPickerType.custom: false,
                         ColorPickerType.customSecondary: false,
                       },
-                      heading: null,
-                      subheading: null,
-                      wheelSubheading: null,
                       showColorCode: true,
                       colorCodeHasColor: true,
-                      showColorName: false,
-                      showRecentColors: false,
                       copyPasteBehavior: const ColorPickerCopyPasteBehavior(
                         copyFormat: ColorPickerCopyFormat.hexRRGGBB,
                       ),
@@ -291,11 +286,11 @@ class _CustomerCategoriesScreenState
       if (!mounted) return;
       // Show warning dialog
       final customerCount = customers.length;
+      final firstCustomer = customers.first as Customer;
       final message = customerCount == 1
-          ? S.of(context).categoryInUseByOne(customers.first.displayName)
+          ? S.of(context).categoryInUseByOne(firstCustomer.displayName)
           : S.of(context).categoryInUseByMany(customerCount);
-
-      showDialog(
+      await showDialog<void>(
         context: context,
         builder: (context) => AlertDialog(
           title: Text(S.of(context).categoryInUse),
@@ -312,6 +307,7 @@ class _CustomerCategoriesScreenState
     }
 
     // Confirm deletion
+    if (!mounted) return;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -331,7 +327,7 @@ class _CustomerCategoriesScreenState
       ),
     );
 
-    if (confirmed == true) {
+    if (confirmed ?? false) {
       final success = await ref
           .read(customerCategoriesProvider.notifier)
           .delete(category.categoryId);

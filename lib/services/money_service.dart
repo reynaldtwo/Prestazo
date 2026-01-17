@@ -1,9 +1,8 @@
 import 'package:intl/intl.dart';
-import 'package:intl/number_symbols.dart';
 import 'package:intl/number_symbols_data.dart';
 
-/// Service for strict monetary operations using minor units (Int64).
-/// Enforces 'Zero-Check' and strict parsing rules.
+/// Servicio para operaciones monetarias estrictas utilizando unidades menores (Minor Units).
+/// Impone validaciones de formatos y reglas de parseo estrictas para evitar errores de precisión.
 class MoneyService {
   /// Parse user input string to minor units (int).
   ///
@@ -23,20 +22,19 @@ class MoneyService {
 
     // 1. Get Decimal Separator for Locale
     locale ??= Intl.getCurrentLocale();
-    final NumberSymbols symbols =
-        numberFormatSymbols[locale] ??
-        numberFormatSymbols['en_US'] as NumberSymbols;
-    final String decimalSep = symbols.DECIMAL_SEP;
+    final symbols =
+        numberFormatSymbols[locale] ?? numberFormatSymbols['en_US']!;
+    final decimalSep = symbols.DECIMAL_SEP;
 
     // 2. Strict Regex Validation
     // No grouping separators allowed. ONLY digits, optional negative sign, and optional decimal.
 
     // Normalize input: remove spaces
-    String cleaned = input.replaceAll(' ', '');
+    final cleaned = input.replaceAll(' ', '');
 
     // Check for grouping separators (forbidden)
     if (cleaned.contains(symbols.GROUP_SEP)) {
-      throw FormatException(
+      throw const FormatException(
         'Thousand separators are not allowed. Please enter digits only.',
       );
     }
@@ -44,30 +42,30 @@ class MoneyService {
     // Validate character set (digits, decimal, minus)
     final allowedChars = RegExp('^[0-9${RegExp.escape(decimalSep)}-]+\$');
     if (!allowedChars.hasMatch(cleaned)) {
-      throw FormatException('Invalid characters in input.');
+      throw const FormatException('Invalid characters in input.');
     }
 
     // Check negative
     if (cleaned.startsWith('-')) {
       if (!allowNegative) {
-        throw FormatException('Negative values are not allowed.');
+        throw const FormatException('Negative values are not allowed.');
       }
       if (cleaned.lastIndexOf('-') > 0) {
-        throw FormatException('Invalid format.');
+        throw const FormatException('Invalid format.');
       }
     } else if (cleaned.contains('-')) {
-      throw FormatException('Invalid format.');
+      throw const FormatException('Invalid format.');
     }
 
     // Check decimals
     if (cleaned.contains(decimalSep)) {
       if (fractionDigits == 0) {
-        throw FormatException('This currency does not allow decimals.');
+        throw const FormatException('This currency does not allow decimals.');
       }
 
       final parts = cleaned.split(decimalSep);
       if (parts.length > 2) {
-        throw FormatException('Multiple decimal separators.');
+        throw const FormatException('Multiple decimal separators.');
       }
 
       final fraction = parts[1];
@@ -92,7 +90,7 @@ class MoneyService {
       final parts = absCleaned.split(decimalSep);
       major = BigInt.parse(parts[0].isEmpty ? '0' : parts[0]);
 
-      String fracStr = parts[1];
+      var fracStr = parts[1];
       // Pad fraction to fractionDigits
       if (fracStr.length < fractionDigits) {
         fracStr = fracStr.padRight(fractionDigits, '0');
@@ -105,14 +103,14 @@ class MoneyService {
 
     // Combine: major * 10^frac + minor
     final power = BigInt.from(10).pow(fractionDigits);
-    BigInt total = (major * power) + minor;
+    var total = (major * power) + minor;
 
     if (isNegative) total = -total;
 
     // Check Int64 bounds (Signed 63-bit safe)
     // Dart int is 64-bit on VM (native).
     if (!total.isValidInt) {
-      throw FormatException('Amount too large.');
+      throw const FormatException('Amount too large.');
     }
 
     return total.toInt();
@@ -137,7 +135,7 @@ class MoneyService {
     // It's in the formatter.decimalDigits usually.
     final digits = fmt.decimalDigits ?? 2;
 
-    final double val = minorUnits / (BigInt.from(10).pow(digits).toInt());
+    final val = minorUnits / (BigInt.from(10).pow(digits).toInt());
     return fmt.format(val);
   }
 }

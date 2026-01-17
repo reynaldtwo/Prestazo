@@ -2,20 +2,14 @@ import 'package:equatable/equatable.dart';
 
 /// Payment Frequency model
 class PaymentFrequency extends Equatable {
-  final String id;
-  final String name;
-  final int daysInterval;
-  final bool isDefault; // System defined, cannot be deleted
-  final bool isActive;
-  final DateTime createdAt;
-
+  /// Crea una instancia de [PaymentFrequency].
   const PaymentFrequency({
     required this.id,
     required this.name,
     required this.daysInterval,
+    required this.createdAt,
     this.isDefault = false,
     this.isActive = true,
-    required this.createdAt,
   });
 
   /// Create from map
@@ -30,6 +24,24 @@ class PaymentFrequency extends Equatable {
     );
   }
 
+  /// Identificador único de la frecuencia.
+  final String id;
+
+  /// Nombre descriptivo (ej: 'Quincenal').
+  final String name;
+
+  /// Intervalo en días entre cada cobro.
+  final int daysInterval;
+
+  /// Indica si es una frecuencia predefinida por el sistema.
+  final bool isDefault;
+
+  /// Indica si la frecuencia está disponible para ser usada.
+  final bool isActive;
+
+  /// Fecha de creación del registro.
+  final DateTime createdAt;
+
   /// Convert to map
   Map<String, dynamic> toMap() {
     return {
@@ -42,6 +54,7 @@ class PaymentFrequency extends Equatable {
     };
   }
 
+  /// Crea una copia de esta frecuencia con los campos proporcionados actualizados.
   PaymentFrequency copyWith({String? name, int? daysInterval, bool? isActive}) {
     return PaymentFrequency(
       id: id,

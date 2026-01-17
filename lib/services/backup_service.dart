@@ -9,13 +9,13 @@
 library;
 
 import 'dart:io';
+
 import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
+import 'package:prestamos_app/data/database/database_helper.dart';
 import 'package:share_plus/share_plus.dart';
-
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
-import '../data/database/database_helper.dart';
 
 /// Debug logging helper - only prints in debug mode
 void _log(String message) {
@@ -25,12 +25,9 @@ void _log(String message) {
 }
 
 /// Backup file info
+/// Información sobre un archivo de respaldo.
 class BackupInfo {
-  final String fileName;
-  final String filePath;
-  final DateTime createdAt;
-  final int sizeBytes;
-
+  /// Crea una instancia de [BackupInfo].
   const BackupInfo({
     required this.fileName,
     required this.filePath,
@@ -38,6 +35,19 @@ class BackupInfo {
     required this.sizeBytes,
   });
 
+  /// Nombre del archivo del respaldo.
+  final String fileName;
+
+  /// Ruta completa al archivo en el sistema de archivos.
+  final String filePath;
+
+  /// Fecha y hora en que se creó el respaldo.
+  final DateTime createdAt;
+
+  /// Tamaño del archivo en bytes.
+  final int sizeBytes;
+
+  /// Tamaño del archivo formateado para humanos (ej: 1.2 MB).
   String get formattedSize {
     if (sizeBytes < 1024) return '$sizeBytes B';
     if (sizeBytes < 1024 * 1024) {
@@ -51,11 +61,13 @@ class BackupInfo {
 }
 
 /// Service for backup management
+/// Servicio encargado de la gestión de respaldos (Backups).
 class BackupService {
-  static const String _backupFolderName = 'backups';
-
   // Singleton
   BackupService._();
+  static const String _backupFolderName = 'backups';
+
+  /// Instancia única (singleton) de [BackupService].
   static final BackupService instance = BackupService._();
 
   // Ensure FFI is initialized for Desktop
@@ -70,8 +82,8 @@ class BackupService {
   Future<Directory> get _backupDir async {
     final appDir = await getApplicationDocumentsDirectory();
     final backupDir = Directory(path.join(appDir.path, _backupFolderName));
-    if (!await backupDir.exists()) {
-      await backupDir.create(recursive: true);
+    if (!backupDir.existsSync()) {
+      backupDir.createSync(recursive: true);
     }
     return backupDir;
   }
@@ -104,17 +116,14 @@ class BackupService {
       final now = DateTime.now();
       final diff = now.difference(latest.createdAt);
 
-      bool shouldBackup = false;
+      var shouldBackup = false;
       switch (frequency) {
         case 'DAILY':
           shouldBackup = diff.inHours >= 24;
-          break;
         case 'WEEKLY':
           shouldBackup = diff.inDays >= 7;
-          break;
         case 'MONTHLY':
           shouldBackup = diff.inDays >= 30;
-          break;
       }
 
       if (shouldBackup) {
@@ -124,7 +133,7 @@ class BackupService {
 
       // Also cleanup old backups based on retention days
       await _cleanupOldBackups(retentionDays);
-    } catch (e) {
+    } on Exception catch (e) {
       _log('Error checking scheduled backup: $e');
     }
   }
@@ -145,7 +154,7 @@ class BackupService {
 
       // Step 2: Determine target path
       _log('Step 2: Determining target path...');
-      final DateTime timestamp = DateTime.now();
+      final timestamp = DateTime.now();
       String targetPath;
 
       if (customPath != null) {
@@ -165,10 +174,10 @@ class BackupService {
 
       // Step 3: Handle existing file (VACUUM INTO fails if file exists)
       final targetFile = File(targetPath);
-      if (await targetFile.exists()) {
+      if (targetFile.existsSync()) {
         if (allowOverwrite || customPath == null) {
           _log('Step 3: Target file exists, deleting for replacement...');
-          await targetFile.delete();
+          targetFile.deleteSync();
         } else {
           _log('ERROR: File exists and overwrite not allowed.');
           return null;
@@ -188,12 +197,12 @@ class BackupService {
 
       // Step 5: Verify backup
       final backupFile = File(targetPath);
-      if (!await backupFile.exists()) {
+      if (!backupFile.existsSync()) {
         _log('ERROR: Backup file was not created!');
         return null;
       }
 
-      final stat = await backupFile.stat();
+      final stat = backupFile.statSync();
       _log('Backup size: ${stat.size} bytes');
 
       if (stat.size == 0) {
@@ -208,7 +217,7 @@ class BackupService {
         createdAt: timestamp,
         sizeBytes: stat.size,
       );
-    } catch (e, stackTrace) {
+    } on Exception catch (e, stackTrace) {
       _log('=== BACKUP ERROR ===');
       _log('Error: $e');
       _log('Stack trace: $stackTrace');
@@ -233,7 +242,7 @@ class BackupService {
       final backups = <BackupInfo>[];
       for (final entity in files) {
         if (entity is File && entity.path.endsWith('.db')) {
-          final stat = await entity.stat();
+          final stat = entity.statSync();
           final fileName = path.basename(entity.path);
 
           // Parse timestamp from filename
@@ -243,7 +252,7 @@ class BackupService {
                 .replaceAll('backup_', '')
                 .replaceAll('.db', '');
             createdAt = _parseTimestamp(timestampStr);
-          } catch (_) {
+          } on Exception catch (_) {
             createdAt = stat.modified;
           }
 
@@ -261,7 +270,7 @@ class BackupService {
       // Sort by date, newest first
       backups.sort((a, b) => b.createdAt.compareTo(a.createdAt));
       return backups;
-    } catch (e) {
+    } on Exception catch (_) {
       return [];
     }
   }
@@ -283,12 +292,12 @@ class BackupService {
       }
 
       final file = File(filePath);
-      if (await file.exists()) {
-        await file.delete();
+      if (file.existsSync()) {
+        file.deleteSync();
         return true;
       }
       return false;
-    } catch (e) {
+    } on Exception catch (_) {
       return false;
     }
   }
@@ -300,7 +309,7 @@ class BackupService {
 
     try {
       final backupFile = File(backupPath);
-      if (!await backupFile.exists()) {
+      if (!backupFile.existsSync()) {
         _log('ERROR: Backup file does not exist: $backupPath');
         return false;
       }
@@ -316,14 +325,14 @@ class BackupService {
 
       // 1. Enable maintenance mode
       _log('Step 1: Setting maintenance mode...');
-      dbHelper.setMaintenanceMode(true);
+      dbHelper.maintenanceMode = true;
 
       // 2. Close Database
       _log('Step 2: Closing database...');
       await dbHelper.close();
 
       // Add delay
-      await Future.delayed(const Duration(milliseconds: 500));
+      await Future<void>.delayed(const Duration(milliseconds: 500));
 
       // 3. Delete database
       _log('Step 3: Deleting current database...');
@@ -331,15 +340,15 @@ class BackupService {
 
       // 4. Copy backup over
       _log('Step 4: Copying backup file...');
-      if (!await dbFile.parent.exists()) {
-        await dbFile.parent.create(recursive: true);
+      if (!dbFile.parent.existsSync()) {
+        dbFile.parent.createSync(recursive: true);
       }
-      await backupFile.copy(dbPath);
+      backupFile.copySync(dbPath);
 
       // 5. Verify
       final newDbFile = File(dbPath);
-      if (await newDbFile.exists()) {
-        final newSize = await newDbFile.length();
+      if (newDbFile.existsSync()) {
+        final newSize = newDbFile.lengthSync();
         _log('New database size: $newSize bytes');
       }
 
@@ -350,7 +359,7 @@ class BackupService {
 
       _log('=== RESTORE SUCCESS ===');
       return true;
-    } catch (e, stackTrace) {
+    } on Exception catch (e, stackTrace) {
       _log('=== RESTORE ERROR ===');
       _log('Error: $e');
       _log('Stack trace: $stackTrace');
@@ -365,7 +374,7 @@ class BackupService {
     _log('=== EXTERNAL RESTORE START ===');
     try {
       final externalFile = File(externalPath);
-      if (!await externalFile.exists()) {
+      if (!externalFile.existsSync()) {
         _log('ERROR: External file does not exist');
         return false;
       }
@@ -393,12 +402,12 @@ class BackupService {
       final result = await restoreFromBackup(tempPath);
 
       // Cleanup temp
-      if (await tempFile.exists()) {
-        await tempFile.delete();
+      if (tempFile.existsSync()) {
+        tempFile.deleteSync();
       }
 
       return result;
-    } catch (e, stackTrace) {
+    } on Exception catch (e, stackTrace) {
       _log('=== EXTERNAL RESTORE ERROR ===');
       _log('Error: $e');
       _log('Stack trace: $stackTrace');
@@ -410,7 +419,7 @@ class BackupService {
   Future<bool> shareBackup(String filePath) async {
     try {
       final file = File(filePath);
-      if (!await file.exists()) {
+      if (!file.existsSync()) {
         return false;
       }
 
@@ -424,7 +433,7 @@ class BackupService {
       );
 
       return result.status == ShareResultStatus.success;
-    } catch (e) {
+    } on Exception catch (e) {
       _log('Share error: $e');
       return false;
     }

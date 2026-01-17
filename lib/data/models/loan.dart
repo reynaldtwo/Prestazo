@@ -1,41 +1,20 @@
 import 'package:equatable/equatable.dart';
-import '../../core/constants/app_status.dart';
+import 'package:prestamos_app/core/constants/app_status.dart';
 
 /// Loan model - Loan granted to a customer
 class Loan extends Equatable {
-  final String loanId;
-  final String customerId;
-  final double principalOriginal;
-  final double principalBalance;
-  final double monthlyInterestRate;
-  final String rateUnit;
-  final String billingFrequency; // 'MONTHLY', 'BIWEEKLY', 'WEEKLY', 'DAILY'
-  final DateTime disbursementDate;
-  final DateTime? endDate; // Informational end date
-  final String status;
-  final DateTime? closedAt;
-  final String? notes;
-  final String? loanNumber; // Added for consecutive numbering
-  final String currencyCode; // Currency for this loan (e.g., 'NIO', 'USD')
-  final double? appliedExchangeRate; // Exchange rate snapshot at disbursement
-  final DateTime createdAt;
-  final DateTime updatedAt;
-  final int? paymentFrequencyDays; // Added in V28
-  // V29: Payment Plan snapshot fields
-  final String? planId;
-  final int? planInstallmentsTotal;
-  final bool? distributeCapitalAndInterest;
-  final DateTime? endDateCalculated;
-
+  /// Crea un [Loan] que representa un préstamo otorgado.
   const Loan({
     required this.loanId,
     required this.customerId,
     required this.principalOriginal,
     required this.principalBalance,
     required this.monthlyInterestRate,
+    required this.disbursementDate,
+    required this.createdAt,
+    required this.updatedAt,
     this.rateUnit = 'MONTHLY',
     this.billingFrequency = 'MONTHLY',
-    required this.disbursementDate,
     this.endDate,
     this.status = AppStatus.loanActive,
     this.closedAt,
@@ -43,67 +22,19 @@ class Loan extends Equatable {
     this.loanNumber,
     this.currencyCode = 'NIO',
     this.appliedExchangeRate,
-    required this.createdAt,
-    required this.updatedAt,
     this.paymentFrequencyDays,
     this.planId,
     this.planInstallmentsTotal,
     this.distributeCapitalAndInterest,
     this.endDateCalculated,
+    // V32: Financial Policy snapshot
+    this.loanDayCountConvention,
+    this.loanDaysPerMonth,
+    this.loanDaysPerYear,
+    this.loanProrationRule,
+    this.loanRoundingDecimals,
+    this.loanRoundingMode,
   });
-
-  /// Check if loan is active (includes IN_MORA)
-  bool get isActive =>
-      status == AppStatus.loanActive || status == AppStatus.loanOverdue;
-
-  /// Check if loan is in mora
-  bool get isInMora => status == AppStatus.loanOverdue;
-
-  /// Check if loan is closed
-  bool get isClosed => status == AppStatus.loanClosed;
-
-  /// Calculate biweekly rate (monthly / 2)
-  double get biweeklyInterestRate => monthlyInterestRate / 2;
-
-  /// Calculate weekly rate (monthly / 4)
-  double get weeklyInterestRate => monthlyInterestRate / 4;
-
-  /// Calculate daily rate (monthly / 30)
-  double get dailyInterestRate => monthlyInterestRate / 30;
-
-  /// Calculate interest for one month
-  double calculateMonthlyInterest() {
-    return _roundMoney(principalBalance * (monthlyInterestRate / 100));
-  }
-
-  /// Calculate interest for one biweek
-  double calculateBiweeklyInterest() {
-    return _roundMoney(principalBalance * (biweeklyInterestRate / 100));
-  }
-
-  /// Calculate interest for one week
-  double calculateWeeklyInterest() {
-    return _roundMoney(principalBalance * (weeklyInterestRate / 100));
-  }
-
-  /// Calculate interest for specific number of days (High Precision)
-  /// Use this for dynamic frequencies to avoid intermediate rounding errors.
-  double calculateInterestForDays(int days) {
-    if (days <= 0) return 0.0;
-    // Calculate full precision, only round at the very end
-    final rawInterest = principalBalance * (dailyInterestRate / 100) * days;
-    return _roundMoney(rawInterest);
-  }
-
-  /// Calculate interest for one day (Rounded)
-  double calculateDailyInterest() {
-    return _roundMoney(principalBalance * (dailyInterestRate / 100));
-  }
-
-  /// Round to 2 decimals
-  double _roundMoney(double value) {
-    return (value * 100).round() / 100;
-  }
 
   /// Create from database map
   factory Loan.fromMap(Map<String, dynamic> map) {
@@ -136,7 +67,159 @@ class Loan extends Equatable {
       endDateCalculated: map['end_date_calculated'] != null
           ? DateTime.parse(map['end_date_calculated'] as String)
           : null,
+      // V32: Financial Policy snapshot
+      loanDayCountConvention: map['loan_day_count_convention'] as String?,
+      loanDaysPerMonth: map['loan_days_per_month'] as int?,
+      loanDaysPerYear: map['loan_days_per_year'] as int?,
+      loanProrationRule: map['loan_proration_rule'] as String?,
+      loanRoundingDecimals: map['loan_rounding_decimals'] as int?,
+      loanRoundingMode: map['loan_rounding_mode'] as String?,
     );
+  }
+
+  /// Identificador único del préstamo.
+  final String loanId;
+
+  /// Identificador del cliente asociado.
+  final String customerId;
+
+  /// Monto principal original otorgado.
+  final double principalOriginal;
+
+  /// Saldo pendiente del capital.
+  final double principalBalance;
+
+  /// Tasa de interés mensual aplicada.
+  final double monthlyInterestRate;
+
+  /// Unidad de tiempo de la tasa (normalmente 'MONTHLY').
+  final String rateUnit;
+
+  /// Frecuencia de facturación ('MONTHLY', 'BIWEEKLY', etc).
+  final String billingFrequency;
+
+  /// Fecha en la que se entregó el dinero.
+  final DateTime disbursementDate;
+
+  /// Fecha estimada de finalización.
+  final DateTime? endDate;
+
+  /// Estado actual del préstamo.
+  final String status;
+
+  /// Fecha en la que se cerró el préstamo por completo.
+  final DateTime? closedAt;
+
+  /// Notas u observaciones adicionales.
+  final String? notes;
+
+  /// Número correlativo del préstamo para visualización.
+  final String? loanNumber;
+
+  /// Código de moneda (ISO 4217, ej: 'NIO', 'USD').
+  final String currencyCode;
+
+  /// Tasa de cambio aplicada al momento del desembolso.
+  final double? appliedExchangeRate;
+
+  /// Fecha de creación en el sistema.
+  final DateTime createdAt;
+
+  /// Fecha de última actualización.
+  final DateTime updatedAt;
+
+  /// Frecuencia de pago en días (V28).
+  final int? paymentFrequencyDays;
+
+  // V29: Payment Plan snapshot fields
+  /// Identificador del plan de pagos asociado (V29).
+  final String? planId;
+
+  /// Total de cuotas del plan (V29).
+  final int? planInstallmentsTotal;
+
+  /// Indica si se distribuye capital e interés en cuotas fijas (V29).
+  final bool? distributeCapitalAndInterest;
+
+  /// Fecha de finalización calculada por el sistema (V29).
+  final DateTime? endDateCalculated;
+
+  // V32: Financial Policy snapshot fields (from BusinessFinancialPolicy)
+  /// Convención de conteo de días para intereses (V32).
+  final String? loanDayCountConvention;
+
+  /// Días por mes para cálculos (V32).
+  final int? loanDaysPerMonth;
+
+  /// Días por año para cálculos (V32).
+  final int? loanDaysPerYear;
+
+  /// Regla de prorrateo aplicada (V32).
+  final String? loanProrationRule;
+
+  /// Cantidad de decimales para redondeo (V32).
+  final int? loanRoundingDecimals;
+
+  /// Modo de redondeo aplicado (V32).
+  final String? loanRoundingMode;
+
+  /// Check if loan is active (includes IN_MORA)
+  bool get isActive =>
+      status == AppStatus.loanActive || status == AppStatus.loanOverdue;
+
+  /// Check if loan is in mora
+  bool get isInMora => status == AppStatus.loanOverdue;
+
+  /// Check if loan is closed
+  bool get isClosed => status == AppStatus.loanClosed;
+
+  /// Calculate biweekly rate (monthly / 2)
+  double get biweeklyInterestRate => monthlyInterestRate / 2;
+
+  /// Calculate weekly rate (monthly / 4)
+  double get weeklyInterestRate => monthlyInterestRate / 4;
+
+  /// Calculate daily rate using policy snapshot (defaults to 30 if not set)
+  double get dailyInterestRate =>
+      monthlyInterestRate / (loanDaysPerMonth ?? 30);
+
+  /// Calculate interest for one month
+  /// Calcula el interés generado en un mes completo sobre el saldo actual.
+  double calculateMonthlyInterest() {
+    return _roundMoney(principalBalance * (monthlyInterestRate / 100));
+  }
+
+  /// Calculate interest for one biweek
+  /// Calcula el interés generado en una quincena sobre el saldo actual.
+  double calculateBiweeklyInterest() {
+    return _roundMoney(principalBalance * (biweeklyInterestRate / 100));
+  }
+
+  /// Calculate interest for one week
+  /// Calcula el interés generado en una semana sobre el saldo actual.
+  double calculateWeeklyInterest() {
+    return _roundMoney(principalBalance * (weeklyInterestRate / 100));
+  }
+
+  /// Calculate interest for specific number of days (High Precision)
+  /// Use this for dynamic frequencies to avoid intermediate rounding errors.
+  /// Calcula el interés acumulado para una cantidad específica de días.
+  double calculateInterestForDays(int days) {
+    if (days <= 0) return 0;
+    // Calculate full precision, only round at the very end
+    final rawInterest = principalBalance * (dailyInterestRate / 100) * days;
+    return _roundMoney(rawInterest);
+  }
+
+  /// Calculate interest for one day (Rounded)
+  /// Calcula el interés generado en un solo día.
+  double calculateDailyInterest() {
+    return _roundMoney(principalBalance * (dailyInterestRate / 100));
+  }
+
+  /// Round to 2 decimals
+  double _roundMoney(double value) {
+    return (value * 100).round() / 100;
   }
 
   /// Convert to database map
@@ -162,10 +245,17 @@ class Loan extends Equatable {
       'payment_frequency_days': paymentFrequencyDays,
       'plan_id': planId,
       'plan_installments_total': planInstallmentsTotal,
-      'distribute_capital_and_interest': distributeCapitalAndInterest == true
+      'distribute_capital_and_interest': distributeCapitalAndInterest ?? false
           ? 1
           : 0,
       'end_date_calculated': endDateCalculated?.toIso8601String().split('T')[0],
+      // V32: Financial Policy snapshot
+      'loan_day_count_convention': loanDayCountConvention,
+      'loan_days_per_month': loanDaysPerMonth,
+      'loan_days_per_year': loanDaysPerYear,
+      'loan_proration_rule': loanProrationRule,
+      'loan_rounding_decimals': loanRoundingDecimals,
+      'loan_rounding_mode': loanRoundingMode,
     };
   }
 
@@ -189,6 +279,13 @@ class Loan extends Equatable {
     int? planInstallmentsTotal,
     bool? distributeCapitalAndInterest,
     DateTime? endDateCalculated,
+    // V32: Financial Policy snapshot
+    String? loanDayCountConvention,
+    int? loanDaysPerMonth,
+    int? loanDaysPerYear,
+    String? loanProrationRule,
+    int? loanRoundingDecimals,
+    String? loanRoundingMode,
   }) {
     return Loan(
       loanId: loanId,
@@ -215,6 +312,14 @@ class Loan extends Equatable {
       distributeCapitalAndInterest:
           distributeCapitalAndInterest ?? this.distributeCapitalAndInterest,
       endDateCalculated: endDateCalculated ?? this.endDateCalculated,
+      // V32: Financial Policy snapshot
+      loanDayCountConvention:
+          loanDayCountConvention ?? this.loanDayCountConvention,
+      loanDaysPerMonth: loanDaysPerMonth ?? this.loanDaysPerMonth,
+      loanDaysPerYear: loanDaysPerYear ?? this.loanDaysPerYear,
+      loanProrationRule: loanProrationRule ?? this.loanProrationRule,
+      loanRoundingDecimals: loanRoundingDecimals ?? this.loanRoundingDecimals,
+      loanRoundingMode: loanRoundingMode ?? this.loanRoundingMode,
     );
   }
 
@@ -242,5 +347,12 @@ class Loan extends Equatable {
     planInstallmentsTotal,
     distributeCapitalAndInterest,
     endDateCalculated,
+    // V32: Financial Policy snapshot
+    loanDayCountConvention,
+    loanDaysPerMonth,
+    loanDaysPerYear,
+    loanProrationRule,
+    loanRoundingDecimals,
+    loanRoundingMode,
   ];
 }

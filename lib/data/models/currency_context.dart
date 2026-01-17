@@ -3,15 +3,7 @@ import 'package:equatable/equatable.dart';
 /// Represents a currency with its essential properties
 /// Used throughout the app for type-safe currency handling
 class CurrencyInfo extends Equatable {
-  /// ISO 4217 currency code (e.g., "USD", "NIO", "EUR")
-  final String code;
-
-  /// Currency symbol for display (e.g., "$", "C$", "€")
-  final String symbol;
-
-  /// Human-readable currency name (e.g., "US Dollar", "Nicaraguan Córdoba")
-  final String name;
-
+  /// Crea una instancia de [CurrencyInfo] con sus propiedades básicas.
   const CurrencyInfo({
     required this.code,
     required this.symbol,
@@ -27,25 +19,34 @@ class CurrencyInfo extends Equatable {
     );
   }
 
+  /// ISO 4217 currency code (e.g., "USD", "NIO", "EUR")
+  final String code;
+
+  /// Currency symbol for display (e.g., "$", "C$", "€")
+  final String symbol;
+
+  /// Human-readable currency name (e.g., "US Dollar", "Nicaraguan Córdoba")
+  final String name;
+
   /// Symbol lookup table (no hardcoded logic elsewhere)
   static String _getSymbol(String code) {
     const symbols = {
-      'NIO': 'C\$',
-      'USD': '\$',
+      'NIO': r'C$',
+      'USD': r'$',
       'EUR': '€',
       'CRC': '₡',
       'HNL': 'L',
       'GTQ': 'Q',
-      'MXN': '\$',
-      'COP': '\$',
+      'MXN': r'$',
+      'COP': r'$',
       'PEN': 'S/',
       'GBP': '£',
       'JPY': '¥',
-      'CAD': 'CA\$',
-      'AUD': 'A\$',
+      'CAD': r'CA$',
+      'AUD': r'A$',
       'CHF': 'CHF',
       'CNY': '¥',
-      'BRL': 'R\$',
+      'BRL': r'R$',
     };
     return symbols[code.toUpperCase()] ?? code;
   }
@@ -83,6 +84,22 @@ class CurrencyInfo extends Equatable {
 /// Context containing all currency information for calculations
 /// This is the single source of truth for currency operations
 class CurrencyContext {
+  /// Crea un [CurrencyContext] con la moneda base y la de visualización.
+  const CurrencyContext({
+    required this.baseCurrency,
+    required this.displayCurrency,
+    this.sellRate,
+  });
+
+  /// Create context where base = display (no conversion needed)
+  factory CurrencyContext.singleCurrency(CurrencyInfo currency) {
+    return CurrencyContext(
+      baseCurrency: currency,
+      displayCurrency: currency,
+      sellRate: 1,
+    );
+  }
+
   /// The user's local/home currency where Capital resides
   final CurrencyInfo baseCurrency;
 
@@ -102,37 +119,11 @@ class CurrencyContext {
 
   /// Error message if rate is missing
   String? get rateError => !hasValidRate ? 'exchange_rate_required' : null;
-
-  const CurrencyContext({
-    required this.baseCurrency,
-    required this.displayCurrency,
-    this.sellRate,
-  });
-
-  /// Create context where base = display (no conversion needed)
-  factory CurrencyContext.singleCurrency(CurrencyInfo currency) {
-    return CurrencyContext(
-      baseCurrency: currency,
-      displayCurrency: currency,
-      sellRate: 1.0,
-    );
-  }
 }
 
 /// Result of a currency conversion operation
 class ConversionResult {
-  /// The converted amount
-  final double amount;
-
-  /// The currency symbol to display
-  final String symbol;
-
-  /// Whether the conversion was successful
-  final bool success;
-
-  /// Error key for localization if conversion failed
-  final String? errorKey;
-
+  /// Crea un [ConversionResult] con el monto convertido y su símbolo.
   const ConversionResult({
     required this.amount,
     required this.symbol,
@@ -150,7 +141,20 @@ class ConversionResult {
     );
   }
 
+  /// The converted amount
+  final double amount;
+
+  /// The currency symbol to display
+  final String symbol;
+
+  /// Whether the conversion was successful
+  final bool success;
+
+  /// Error key for localization if conversion failed
+  final String? errorKey;
+
   /// Format amount with thousands separator
+  /// Formatea el monto con punto decimal y lo devuelve como cadena.
   String formatAmount() {
     if (!success) return '--';
     // Simple formatting, can be enhanced with intl

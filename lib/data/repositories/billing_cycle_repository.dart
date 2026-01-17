@@ -1,14 +1,14 @@
+import 'package:prestamos_app/core/constants/app_status.dart';
+import 'package:prestamos_app/data/database/database_helper.dart';
+import 'package:prestamos_app/data/models/billing_cycle.dart';
 import 'package:sqflite/sqflite.dart';
-import '../database/database_helper.dart';
-import '../models/billing_cycle.dart';
-import '../../core/constants/app_status.dart';
 
 /// Repository for BillingCycle CRUD operations
 class BillingCycleRepository {
-  final DatabaseHelper _databaseHelper;
-
+  /// Crea un [BillingCycleRepository] con un [DatabaseHelper] opcional.
   BillingCycleRepository({DatabaseHelper? databaseHelper})
     : _databaseHelper = databaseHelper ?? DatabaseHelper();
+  final DatabaseHelper _databaseHelper;
 
   /// Get all billing cycles for a loan
   Future<List<BillingCycle>> getBillingCyclesByLoan(String loanId) async {
@@ -19,7 +19,7 @@ class BillingCycleRepository {
       whereArgs: [loanId],
       orderBy: 'cycle_number ASC',
     );
-    return maps.map((map) => BillingCycle.fromMap(map)).toList();
+    return maps.map(BillingCycle.fromMap).toList();
   }
 
   /// Get billing cycle by ID
@@ -49,7 +49,7 @@ class BillingCycleRepository {
       ],
       orderBy: 'due_date ASC',
     );
-    return maps.map((map) => BillingCycle.fromMap(map)).toList();
+    return maps.map(BillingCycle.fromMap).toList();
   }
 
   /// Get overdue billing cycles
@@ -62,7 +62,7 @@ class BillingCycleRepository {
       whereArgs: [today, AppStatus.cyclePending, AppStatus.cyclePartial],
       orderBy: 'due_date ASC',
     );
-    return maps.map((map) => BillingCycle.fromMap(map)).toList();
+    return maps.map(BillingCycle.fromMap).toList();
   }
 
   /// Get billing cycles due today
@@ -74,7 +74,7 @@ class BillingCycleRepository {
       where: 'due_date = ? AND status IN (?, ?)',
       whereArgs: [today, AppStatus.cyclePending, AppStatus.cyclePartial],
     );
-    return maps.map((map) => BillingCycle.fromMap(map)).toList();
+    return maps.map(BillingCycle.fromMap).toList();
   }
 
   /// Get billing cycles due in date range
@@ -84,8 +84,8 @@ class BillingCycleRepository {
     String? status,
   }) async {
     final db = await _databaseHelper.database;
-    String where = 'due_date >= ? AND due_date <= ?';
-    List<dynamic> args = [
+    var where = 'due_date >= ? AND due_date <= ?';
+    final args = <dynamic>[
       startDate.toIso8601String().split('T')[0],
       endDate.toIso8601String().split('T')[0],
     ];
@@ -101,7 +101,7 @@ class BillingCycleRepository {
       whereArgs: args,
       orderBy: 'due_date ASC',
     );
-    return maps.map((map) => BillingCycle.fromMap(map)).toList();
+    return maps.map(BillingCycle.fromMap).toList();
   }
 
   /// Get billing cycles with loan and customer info
@@ -113,7 +113,7 @@ class BillingCycleRepository {
     final db = await _databaseHelper.database;
     final today = DateTime.now().toIso8601String().split('T')[0];
 
-    String query =
+    var query =
         '''
       SELECT 
         bc.*,
@@ -133,7 +133,7 @@ class BillingCycleRepository {
         AND l.status = '${AppStatus.loanActive}'
     ''';
 
-    List<dynamic> args = [];
+    final args = <dynamic>[];
 
     if (dueDate != null) {
       query += ' AND bc.due_date = ?';
@@ -152,7 +152,7 @@ class BillingCycleRepository {
 
     query += ' ORDER BY bc.due_date ASC, c.full_name ASC';
 
-    return await db.rawQuery(query, args);
+    return db.rawQuery(query, args);
   }
 
   /// Insert billing cycle
@@ -179,7 +179,7 @@ class BillingCycleRepository {
   /// Update billing cycle
   Future<int> updateBillingCycle(BillingCycle cycle) async {
     final db = await _databaseHelper.database;
-    return await db.update(
+    return db.update(
       'billing_cycles',
       cycle.copyWith(updatedAt: DateTime.now()).toMap(),
       where: 'billing_cycle_id = ?',
@@ -193,7 +193,7 @@ class BillingCycleRepository {
     double additionalPaid,
   ) async {
     final db = await _databaseHelper.database;
-    return await db.rawUpdate(
+    return db.rawUpdate(
       '''
       UPDATE billing_cycles 
       SET 
@@ -224,7 +224,7 @@ class BillingCycleRepository {
     double amountToCapitalize,
   ) async {
     final db = await _databaseHelper.database;
-    return await db.update(
+    return db.update(
       'billing_cycles',
       {
         'is_capitalized': 1,
@@ -241,7 +241,7 @@ class BillingCycleRepository {
   /// Delete billing cycle
   Future<int> deleteBillingCycle(String billingCycleId) async {
     final db = await _databaseHelper.database;
-    return await db.delete(
+    return db.delete(
       'billing_cycles',
       where: 'billing_cycle_id = ?',
       whereArgs: [billingCycleId],
@@ -251,7 +251,7 @@ class BillingCycleRepository {
   /// Delete all billing cycles for a loan
   Future<int> deleteBillingCyclesByLoan(String loanId) async {
     final db = await _databaseHelper.database;
-    return await db.delete(
+    return db.delete(
       'billing_cycles',
       where: 'loan_id = ?',
       whereArgs: [loanId],
@@ -275,7 +275,7 @@ class BillingCycleRepository {
     final today = DateTime(now.year, now.month, now.day);
 
     // Get moratorium days from settings
-    int moratoriumDays = 0;
+    var moratoriumDays = 0;
     final settingsResult = await db.query(
       'app_settings',
       columns: ['moratorium_days'],

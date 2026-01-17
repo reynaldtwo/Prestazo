@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../../core/theme/app_colors.dart';
-import '../../../core/theme/app_typography.dart';
-import '../../../core/widgets/widgets.dart';
-import '../../../data/providers/cobrar_provider.dart';
-import '../../../core/constants/app_status.dart';
-import '../../../core/localization/locale_provider.dart';
+import 'package:prestamos_app/core/constants/app_status.dart';
+import 'package:prestamos_app/core/localization/locale_provider.dart';
+import 'package:prestamos_app/core/theme/app_colors.dart';
+import 'package:prestamos_app/core/theme/app_typography.dart';
+import 'package:prestamos_app/core/widgets/widgets.dart';
+import 'package:prestamos_app/data/providers/cobrar_provider.dart';
 
-/// "A Cobrar" screen - Main operational screen for due payments
+/// Pantalla "A Cobrar" - Pantalla operacional principal para préstamos próximos a cobrar.
 class CobrarScreen extends ConsumerStatefulWidget {
+  /// Crea una instancia de [CobrarScreen].
   const CobrarScreen({super.key});
 
   @override
@@ -46,8 +47,9 @@ class _CobrarScreenState extends ConsumerState<CobrarScreen>
 
   @override
   void dispose() {
-    _tabController.removeListener(_onTabChanged);
-    _tabController.dispose();
+    _tabController
+      ..removeListener(_onTabChanged)
+      ..dispose();
     _searchController.dispose();
     super.dispose();
   }
@@ -219,16 +221,13 @@ class _CobrarScreenState extends ConsumerState<CobrarScreen>
       case CobrarFilter.biweekly:
         title = S.of(context).noCollectionBiweeklyTitle;
         message = S.of(context).noCollectionBiweeklyMsg;
-        break;
       case CobrarFilter.monthly:
         title = S.of(context).noCollectionMonthlyTitle;
         message = S.of(context).noCollectionMonthlyMsg;
-        break;
       case CobrarFilter.overdue:
         title = S.of(context).noCollectionOverdueTitle;
         message = S.of(context).noCollectionOverdueMsg;
-        break;
-      default:
+      case CobrarFilter.next7Days:
         title = S.of(context).noData;
         message = null;
     }
@@ -246,15 +245,14 @@ class _CobrarScreenState extends ConsumerState<CobrarScreen>
 }
 
 class _CustomerDueCard extends StatelessWidget {
-  final CustomerDueInfo customer;
-  final VoidCallback onTap;
-  final VoidCallback onPayment;
-
   const _CustomerDueCard({
     required this.customer,
     required this.onTap,
     required this.onPayment,
   });
+  final CustomerDueInfo customer;
+  final VoidCallback onTap;
+  final VoidCallback onPayment;
 
   @override
   Widget build(BuildContext context) {
@@ -307,7 +305,7 @@ class _CustomerDueCard extends StatelessWidget {
                           ),
                         ),
                         if (customer.isInMora)
-                          StatusBadge(
+                          const StatusBadge(
                             status: AppStatus.loanOverdue,
                             isCompact: true,
                           ),

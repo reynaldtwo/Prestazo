@@ -1,27 +1,26 @@
 import 'package:flutter/material.dart';
-import 'app_colors.dart';
-import 'app_typography.dart';
+import 'package:prestamos_app/core/theme/app_colors.dart';
+import 'package:prestamos_app/core/theme/app_typography.dart';
 
 /// PrestamosApp Theme Configuration
 /// Combines colors, typography, and component themes
 class AppTheme {
   AppTheme._();
 
+  /// Genera la configuración del tema claro de la aplicación.
   static ThemeData get lightTheme {
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.light,
-      
+
       // Colors
       primaryColor: AppColors.primary,
       scaffoldBackgroundColor: AppColors.background,
-      
+
       colorScheme: const ColorScheme.light(
         primary: AppColors.primary,
-        onPrimary: AppColors.textOnPrimary,
         secondary: AppColors.accent,
         onSecondary: AppColors.textOnAccent,
-        surface: AppColors.surface,
         onSurface: AppColors.textPrimary,
         error: AppColors.danger,
         outline: AppColors.border,
@@ -44,7 +43,7 @@ class AppTheme {
         elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
-          side: const BorderSide(color: AppColors.border, width: 1),
+          side: const BorderSide(color: AppColors.border),
         ),
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       ),
@@ -97,7 +96,10 @@ class AppTheme {
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: AppColors.surface,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 16,
+        ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: const BorderSide(color: AppColors.border),
@@ -118,8 +120,12 @@ class AppTheme {
           borderRadius: BorderRadius.circular(12),
           borderSide: const BorderSide(color: AppColors.danger, width: 2),
         ),
-        labelStyle: AppTypography.bodyMedium.copyWith(color: AppColors.textSecondary),
-        hintStyle: AppTypography.bodyMedium.copyWith(color: AppColors.textTertiary),
+        labelStyle: AppTypography.bodyMedium.copyWith(
+          color: AppColors.textSecondary,
+        ),
+        hintStyle: AppTypography.bodyMedium.copyWith(
+          color: AppColors.textTertiary,
+        ),
         errorStyle: AppTypography.bodySmall.copyWith(color: AppColors.danger),
       ),
 
@@ -130,7 +136,9 @@ class AppTheme {
         unselectedItemColor: AppColors.textTertiary,
         type: BottomNavigationBarType.fixed,
         elevation: 8,
-        selectedLabelStyle: AppTypography.labelSmall.copyWith(fontWeight: FontWeight.w600),
+        selectedLabelStyle: AppTypography.labelSmall.copyWith(
+          fontWeight: FontWeight.w600,
+        ),
         unselectedLabelStyle: AppTypography.labelSmall,
       ),
 
@@ -146,17 +154,13 @@ class AppTheme {
         backgroundColor: AppColors.surfaceVariant,
         labelStyle: AppTypography.labelMedium,
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),
 
       // Dialog
       dialogTheme: DialogThemeData(
         backgroundColor: AppColors.surface,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         titleTextStyle: AppTypography.headlineSmall,
         contentTextStyle: AppTypography.bodyMedium,
       ),
@@ -164,10 +168,10 @@ class AppTheme {
       // Snackbar
       snackBarTheme: SnackBarThemeData(
         backgroundColor: AppColors.textPrimary,
-        contentTextStyle: AppTypography.bodyMedium.copyWith(color: AppColors.surface),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
+        contentTextStyle: AppTypography.bodyMedium.copyWith(
+          color: AppColors.surface,
         ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         behavior: SnackBarBehavior.floating,
       ),
 
@@ -176,9 +180,7 @@ class AppTheme {
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         titleTextStyle: AppTypography.titleMedium,
         subtitleTextStyle: AppTypography.bodySmall,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
     );
   }

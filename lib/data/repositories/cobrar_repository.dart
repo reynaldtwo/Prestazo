@@ -1,40 +1,27 @@
+import 'package:prestamos_app/data/database/database_helper.dart';
 import 'package:sqflite/sqflite.dart';
-import '../database/database_helper.dart';
 
 /// Model for raw customer due data from database
 class CustomerDueRow {
-  final String customerId;
-  final String fullName;
-  final String? alias;
-  final String? phone;
-  final String billingFrequency;
-  final String loanId;
-  final double principalBalance;
-  final String? billingCycleId;
-  final String dueDate;
-  final double interestExpected;
-  final double interestPaid;
-  final double interestPending;
-  final String? cycleStatus;
-  final String? lastPaymentDate;
-
+  /// Crea una fila de datos de deuda de cliente desde la base de datos.
   const CustomerDueRow({
     required this.customerId,
     required this.fullName,
-    this.alias,
-    this.phone,
     required this.billingFrequency,
     required this.loanId,
     required this.principalBalance,
-    this.billingCycleId,
     required this.dueDate,
     required this.interestExpected,
     required this.interestPaid,
     required this.interestPending,
+    this.alias,
+    this.phone,
+    this.billingCycleId,
     this.cycleStatus,
     this.lastPaymentDate,
   });
 
+  /// Crea una instancia de [CustomerDueRow] desde un mapa de la base de datos.
   factory CustomerDueRow.fromMap(Map<String, dynamic> map) {
     return CustomerDueRow(
       customerId: map['customer_id'] as String,
@@ -53,14 +40,56 @@ class CustomerDueRow {
       lastPaymentDate: map['last_payment_date'] as String?,
     );
   }
+
+  /// ID del cliente.
+  final String customerId;
+
+  /// Nombre completo del cliente.
+  final String fullName;
+
+  /// Alias del cliente (si tiene).
+  final String? alias;
+
+  /// Teléfono registrado.
+  final String? phone;
+
+  /// Frecuencia de facturación del préstamo.
+  final String billingFrequency;
+
+  /// ID del préstamo.
+  final String loanId;
+
+  /// Saldo capital actual.
+  final double principalBalance;
+
+  /// ID del ciclo de facturación (opcional).
+  final String? billingCycleId;
+
+  /// Fecha de vencimiento (ISO String).
+  final String dueDate;
+
+  /// Interés total esperado para el ciclo.
+  final double interestExpected;
+
+  /// Interés ya pagado.
+  final double interestPaid;
+
+  /// Interés pendiente de pago.
+  final double interestPending;
+
+  /// Estado del ciclo (si aplica).
+  final String? cycleStatus;
+
+  /// Fecha del último pago (ISO String).
+  final String? lastPaymentDate;
 }
 
 /// Repository for "A Cobrar" (Collections) queries
 class CobrarRepository {
-  final DatabaseHelper _databaseHelper;
-
+  /// Crea un [CobrarRepository] con el [DatabaseHelper] proporcionado.
   CobrarRepository({DatabaseHelper? databaseHelper})
     : _databaseHelper = databaseHelper ?? DatabaseHelper();
+  final DatabaseHelper _databaseHelper;
 
   /// Get moratorium days from settings
   Future<int> getMoratoriumDays() async {
@@ -113,7 +142,7 @@ class CobrarRepository {
       [cutoffDateStr],
     );
 
-    return results.map((row) => CustomerDueRow.fromMap(row)).toList();
+    return results.map(CustomerDueRow.fromMap).toList();
   }
 
   /// Get biweekly customers with overdue cycles
@@ -150,7 +179,7 @@ class CobrarRepository {
       [todayStr],
     );
 
-    return results.map((row) => CustomerDueRow.fromMap(row)).toList();
+    return results.map(CustomerDueRow.fromMap).toList();
   }
 
   /// Get monthly customers with overdue cycles
@@ -187,7 +216,7 @@ class CobrarRepository {
       [todayStr],
     );
 
-    return results.map((row) => CustomerDueRow.fromMap(row)).toList();
+    return results.map(CustomerDueRow.fromMap).toList();
   }
 
   /// Get customers with cycles due in next 7 days
@@ -227,7 +256,7 @@ class CobrarRepository {
       [todayStr, futureDateStr],
     );
 
-    return results.map((row) => CustomerDueRow.fromMap(row)).toList();
+    return results.map(CustomerDueRow.fromMap).toList();
   }
 
   /// Get summary statistics for dashboard

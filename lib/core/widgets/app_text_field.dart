@@ -1,31 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../theme/app_typography.dart';
+import 'package:prestamos_app/core/theme/app_typography.dart';
 
 /// Reusable text field component with variants
 class AppTextField extends StatelessWidget {
-  final String? label;
-  final String? hint;
-  final String? helperText;
-  final String? errorText;
-  final TextEditingController? controller;
-  final TextInputType keyboardType;
-  final bool obscureText;
-  final bool enabled;
-  final bool readOnly;
-  final int? maxLines;
-  final int? maxLength;
-  final IconData? prefixIcon;
-  final Widget? suffix;
-  final ValueChanged<String>? onChanged;
-  final VoidCallback? onTap;
-  final FormFieldValidator<String>? validator;
-  final List<TextInputFormatter>? inputFormatters;
-  final FocusNode? focusNode;
-  final TextInputAction? textInputAction;
-  final ValueChanged<String>? onSubmitted;
-  final String? prefixText;
-
+  /// Crea un [AppTextField] altamente configurable.
   const AppTextField({
     super.key,
     this.label,
@@ -50,6 +29,69 @@ class AppTextField extends StatelessWidget {
     this.onSubmitted,
     this.prefixText,
   });
+
+  /// Etiqueta que flota sobre el campo.
+  final String? label;
+
+  /// Texto de sugerencia dentro del campo.
+  final String? hint;
+
+  /// Texto de ayuda debajo del campo.
+  final String? helperText;
+
+  /// Texto de error (si hay una validación fallida).
+  final String? errorText;
+
+  /// Controlador para gestionar el texto.
+  final TextEditingController? controller;
+
+  /// Tipo de teclado que se muestra.
+  final TextInputType keyboardType;
+
+  /// Indica si el texto debe ocultarse (ej: contraseñas).
+  final bool obscureText;
+
+  /// Indica si el campo está habilitado.
+  final bool enabled;
+
+  /// Indica si el campo es de solo lectura.
+  final bool readOnly;
+
+  /// Cantidad máxima de líneas (null para multilínea ilimitado).
+  final int? maxLines;
+
+  /// Cantidad máxima de caracteres permitidos.
+  final int? maxLength;
+
+  /// Icono opcional al inicio del campo.
+  final IconData? prefixIcon;
+
+  /// Widget opcional al final del campo.
+  final Widget? suffix;
+
+  /// Función llamada cuando cambia el texto.
+  final ValueChanged<String>? onChanged;
+
+  /// Función llamada al tocar el campo.
+  final VoidCallback? onTap;
+
+  /// Función de validación del formulario.
+  final FormFieldValidator<String>? validator;
+
+  /// Lista de formateadores de entrada (ej: máscaras).
+  final List<TextInputFormatter>? inputFormatters;
+
+  /// Nodo de enfoque para gestionar el foco manualmente.
+  final FocusNode? focusNode;
+
+  /// Acción a ejecutar en el teclado (ej: done, search).
+  final TextInputAction? textInputAction;
+
+  /// Función llamada al presionar "acción" en el teclado.
+  final ValueChanged<String>? onSubmitted;
+
+  /// Prefijo textual estático (ej: "$ ").
+  final String? prefixText;
 
   @override
   Widget build(BuildContext context) {
@@ -110,15 +152,7 @@ class AppTextField extends StatelessWidget {
 
 /// Money input field with currency formatting
 class AppMoneyField extends StatelessWidget {
-  final String? label;
-  final String? hint;
-  final String? errorText;
-  final TextEditingController? controller;
-  final bool enabled;
-  final ValueChanged<String>? onChanged;
-  final FormFieldValidator<String>? validator;
-  final String currencySymbol;
-
+  /// Crea un [AppMoneyField] optimizado para entradas monetarias.
   const AppMoneyField({
     super.key,
     this.label,
@@ -128,8 +162,32 @@ class AppMoneyField extends StatelessWidget {
     this.enabled = true,
     this.onChanged,
     this.validator,
-    this.currencySymbol = 'C\$',
+    this.currencySymbol = r'C$',
   });
+
+  /// Etiqueta del campo.
+  final String? label;
+
+  /// Sugerencia de valor (ej: "0.00").
+  final String? hint;
+
+  /// Texto de error externo.
+  final String? errorText;
+
+  /// Controlador del texto.
+  final TextEditingController? controller;
+
+  /// Estado del campo.
+  final bool enabled;
+
+  /// Callback de cambio de valor.
+  final ValueChanged<String>? onChanged;
+
+  /// Validador de formulario.
+  final FormFieldValidator<String>? validator;
+
+  /// Símbolo de moneda a mostrar como prefijo (ej: "$").
+  final String currencySymbol;
 
   @override
   Widget build(BuildContext context) {
@@ -152,11 +210,7 @@ class AppMoneyField extends StatelessWidget {
 
 /// Search input field
 class AppSearchField extends StatelessWidget {
-  final String? hint;
-  final TextEditingController? controller;
-  final ValueChanged<String>? onChanged;
-  final VoidCallback? onClear;
-
+  /// Crea un [AppSearchField] con botón de limpieza incluido.
   const AppSearchField({
     super.key,
     this.hint,
@@ -164,6 +218,18 @@ class AppSearchField extends StatelessWidget {
     this.onChanged,
     this.onClear,
   });
+
+  /// Texto de sugerencia (por defecto "Buscar...").
+  final String? hint;
+
+  /// Controlador del texto de búsqueda.
+  final TextEditingController? controller;
+
+  /// Callback cuando el texto de búsqueda cambia.
+  final ValueChanged<String>? onChanged;
+
+  /// Callback cuando se presiona el botón de limpiar "X".
+  final VoidCallback? onClear;
 
   @override
   Widget build(BuildContext context) {
@@ -177,7 +243,7 @@ class AppSearchField extends StatelessWidget {
         hintText: hint ?? 'Buscar...',
         hintStyle: TextStyle(color: colorScheme.onSurfaceVariant),
         prefixIcon: Icon(Icons.search, color: colorScheme.onSurfaceVariant),
-        suffixIcon: controller?.text.isNotEmpty == true
+        suffixIcon: controller?.text.isNotEmpty ?? false
             ? IconButton(
                 icon: Icon(Icons.clear, color: colorScheme.onSurfaceVariant),
                 onPressed: () {

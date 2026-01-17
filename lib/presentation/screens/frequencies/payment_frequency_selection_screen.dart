@@ -1,15 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../../core/theme/app_colors.dart';
-import '../../../core/theme/app_typography.dart';
-import '../../../core/localization/locale_provider.dart';
-import '../../../data/models/payment_frequency.dart';
-import '../../../data/providers/payment_frequency_provider.dart';
+import 'package:prestamos_app/core/localization/locale_provider.dart';
+import 'package:prestamos_app/core/theme/app_colors.dart';
+import 'package:prestamos_app/core/theme/app_typography.dart';
+import 'package:prestamos_app/data/providers/payment_frequency_provider.dart';
 
-enum FrequencySortOption { name, days }
+/// Opciones de ordenamiento para las frecuencias de pago.
+enum FrequencySortOption {
+  /// Ordenar por nombre alfabéticamente.
+  name,
 
+  /// Ordenar por intervalo de días.
+  days,
+}
+
+/// Pantalla de selección de frecuencia de pago.
 class PaymentFrequencySelectionScreen extends ConsumerStatefulWidget {
+  /// Crea una instancia de [PaymentFrequencySelectionScreen].
   const PaymentFrequencySelectionScreen({super.key});
 
   @override
@@ -141,22 +149,22 @@ class _PaymentFrequencySelectionScreenState
         ),
         data: (frequencies) {
           // Filter
-          final filtered = frequencies.where((f) {
-            final matchesSearch =
-                f.name.toLowerCase().contains(_searchQuery) ||
-                f.daysInterval.toString().contains(_searchQuery);
-            return matchesSearch;
-          }).toList();
-
-          // Sort
-          filtered.sort((a, b) {
-            switch (_sortOption) {
-              case FrequencySortOption.name:
-                return a.name.compareTo(b.name);
-              case FrequencySortOption.days:
-                return a.daysInterval.compareTo(b.daysInterval);
-            }
-          });
+          final filtered =
+              frequencies.where((f) {
+                  final matchesSearch =
+                      f.name.toLowerCase().contains(_searchQuery) ||
+                      f.daysInterval.toString().contains(_searchQuery);
+                  return matchesSearch;
+                }).toList()
+                // Sort
+                ..sort((a, b) {
+                  switch (_sortOption) {
+                    case FrequencySortOption.name:
+                      return a.name.compareTo(b.name);
+                    case FrequencySortOption.days:
+                      return a.daysInterval.compareTo(b.daysInterval);
+                  }
+                });
 
           if (filtered.isEmpty) {
             return Center(

@@ -1,11 +1,12 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
-import 'core/theme/theme_provider.dart';
-import 'core/localization/locale_provider.dart';
-import 'presentation/router.dart';
-import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'dart:io' as io;
+
+import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:prestamos_app/core/localization/locale_provider.dart';
+import 'package:prestamos_app/core/theme/theme_provider.dart';
+import 'package:prestamos_app/presentation/router.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -19,7 +20,8 @@ void main() async {
   // Catch Flutter errors
   FlutterError.onError = (FlutterErrorDetails details) {
     FlutterError.presentError(details);
-    debugPrint('Flutter Error: ${details.exception}');
+    // Error log for debugging
+    debugPrint('[Flutter Engine Error] ${details.exception}');
   };
 
   // Custom error widget for release mode
@@ -34,7 +36,7 @@ void main() async {
           children: [
             const Icon(Icons.error_outline, color: Colors.red, size: 48),
             const SizedBox(height: 16),
-            Text(
+            const Text(
               'Error de Aplicación',
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
@@ -53,8 +55,9 @@ void main() async {
   runApp(const ProviderScope(child: PrestamosApp()));
 }
 
-/// Main app widget with dynamic theme and locale support
+/// Widget principal de la aplicación con soporte para tema dinámico y localización.
 class PrestamosApp extends ConsumerWidget {
+  /// Crea una instancia de [PrestamosApp].
   const PrestamosApp({super.key});
 
   @override
@@ -80,7 +83,7 @@ class PrestamosApp extends ConsumerWidget {
       ],
       localeResolutionCallback: (locale, supportedLocales) {
         // 1. Check for more specific match (languageCode + countryCode)
-        for (var supportedLocale in supportedLocales) {
+        for (final supportedLocale in supportedLocales) {
           if (supportedLocale.languageCode == locale?.languageCode &&
               supportedLocale.countryCode == locale?.countryCode) {
             return supportedLocale;
@@ -88,7 +91,7 @@ class PrestamosApp extends ConsumerWidget {
         }
 
         // 2. Check for language code match
-        for (var supportedLocale in supportedLocales) {
+        for (final supportedLocale in supportedLocales) {
           if (supportedLocale.languageCode == locale?.languageCode) {
             return supportedLocale;
           }

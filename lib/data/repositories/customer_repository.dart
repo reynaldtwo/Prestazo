@@ -1,19 +1,19 @@
+import 'package:prestamos_app/data/database/database_helper.dart';
+import 'package:prestamos_app/data/models/customer.dart';
 import 'package:sqflite/sqflite.dart';
-import '../database/database_helper.dart';
-import '../models/customer.dart';
 
 /// Repository for Customer CRUD operations
 class CustomerRepository {
-  final DatabaseHelper _databaseHelper;
-
+  /// Crea un [CustomerRepository] con el [DatabaseHelper] proporcionado.
   CustomerRepository({DatabaseHelper? databaseHelper})
     : _databaseHelper = databaseHelper ?? DatabaseHelper();
+  final DatabaseHelper _databaseHelper;
 
   /// Get all customers (ordered by most recent first)
   Future<List<Customer>> getAllCustomers() async {
     final db = await _databaseHelper.database;
     final maps = await db.query('customers', orderBy: 'created_at DESC');
-    return maps.map((map) => Customer.fromMap(map)).toList();
+    return maps.map(Customer.fromMap).toList();
   }
 
   /// Get active customers only
@@ -25,7 +25,7 @@ class CustomerRepository {
       whereArgs: ['ACTIVE'],
       orderBy: 'full_name ASC',
     );
-    return maps.map((map) => Customer.fromMap(map)).toList();
+    return maps.map(Customer.fromMap).toList();
   }
 
   /// Get customer by ID
@@ -50,7 +50,7 @@ class CustomerRepository {
       whereArgs: [frequency, 'ACTIVE'],
       orderBy: 'full_name ASC',
     );
-    return maps.map((map) => Customer.fromMap(map)).toList();
+    return maps.map(Customer.fromMap).toList();
   }
 
   /// Search customers by name or alias
@@ -63,7 +63,7 @@ class CustomerRepository {
       whereArgs: [searchPattern, searchPattern],
       orderBy: 'full_name ASC',
     );
-    return maps.map((map) => Customer.fromMap(map)).toList();
+    return maps.map(Customer.fromMap).toList();
   }
 
   /// Insert new customer
@@ -80,7 +80,7 @@ class CustomerRepository {
   /// Update existing customer
   Future<int> updateCustomer(Customer customer) async {
     final db = await _databaseHelper.database;
-    return await db.update(
+    return db.update(
       'customers',
       customer.copyWith(updatedAt: DateTime.now()).toMap(),
       where: 'customer_id = ?',
@@ -91,7 +91,7 @@ class CustomerRepository {
   /// Soft delete customer (change status to INACTIVE)
   Future<int> deactivateCustomer(String customerId) async {
     final db = await _databaseHelper.database;
-    return await db.update(
+    return db.update(
       'customers',
       {'status': 'INACTIVE', 'updated_at': DateTime.now().toIso8601String()},
       where: 'customer_id = ?',
@@ -102,7 +102,7 @@ class CustomerRepository {
   /// Reactivate customer
   Future<int> activateCustomer(String customerId) async {
     final db = await _databaseHelper.database;
-    return await db.update(
+    return db.update(
       'customers',
       {'status': 'ACTIVE', 'updated_at': DateTime.now().toIso8601String()},
       where: 'customer_id = ?',
@@ -113,7 +113,7 @@ class CustomerRepository {
   /// Hard delete customer (use with caution)
   Future<int> deleteCustomer(String customerId) async {
     final db = await _databaseHelper.database;
-    return await db.delete(
+    return db.delete(
       'customers',
       where: 'customer_id = ?',
       whereArgs: [customerId],
@@ -152,12 +152,12 @@ class CustomerRepository {
 
     // Query comparing cleaned version of DB column vs cleaned input
     // NOTE: SQLite's REPLACE is used to clean the DB side on the fly.
-    String query = '''
+    var query = '''
       SELECT * FROM customers 
       WHERE REPLACE(REPLACE(UPPER(dni), '-', ''), ' ', '') = ?
     ''';
 
-    List<dynamic> args = [cleanDni];
+    final args = <dynamic>[cleanDni];
 
     if (excludeId != null) {
       query += ' AND customer_id != ?';

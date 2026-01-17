@@ -2,13 +2,7 @@ import 'package:equatable/equatable.dart';
 
 /// ClientCreditLedger model - Tracks overpayments and void reversals
 class ClientCreditLedger extends Equatable {
-  final String entryId;
-  final String customerId;
-  final String referencePaymentId;
-  final String transactionType; // OVERPAYMENT, VOID_REVERSAL, USAGE
-  final int amountMinor; // Positive for credit, negative for debit
-  final DateTime createdAt;
-
+  /// Crea un [ClientCreditLedger] para rastrear saldos a favor o reversiones.
   const ClientCreditLedger({
     required this.entryId,
     required this.customerId,
@@ -17,15 +11,6 @@ class ClientCreditLedger extends Equatable {
     required this.amountMinor,
     required this.createdAt,
   });
-
-  /// Get amount in major units (for display)
-  double get amount => amountMinor / 100.0;
-
-  /// Check if this is a credit (positive)
-  bool get isCredit => amountMinor > 0;
-
-  /// Check if this is a debit (negative)
-  bool get isDebit => amountMinor < 0;
 
   /// Create from database map
   factory ClientCreditLedger.fromMap(Map<String, dynamic> map) {
@@ -38,6 +23,34 @@ class ClientCreditLedger extends Equatable {
       createdAt: DateTime.parse(map['created_at'] as String),
     );
   }
+
+  /// Identificador único de la entrada en el libro mayor.
+  final String entryId;
+
+  /// Identificador del cliente asociado.
+  final String customerId;
+
+  /// Identificador del pago que originó este crédito o uso.
+  final String referencePaymentId;
+
+  /// Tipo de transacción ('OVERPAYMENT', 'VOID_REVERSAL', 'USAGE').
+  final String transactionType;
+
+  /// Monto en unidades menores (positivo para crédito, negativo para uso).
+  final int amountMinor;
+
+  /// Fecha de creación del registro.
+  final DateTime createdAt;
+
+  /// Get amount in major units (for display)
+  /// Obtiene el monto en unidades principales (ej: 5.00).
+  double get amount => amountMinor / 100.0;
+
+  /// Check if this is a credit (positive)
+  bool get isCredit => amountMinor > 0;
+
+  /// Check if this is a debit (negative)
+  bool get isDebit => amountMinor < 0;
 
   /// Convert to database map
   Map<String, dynamic> toMap() {

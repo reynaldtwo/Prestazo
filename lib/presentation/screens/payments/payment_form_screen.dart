@@ -1,30 +1,35 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:uuid/uuid.dart';
-import 'dart:async';
+import 'package:prestamos_app/core/localization/locale_provider.dart';
+import 'package:prestamos_app/core/theme/app_colors.dart';
+import 'package:prestamos_app/core/theme/app_typography.dart';
+import 'package:prestamos_app/core/widgets/widgets.dart';
+import 'package:prestamos_app/data/models/billing_cycle.dart';
+import 'package:prestamos_app/data/models/customer.dart';
+import 'package:prestamos_app/data/models/loan.dart';
+import 'package:prestamos_app/data/models/payment.dart';
+import 'package:prestamos_app/data/models/payment_allocation.dart';
+import 'package:prestamos_app/data/providers/providers.dart';
+import 'package:prestamos_app/presentation/screens/settings/currency_selection_screen.dart';
+import 'package:prestamos_app/presentation/widgets/modals/currency_calculator_modal.dart';
+import 'package:prestamos_app/services/idempotency_service.dart';
+import 'package:prestamos_app/services/services.dart';
 import 'package:sealed_currencies/sealed_currencies.dart';
-import '../../widgets/modals/currency_calculator_modal.dart';
-import '../settings/currency_selection_screen.dart';
-import '../../../core/theme/app_colors.dart';
-import '../../../core/theme/app_typography.dart';
-import '../../../core/widgets/widgets.dart';
-import '../../../data/models/loan.dart';
-import '../../../data/models/customer.dart';
-import '../../../data/models/payment.dart';
-import '../../../data/models/payment_allocation.dart';
-import '../../../core/localization/locale_provider.dart';
-import '../../../data/models/billing_cycle.dart';
-import '../../../data/providers/providers.dart';
-import '../../../services/idempotency_service.dart';
-import '../../../services/services.dart';
-import '../../../data/providers/customer_category_provider.dart';
+import 'package:uuid/uuid.dart';
 
-/// Payment form screen for registering payments
+/// Pantalla de formulario para registrar pagos.
 class PaymentFormScreen extends ConsumerStatefulWidget {
-  final String? customerId;
-  final String? loanId;
+  /// Crea una instancia de [PaymentFormScreen].
   const PaymentFormScreen({super.key, this.customerId, this.loanId});
+
+  /// Identificador opcional del cliente.
+  final String? customerId;
+
+  /// Identificador opcional del préstamo.
+  final String? loanId;
 
   @override
   ConsumerState<PaymentFormScreen> createState() => _PaymentFormScreenState();
@@ -88,7 +93,7 @@ class _PaymentFormScreenState extends ConsumerState<PaymentFormScreen> {
     // Safe default: Fetch USD->NIO Sell Rate from service
     try {
       // Logic placeholder for future rate fetching
-    } catch (_) {}
+    } on Exception catch (_) {}
   }
 
   Future<void> _loadSettings() async {
@@ -147,9 +152,8 @@ class _PaymentFormScreenState extends ConsumerState<PaymentFormScreen> {
         final cycleService = ref.read(billingCycleServiceProvider);
 
         await cycleService.generateMissingCycles(loan);
-      } catch (e) {
-        // Log error but continue - we'll still try to load existing cycles
-        debugPrint('Error generating cycles: $e');
+      } on Exception catch (_) {
+        // Log error suppressed for production
       }
     }
 
@@ -162,16 +166,17 @@ class _PaymentFormScreenState extends ConsumerState<PaymentFormScreen> {
     // the capital payment date restriction.
     final activeCycle = await repo.getActiveCycle(loanId, DateTime.now());
 
-    List<BillingCycle> finalCycles = List.from(cycles);
+    final finalCycles = List<BillingCycle>.from(cycles);
     if (activeCycle != null) {
       // Check if active cycle is already in the list
       final exists = finalCycles.any(
         (c) => c.billingCycleId == activeCycle.billingCycleId,
       );
       if (!exists) {
-        finalCycles.add(activeCycle);
-        // Sort by due date again to keep order
-        finalCycles.sort((a, b) => a.dueDate.compareTo(b.dueDate));
+        finalCycles
+          ..add(activeCycle)
+          // Sort by due date again to keep order
+          ..sort((a, b) => a.dueDate.compareTo(b.dueDate));
       }
     }
 
@@ -181,7 +186,7 @@ class _PaymentFormScreenState extends ConsumerState<PaymentFormScreen> {
 
       // AUTO-FILL AMOUNT FOR PLANS (Level Installment)
       double suggestedAmount = 0;
-      bool hasPlan = _selectedLoan?.planId != null;
+      final hasPlan = _selectedLoan?.planId != null;
 
       if (hasPlan) {
         // Smart Suggestion: Sum of Overdue + First Pending Cycle
@@ -196,11 +201,11 @@ class _PaymentFormScreenState extends ConsumerState<PaymentFormScreen> {
 
         final now = DateTime.now();
         final today = DateTime(now.year, now.month, now.day);
-        bool addedFirstPending = false;
+        var addedFirstPending = false;
 
         for (final c in pendingCyclesWithAmount) {
           final amount = c.installmentPending ?? c.installmentExpected ?? 0;
-          bool isOverdue = c.status == 'OVERDUE' || c.dueDate.isBefore(today);
+          final isOverdue = c.status == 'OVERDUE' || c.dueDate.isBefore(today);
 
           // Always add overdue cycles
           if (isOverdue) {
@@ -298,7 +303,7 @@ class _PaymentFormScreenState extends ConsumerState<PaymentFormScreen> {
     final paymentCurrency = _paymentCurrency ?? loanCurrency;
     final baseCurrency = settings?.baseCurrency ?? 'NIO';
 
-    double effectiveAmount = amount;
+    var effectiveAmount = amount;
     if (loanCurrency != paymentCurrency && rate != null && rate > 0) {
       final amountMinor = (amount * 100).round();
       final convertedMinor = FxService.convertMinor(
@@ -333,8 +338,9 @@ class _PaymentFormScreenState extends ConsumerState<PaymentFormScreen> {
 
   @override
   void dispose() {
-    _amountController.removeListener(_calculateAllocation);
-    _amountController.dispose();
+    _amountController
+      ..removeListener(_calculateAllocation)
+      ..dispose();
     _exchangeRateController.dispose();
     _debounceRate?.cancel();
     _notesController.dispose();
@@ -389,13 +395,13 @@ class _PaymentFormScreenState extends ConsumerState<PaymentFormScreen> {
                 prefixText:
                     _paymentCurrency != null &&
                         _paymentCurrency != (_selectedLoan?.currencyCode ?? '')
-                    ? '${FiatCurrency.maybeFromCode(_paymentCurrency!)?.symbol ?? _paymentCurrency} '
+                    ? '${FiatCurrency.maybeFromCode(_paymentCurrency)?.symbol ?? _paymentCurrency} '
                     : '$_currencySymbol ',
                 suffix: IconButton(
                   icon: const Icon(Icons.calculate_outlined),
                   tooltip: 'Calculadora de Divisas',
                   onPressed: () {
-                    showModalBottomSheet(
+                    showModalBottomSheet<void>(
                       context: context,
                       isScrollControlled: true,
                       builder: (context) => CurrencyCalculatorModal(
@@ -465,7 +471,6 @@ class _PaymentFormScreenState extends ConsumerState<PaymentFormScreen> {
               // Submit button
               AppButton(
                 label: S.of(context).registerPayment,
-                variant: AppButtonVariant.primary,
                 isFullWidth: true,
                 isLoading: _isLoading,
                 onPressed: _submitPayment,
@@ -639,7 +644,7 @@ class _PaymentFormScreenState extends ConsumerState<PaymentFormScreen> {
                   (loan) => ListTile(
                     title: Text('C\$ ${_formatMoney(loan.principalBalance)}'),
                     subtitle: Text(
-                      '${S.of(context).originalAmount}: C\$ ${_formatMoney(loan.principalOriginal)} - ${loan.monthlyInterestRate.toStringAsFixed(0)}% ${S.of(context).monthly}',
+                      '${S.of(context).originalAmount}: C\$ ${_formatMoney(loan.principalOriginal)} - ${loan.monthlyInterestRate.toStringAsFixed(2)}% ${S.of(context).monthly}',
                     ),
                     trailing: const Icon(Icons.chevron_right),
                     onTap: () async {
@@ -765,7 +770,7 @@ class _PaymentFormScreenState extends ConsumerState<PaymentFormScreen> {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.info_outline, size: 14, color: AppColors.info),
+                const Icon(Icons.info_outline, size: 14, color: AppColors.info),
                 const SizedBox(width: 4),
                 Text(
                   l10n.planInstallmentMode,
@@ -1131,13 +1136,13 @@ class _PaymentFormScreenState extends ConsumerState<PaymentFormScreen> {
       if (initialConfirmation != true) return;
 
       // 2. Second Dialog: Restriction & Reason
-      bool restrictCustomer = false;
+      var restrictCustomer = false;
       final reasonController =
           TextEditingController(); // Local controller for dialog
 
+      if (!mounted) return;
       final secondConfirmation = await showDialog<bool>(
         context: context,
-        barrierDismissible: false,
         builder: (ctx) => StatefulBuilder(
           builder: (context, setStateDialog) => AlertDialog(
             title: Text(S.of(context).finalizeRecovery),
@@ -1212,10 +1217,9 @@ class _PaymentFormScreenState extends ConsumerState<PaymentFormScreen> {
             ? double.tryParse(_exchangeRateController.text.replaceAll(',', '.'))
             : null;
 
-        int amountLoanMinor = amountMinor;
-        int amountBaseMinor =
+        var amountLoanMinor = amountMinor;
+        var amountBaseMinor =
             amountMinor; // Approx if conversion not applied yet
-        int fxProfitMinor = 0;
 
         if (appliedRate != null &&
             appliedRate > 0 &&
@@ -1241,7 +1245,6 @@ class _PaymentFormScreenState extends ConsumerState<PaymentFormScreen> {
           baseCurrency: baseCurrency,
           rateValueUsed: appliedRate,
           rateTypeUsed: appliedRate != null ? 'MANUAL' : null,
-          fxProfitBaseMinor: fxProfitMinor,
           idempotencyKey: idempotencyKey,
           payloadHash: IdempotencyService.computePayloadHash(
             loanId: _selectedLoan!.loanId,
@@ -1251,7 +1254,6 @@ class _PaymentFormScreenState extends ConsumerState<PaymentFormScreen> {
             rateType: null,
             rateValue: null,
           ),
-          status: 'VALID',
           createdAt: now,
           updatedAt: now,
           customerId: _selectedCustomer!.customerId,
@@ -1282,7 +1284,7 @@ class _PaymentFormScreenState extends ConsumerState<PaymentFormScreen> {
         }
 
         // 1. Overdue Interest
-        double remainingForRecovery = _toOverdueInterest;
+        var remainingForRecovery = _toOverdueInterest;
         for (final cycle in _pendingCycles.where((c) => c.isOverdue)) {
           if (remainingForRecovery <= 0) break;
           final toPay = remainingForRecovery >= cycle.interestPending
@@ -1307,7 +1309,7 @@ class _PaymentFormScreenState extends ConsumerState<PaymentFormScreen> {
         }
 
         // 3. Principal (Generic)
-        addAllocation('PRINCIPAL', _toPrincipal, cycleId: null);
+        addAllocation('PRINCIPAL', _toPrincipal);
 
         final createdPayment = await ref
             .read(paymentRepositoryProvider)
@@ -1325,7 +1327,7 @@ class _PaymentFormScreenState extends ConsumerState<PaymentFormScreen> {
           createdPayment,
           allocations: allocations,
         );
-      } catch (e) {
+      } on Exception catch (e) {
         _handleError(e);
       } finally {
         if (mounted) setState(() => _isLoading = false);
@@ -1350,7 +1352,7 @@ class _PaymentFormScreenState extends ConsumerState<PaymentFormScreen> {
     );
 
     if (!validation.isValid) {
-      _showErrorDialog(validation.errorTitle!, validation.errorMessage!);
+      await _showErrorDialog(validation.errorTitle!, validation.errorMessage!);
       return;
     }
 
@@ -1360,7 +1362,7 @@ class _PaymentFormScreenState extends ConsumerState<PaymentFormScreen> {
 
     // Fix: For Level Installment, if Amount matches/is close to Full Installment, allow it.
     // This handles cases where _toCurrentInterest logic might erroneously be 0 due to data flags.
-    bool skipWarning = false;
+    var skipWarning = false;
     if (_isLevelInstallmentLoan) {
       // Find current pending installment amount
       final currentPending = _pendingCycles
@@ -1379,6 +1381,7 @@ class _PaymentFormScreenState extends ConsumerState<PaymentFormScreen> {
     if (!_dailyAccrualEnabled &&
         !skipWarning &&
         amount > totalApplicable + 0.01) {
+      if (!mounted) return;
       final proceed = await showConfirmDialog(
         context: context,
         title: S.of(context).warning,
@@ -1394,8 +1397,9 @@ class _PaymentFormScreenState extends ConsumerState<PaymentFormScreen> {
         FiatCurrency.maybeFromCode(
           _paymentCurrency ?? _selectedLoan!.currencyCode,
         )?.symbol ??
-        'C\$';
+        r'C$';
 
+    if (!mounted) return;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -1463,10 +1467,10 @@ class _PaymentFormScreenState extends ConsumerState<PaymentFormScreen> {
 
       // Calculate amounts in different currencies using CONSOLIDATED LOGIC
       // This ensures Payment record and Allocations use exact same values
-      int amountLoanMinor = amountMinor;
-      int amountBaseMinor = amountMinor;
-      int fxProfitMinor = 0;
-      double remainingInLoanCurrency = amount; // Default if no conversion
+      var amountLoanMinor = amountMinor;
+      var amountBaseMinor = amountMinor;
+      var fxProfitMinor = 0;
+      var remainingInLoanCurrency = amount; // Default if no conversion
 
       if (appliedRate != null &&
           appliedRate > 0 &&
@@ -1514,7 +1518,6 @@ class _PaymentFormScreenState extends ConsumerState<PaymentFormScreen> {
           rateType: appliedRate != null ? 'MANUAL' : null,
           rateValue: appliedRate,
         ),
-        status: 'VALID',
         createdAt: now,
         updatedAt: now,
         customerId: _selectedCustomer!.customerId,
@@ -1526,7 +1529,7 @@ class _PaymentFormScreenState extends ConsumerState<PaymentFormScreen> {
       // Create allocations using the PRE-CALCULATED remainingInLoanCurrency
       // This guarantees consistency with the Payment record
       final allocations = <PaymentAllocation>[];
-      double remaining = remainingInLoanCurrency;
+      var remaining = remainingInLoanCurrency;
 
       // Calculate total owed based on declaredType to cap allocations
       // This prevents FX conversion excess from being applied to future debt
@@ -1549,22 +1552,16 @@ class _PaymentFormScreenState extends ConsumerState<PaymentFormScreen> {
           .where((c) => !c.dueDate.isBefore(today))
           .toList();
 
-      double totalOwed = 0.0;
+      double totalOwed = 0;
       if (_declaredType == 'INTEREST') {
         // For INTEREST-only, only pay overdue cycles
         // Do NOT include current/pending cycles - FX excess should NOT apply to them
-        totalOwed = overdueCycles.fold(
-          0.0,
-          (sum, c) => sum + c.interestPending,
-        );
+        totalOwed = overdueCycles.fold(0, (sum, c) => sum + c.interestPending);
         // NOTE: We intentionally exclude currentCycles here
         // Any FX conversion excess will be stored in unapplied_minor
       } else if (_declaredType == 'CANCEL') {
         // For CANCEL, include all interest + principal
-        totalOwed = overdueCycles.fold(
-          0.0,
-          (sum, c) => sum + c.interestPending,
-        );
+        totalOwed = overdueCycles.fold(0, (sum, c) => sum + c.interestPending);
         if (_dailyAccrualEnabled && _calculatedPartialInterest > 0) {
           totalOwed += _calculatedPartialInterest;
         } else {
@@ -1576,10 +1573,7 @@ class _PaymentFormScreenState extends ConsumerState<PaymentFormScreen> {
         totalOwed += _selectedLoan!.principalBalance;
       } else {
         // MIXED: all interest + principal
-        totalOwed = overdueCycles.fold(
-          0.0,
-          (sum, c) => sum + c.interestPending,
-        );
+        totalOwed = overdueCycles.fold(0, (sum, c) => sum + c.interestPending);
         totalOwed += currentCycles.fold(
           0.0,
           (sum, c) => sum + c.interestPending,
@@ -1639,8 +1633,10 @@ class _PaymentFormScreenState extends ConsumerState<PaymentFormScreen> {
           // Or use cycle.principalPortion if available
           final installmentPending =
               cycle.installmentPending ?? interestPending;
-          double principalPortion = (installmentPending - interestPending)
-              .clamp(0.0, double.infinity);
+          var principalPortion = (installmentPending - interestPending).clamp(
+            0.0,
+            double.infinity,
+          );
 
           // Fallback: Use stored principalPortion if calculation returns 0
           if (principalPortion <= 0 && (cycle.principalPortion ?? 0) > 0) {
@@ -1735,7 +1731,6 @@ class _PaymentFormScreenState extends ConsumerState<PaymentFormScreen> {
                 loanId: _selectedLoan!.loanId,
                 allocationType: 'INTEREST',
                 amountLoanMinor: (partialToApply * 100).round(),
-                billingCycleId: null,
                 createdAt: now,
               ),
             );
@@ -1774,7 +1769,7 @@ class _PaymentFormScreenState extends ConsumerState<PaymentFormScreen> {
           .registerPayment(paymentWithUnapplied, allocations);
 
       await _handleSuccessAndRefresh(createdPayment, allocations: allocations);
-    } catch (e) {
+    } on Exception catch (e) {
       _handleError(e);
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -1787,28 +1782,29 @@ class _PaymentFormScreenState extends ConsumerState<PaymentFormScreen> {
   }) async {
     if (mounted) {
       // Refresh ALL related providers to update UI everywhere
-      ref.invalidate(appSettingsProvider); // Force settings refresh
-      ref.invalidate(cobrarProvider);
-      ref.invalidate(loansProvider);
-      ref.invalidate(
-        activeLoansByCustomerProvider(_selectedCustomer!.customerId),
-      );
-      ref.invalidate(loansByCustomerProvider(_selectedCustomer!.customerId));
-      ref.invalidate(allPaymentsProvider);
-
-      // Refresh loan detail and billing cycles for the specific loan
-      ref.invalidate(loanByIdProvider(_selectedLoan!.loanId));
-      ref.invalidate(billingCyclesByLoanProvider(_selectedLoan!.loanId));
-      ref.invalidate(paymentsByLoanProvider(_selectedLoan!.loanId));
+      ref
+        ..invalidate(appSettingsProvider) // Force settings refresh
+        ..invalidate(cobrarProvider)
+        ..invalidate(loansProvider)
+        ..invalidate(
+          activeLoansByCustomerProvider(_selectedCustomer!.customerId),
+        )
+        ..invalidate(loansByCustomerProvider(_selectedCustomer!.customerId))
+        ..invalidate(allPaymentsProvider)
+        // Refresh loan detail and billing cycles for the specific loan
+        ..invalidate(loanByIdProvider(_selectedLoan!.loanId))
+        ..invalidate(billingCyclesByLoanProvider(_selectedLoan!.loanId))
+        ..invalidate(paymentsByLoanProvider(_selectedLoan!.loanId));
 
       // Refresh dashboard stats
-      ref.read(dashboardProvider.notifier).refresh();
+      await ref.read(dashboardProvider.notifier).refresh();
 
       // Invalidate loan calculation cache to force update on previous screen
       ref.invalidate(loanCalculationProvider);
       if (_selectedLoan != null) {
-        ref.invalidate(loanByIdProvider(_selectedLoan!.loanId));
-        ref.invalidate(pendingBillingCyclesProvider(_selectedLoan!.loanId));
+        ref
+          ..invalidate(loanByIdProvider(_selectedLoan!.loanId))
+          ..invalidate(pendingBillingCyclesProvider(_selectedLoan!.loanId));
 
         // CRITICAL: Refresh local _pendingCycles to prevent stale data
         // on consecutive payments within the same session
@@ -1818,10 +1814,11 @@ class _PaymentFormScreenState extends ConsumerState<PaymentFormScreen> {
       // TRIGGER AUTO BACKUP
       final backupSettings = ref.read(appSettingsProvider).value;
       if (backupSettings != null && backupSettings.backupOnPayment) {
-        ref
-            .read(backupServiceProvider)
-            .createBackup(customName: backupSettings.backupCustomName)
-            .then((_) => debugPrint('Auto backup triggered (Payment)'));
+        unawaited(
+          ref
+              .read(backupServiceProvider)
+              .createBackup(customName: backupSettings.backupCustomName),
+        );
       }
 
       // Check for WhatsApp Auto-Share
@@ -1840,27 +1837,29 @@ class _PaymentFormScreenState extends ConsumerState<PaymentFormScreen> {
             FiatCurrency loanCurrency;
             try {
               loanCurrency = FiatCurrency.fromCode(_selectedLoan!.currencyCode);
-            } catch (_) {
+            } on Exception catch (_) {
               loanCurrency = FiatCurrency.fromCode('NIO');
             }
 
             // FETCH FRESH LOAN OBJECT to ensure PDF has updated balance
+            final locale = Localizations.localeOf(context);
             Loan? updatedLoan;
             try {
               updatedLoan = await ref.read(
                 loanByIdProvider(_selectedLoan!.loanId).future,
               );
-            } catch (e) {
-              debugPrint('Error fetching updated loan for receipt: $e');
+            } on Exception catch (_) {
+              // Ignore error fetching updated loan
             }
 
+            if (!mounted) return;
             await WhatsAppService.sharePaymentReceipt(
               payment: createdPayment,
               loan: updatedLoan ?? _selectedLoan!, // Use fresh or fallback
               customer: customer,
               allocations: allocations,
               settings: settings,
-              locale: Localizations.localeOf(context),
+              locale: locale,
               currencySymbol: loanCurrency.symbol ?? loanCurrency.code,
             );
           } else if (mounted) {
@@ -1884,10 +1883,12 @@ class _PaymentFormScreenState extends ConsumerState<PaymentFormScreen> {
         );
 
         // Check if loan is paid off (balance = 0) and show rating dialog
+        if (!mounted) return;
         final updatedLoan = await ref.read(
           loanByIdProvider(_selectedLoan!.loanId).future,
         );
         if (updatedLoan != null && updatedLoan.principalBalance <= 0) {
+          if (!mounted) return;
           await _showRatingDialog();
         }
 
@@ -1928,7 +1929,7 @@ class _PaymentFormScreenState extends ConsumerState<PaymentFormScreen> {
               Text(S.of(context).rateCustomerPrompt),
               const SizedBox(height: 16),
               DropdownButtonFormField<String?>(
-                value: selectedCategoryId,
+                initialValue: selectedCategoryId,
                 decoration: InputDecoration(
                   labelText: S.of(context).customerCategory,
                   border: const OutlineInputBorder(),
@@ -2013,9 +2014,9 @@ class _PaymentFormScreenState extends ConsumerState<PaymentFormScreen> {
   }
 
   String get _currencySymbol {
-    if (_selectedLoan == null) return 'C\$';
+    if (_selectedLoan == null) return r'C$';
     return FiatCurrency.maybeFromCode(_selectedLoan!.currencyCode)?.symbol ??
-        'C\$';
+        r'C$';
   }
 
   Widget _buildPaymentCurrencySelector() {
@@ -2030,10 +2031,8 @@ class _PaymentFormScreenState extends ConsumerState<PaymentFormScreen> {
         final newCode = await Navigator.push<String>(
           context,
           MaterialPageRoute(
-            builder: (context) => CurrencySelectionScreen(
-              initialValue: currentCode,
-              isGlobalUpdate: false,
-            ),
+            builder: (context) =>
+                CurrencySelectionScreen(initialValue: currentCode),
           ),
         );
 
@@ -2054,16 +2053,16 @@ class _PaymentFormScreenState extends ConsumerState<PaymentFormScreen> {
                 _officialSellRate = rate;
                 _exchangeRateController.text = rate.toStringAsFixed(4);
               });
-            } catch (_) {}
+            } on Exception catch (_) {}
           }
         }
       },
       child: InputDecorator(
-        decoration: const InputDecoration(
-          labelText: 'Moneda de Pago', // TODO: Localize
-          border: OutlineInputBorder(),
-          prefixIcon: Icon(Icons.monetization_on_outlined),
-          suffixIcon: Icon(Icons.arrow_drop_down),
+        decoration: InputDecoration(
+          labelText: S.of(context).paymentCurrency,
+          border: const OutlineInputBorder(),
+          prefixIcon: const Icon(Icons.monetization_on_outlined),
+          suffixIcon: const Icon(Icons.arrow_drop_down),
         ),
         child: Text(
           displayText,
@@ -2084,14 +2083,14 @@ class _PaymentFormScreenState extends ConsumerState<PaymentFormScreen> {
     }
 
     return AppCard(
-      title: 'Tasa de Cambio', // TODO: Localize
+      title: S.of(context).exchangeRateLabel,
       child: Column(
         children: [
           Row(
             children: [
               Expanded(
                 child: AppTextField(
-                  label: 'Tasa de Cambio Aplicada', // Todo: Localize
+                  label: S.of(context).appliedRate,
                   controller: _exchangeRateController,
                   keyboardType: const TextInputType.numberWithOptions(
                     decimal: true,

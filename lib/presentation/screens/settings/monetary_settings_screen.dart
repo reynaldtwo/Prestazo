@@ -2,17 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:prestamos_app/core/localization/locale_provider.dart';
+import 'package:prestamos_app/core/theme/app_colors.dart';
+import 'package:prestamos_app/core/theme/app_typography.dart';
+import 'package:prestamos_app/core/utils/currency_utils.dart';
+import 'package:prestamos_app/core/widgets/widgets.dart';
+import 'package:prestamos_app/data/providers/providers.dart';
+import 'package:prestamos_app/presentation/screens/settings/currency_selection_screen.dart';
 
-import '../../../core/theme/app_colors.dart';
-import '../../../core/theme/app_typography.dart';
-import '../../../core/widgets/widgets.dart';
-import '../../../data/providers/providers.dart';
-import '../../../core/localization/locale_provider.dart';
-import '../../../../core/utils/currency_utils.dart';
-
-import 'currency_selection_screen.dart';
-
+/// Pantalla de configuración monetaria.
 class MonetarySettingsScreen extends ConsumerStatefulWidget {
+  /// Crea una instancia de [MonetarySettingsScreen].
   const MonetarySettingsScreen({super.key});
 
   @override
@@ -39,7 +39,7 @@ class _MonetarySettingsScreenState
       _availableCapital = settings.availableCapital;
       _validateCapital = settings.validateCapital;
       _snapshotPolicy = settings.allowManualExchangeRate;
-      _capitalController.text = _availableCapital.toStringAsFixed(0);
+      _capitalController.text = _availableCapital.toStringAsFixed(2);
     });
   }
 
@@ -66,11 +66,11 @@ class _MonetarySettingsScreenState
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Gestión Monetaria', // Localization TODO
+              S.of(context).monetaryManagement,
               style: AppTypography.titleMedium,
             ),
             Text(
-              'Monedas, Capital y Tasas', // Localization TODO
+              S.of(context).monetarySubtitle,
               style: AppTypography.bodySmall.copyWith(
                 color: AppColors.textSecondary,
                 fontSize: 12,
@@ -88,7 +88,7 @@ class _MonetarySettingsScreenState
             padding: const EdgeInsets.all(16),
             children: [
               // 1. Base Configuration Section
-              _buildSectionHeader(context, 'Configuración Base'), // Loc TODO
+              _buildSectionHeader(context, S.of(context).baseConfiguration),
               const SizedBox(height: 8),
               AppCard(
                 child: Column(
@@ -111,7 +111,6 @@ class _MonetarySettingsScreenState
                             MaterialPageRoute(
                               builder: (context) => CurrencySelectionScreen(
                                 initialValue: baseCurrency,
-                                isGlobalUpdate: false,
                               ),
                             ),
                           );
@@ -127,6 +126,7 @@ class _MonetarySettingsScreenState
                               settings.reportCurrency,
                             );
                             if (!isValid) return;
+                            if (!context.mounted) return;
 
                             await _handleBaseCurrencyChange(
                               context,
@@ -140,7 +140,7 @@ class _MonetarySettingsScreenState
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       child: Text(
-                        '${S.of(context).baseCurrencyDesc}',
+                        S.of(context).baseCurrencyDesc,
                         style: AppTypography.bodySmall,
                       ),
                     ),
@@ -267,24 +267,21 @@ class _MonetarySettingsScreenState
                           Row(
                             children: [
                               Text(
-                                'Prioridad en Recuperación',
+                                S.of(context).recoveryPriority,
                                 style: AppTypography.bodyMedium,
                               ),
                               const SizedBox(width: 8),
                               _buildInfoButton(
-                                title: 'Prioridad en Recuperación',
-                                func:
-                                    'Define cómo se aplica el pago cuando se utiliza la opción "Recuperar".',
-                                affects:
-                                    'Afecta el orden de reducción de la deuda en pagos de recuperación.',
-                                example:
-                                    'Priorizar Capital: El pago reduce primero el capital prestado. Priorizar Interés: El pago reduce primero los intereses vencidos.',
+                                title: S.of(context).recoveryPriority,
+                                func: S.of(context).recoveryPriorityDesc,
+                                affects: S.of(context).recoveryPriorityAffects,
+                                example: S.of(context).recoveryPriorityEx,
                               ),
                             ],
                           ),
                           const SizedBox(height: 8),
                           DropdownButtonFormField<String>(
-                            value: settings.recoveryPriority,
+                            initialValue: settings.recoveryPriority,
                             decoration: InputDecoration(
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(8),
@@ -294,14 +291,14 @@ class _MonetarySettingsScreenState
                                 vertical: 8,
                               ),
                             ),
-                            items: const [
+                            items: [
                               DropdownMenuItem(
                                 value: 'CAPITAL_FIRST',
-                                child: Text('Priorizar Capital (Recomendado)'),
+                                child: Text(S.of(context).prioritizeCapital),
                               ),
                               DropdownMenuItem(
                                 value: 'INTEREST_FIRST',
-                                child: Text('Priorizar Interés Vencido'),
+                                child: Text(S.of(context).prioritizeInterest),
                               ),
                             ],
                             onChanged: (value) {
@@ -398,7 +395,6 @@ class _MonetarySettingsScreenState
                       MaterialPageRoute(
                         builder: (context) => CurrencySelectionScreen(
                           initialValue: settings.reportCurrency,
-                          isGlobalUpdate: false,
                         ),
                       ),
                     );
@@ -414,7 +410,8 @@ class _MonetarySettingsScreenState
                       );
                       if (!isValid) return;
 
-                      _updateReportCurrency(context, newCurrency);
+                      if (!context.mounted) return;
+                      await _updateReportCurrency(context, newCurrency);
                     }
                   },
                 ),
@@ -438,7 +435,7 @@ class _MonetarySettingsScreenState
       onTap: () => _showHelpDialog(title, func, affects, example),
       borderRadius: BorderRadius.circular(12),
       child: Padding(
-        padding: const EdgeInsets.all(4.0),
+        padding: const EdgeInsets.all(4),
         child: Icon(
           Icons.info_outline,
           size: 20,
@@ -454,7 +451,7 @@ class _MonetarySettingsScreenState
     String affects,
     String example,
   ) {
-    showDialog(
+    showDialog<void>(
       context: context,
       builder: (ctx) => AlertDialog(
         title: Row(
@@ -472,7 +469,7 @@ class _MonetarySettingsScreenState
               _buildHelpSection(S.of(context).helpFunc, func),
               const SizedBox(height: 12),
               _buildHelpSection(S.of(context).helpAffects, affects),
-              if (example != "---") ...[
+              if (example != '---') ...[
                 const SizedBox(height: 12),
                 _buildHelpSection(S.of(context).helpExample, example),
               ],
@@ -544,7 +541,7 @@ class _MonetarySettingsScreenState
       ),
     );
 
-    if (confirm == true && mounted) {
+    if ((confirm ?? false) && context.mounted) {
       try {
         // Calculate new capital
         final currencyService = await ref.read(currencyServiceProvider.future);
@@ -562,10 +559,10 @@ class _MonetarySettingsScreenState
 
           setState(() {
             _availableCapital = newCapital;
-            _capitalController.text = newCapital.toStringAsFixed(0);
+            _capitalController.text = newCapital.toStringAsFixed(2);
           });
 
-          if (mounted) {
+          if (context.mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(
@@ -575,7 +572,7 @@ class _MonetarySettingsScreenState
             );
           }
         }
-      } catch (e) {
+      } on Exception catch (_) {
         await _saveSetting('base_currency', newCurrency);
       }
       ref.invalidate(appSettingsProvider);
@@ -591,7 +588,7 @@ class _MonetarySettingsScreenState
     ref.invalidate(appSettingsProvider);
     ref.read(refreshTriggerProvider.notifier).state++;
 
-    if (mounted) {
+    if (context.mounted) {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text(S.of(context).currencyUpdated)));
@@ -610,13 +607,13 @@ class _MonetarySettingsScreenState
     final hasRate = await service.hasRateForToday(source, target);
 
     if (!hasRate && context.mounted) {
-      await showDialog(
+      await showDialog<void>(
         context: context,
         builder: (ctx) => AlertDialog(
           title: Row(
             children: [
-              Icon(Icons.warning_amber, color: AppColors.warning),
-              SizedBox(width: 8),
+              const Icon(Icons.warning_amber, color: AppColors.warning),
+              const SizedBox(width: 8),
               // Using existing general error title or validations title
               Text(S.of(context).validations),
             ],

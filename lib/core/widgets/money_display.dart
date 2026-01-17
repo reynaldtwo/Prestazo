@@ -1,27 +1,39 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../theme/app_colors.dart';
-import '../theme/app_typography.dart';
-import '../providers/currency_provider.dart';
+import 'package:prestamos_app/core/providers/currency_provider.dart';
+import 'package:prestamos_app/core/theme/app_colors.dart';
+import 'package:prestamos_app/core/theme/app_typography.dart';
 
 /// Money display widget with consistent formatting
 class MoneyDisplay extends ConsumerWidget {
-  final double amount;
-  final MoneyDisplaySize size;
-  final Color? color;
-  final bool showSign;
-  final bool showCurrency;
-  final String? currencySymbol; // Made nullable
-
+  /// Crea un [MoneyDisplay] para mostrar montos monetarios formateados.
   const MoneyDisplay({
-    super.key,
     required this.amount,
+    super.key,
     this.size = MoneyDisplaySize.medium,
     this.color,
     this.showSign = false,
     this.showCurrency = true,
     this.currencySymbol, // default will be pulled from provider
   });
+
+  /// Cantidad numérica del monto a mostrar.
+  final double amount;
+
+  /// Tamaño visual del texto del dinero.
+  final MoneyDisplaySize size;
+
+  /// Color personalizado para el texto (si es nulo, usa colores semánticos por defecto).
+  final Color? color;
+
+  /// Indica si se debe mostrar siempre el signo (+ o -).
+  final bool showSign;
+
+  /// Indica si se debe mostrar el símbolo de la moneda.
+  final bool showCurrency;
+
+  /// Símbolo de moneda personalizado (si es nulo, usa el del proveedor global).
+  final String? currencySymbol;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -32,7 +44,7 @@ class MoneyDisplay extends ConsumerWidget {
     // Nicaraguan format: comma for thousands, dot for decimals
     final formattedAmount = _formatNicaraguan(amount.abs());
 
-    String displayText = '';
+    var displayText = '';
     if (showSign && amount != 0) {
       displayText = amount > 0 ? '+' : '-';
     } else if (amount < 0) {
@@ -80,7 +92,7 @@ class MoneyDisplay extends ConsumerWidget {
     // Add comma separators for thousands
     final buffer = StringBuffer();
     final digits = integerPart.split('').reversed.toList();
-    for (int i = 0; i < digits.length; i++) {
+    for (var i = 0; i < digits.length; i++) {
       if (i > 0 && i % 3 == 0) {
         buffer.write(',');
       }
@@ -91,24 +103,44 @@ class MoneyDisplay extends ConsumerWidget {
   }
 }
 
-enum MoneyDisplaySize { small, medium, large }
+/// Tamaños disponibles para el visualizador de dinero.
+enum MoneyDisplaySize {
+  /// Tamaño pequeño.
+  small,
+
+  /// Tamaño mediano (predeterminado).
+  medium,
+
+  /// Tamaño grande.
+  large,
+}
 
 /// Compact money display for lists
 class MoneyLabel extends StatelessWidget {
-  final String label;
-  final double amount;
-  final Color? amountColor;
-  final bool isCompact;
-  final String? currencySymbol;
-
+  /// Crea un [MoneyLabel] que combina una etiqueta descriptiva con un monto.
   const MoneyLabel({
-    super.key,
     required this.label,
     required this.amount,
+    super.key,
     this.amountColor,
     this.isCompact = false,
     this.currencySymbol,
   });
+
+  /// Etiqueta descriptiva (ej: "Capital").
+  final String label;
+
+  /// Monto monetario.
+  final double amount;
+
+  /// Color personalizado para el monto.
+  final Color? amountColor;
+
+  /// Indica si se debe mostrar en formato compacto (en una línea).
+  final bool isCompact;
+
+  /// Símbolo de moneda opcional.
+  final String? currencySymbol;
 
   @override
   Widget build(BuildContext context) {
@@ -137,7 +169,6 @@ class MoneyLabel extends StatelessWidget {
         const SizedBox(height: 4),
         MoneyDisplay(
           amount: amount,
-          size: MoneyDisplaySize.medium,
           color: amountColor,
           currencySymbol: currencySymbol,
         ),

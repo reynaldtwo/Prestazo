@@ -4113,6 +4113,42 @@ abstract class S {
   /// **'Color'**
   String get categoryColor;
 
+  /// No description provided for @recoveryPriority.
+  ///
+  /// In es, this message translates to:
+  /// **'Prioridad en Recuperación'**
+  String get recoveryPriority;
+
+  /// No description provided for @recoveryPriorityDesc.
+  ///
+  /// In es, this message translates to:
+  /// **'Define cómo se aplica el pago cuando se utiliza la opción \"Recuperar\".'**
+  String get recoveryPriorityDesc;
+
+  /// No description provided for @recoveryPriorityAffects.
+  ///
+  /// In es, this message translates to:
+  /// **'Afecta el orden de reducción de la deuda en pagos de recuperación.'**
+  String get recoveryPriorityAffects;
+
+  /// No description provided for @recoveryPriorityEx.
+  ///
+  /// In es, this message translates to:
+  /// **'Priorizar Capital: El pago reduce primero el capital prestado. Priorizar Interés: El pago reduce primero los intereses vencidos.'**
+  String get recoveryPriorityEx;
+
+  /// No description provided for @prioritizeCapital.
+  ///
+  /// In es, this message translates to:
+  /// **'Priorizar Capital (Recomendado)'**
+  String get prioritizeCapital;
+
+  /// No description provided for @prioritizeInterest.
+  ///
+  /// In es, this message translates to:
+  /// **'Priorizar Interés Vencido'**
+  String get prioritizeInterest;
+
   /// No description provided for @categoryRequired.
   ///
   /// In es, this message translates to:

@@ -8,14 +8,28 @@
 /// - Cycle interest calculations
 library;
 
-import '../data/models/billing_cycle.dart';
-import '../data/models/loan.dart';
+import 'package:prestamos_app/data/models/billing_cycle.dart';
+import 'package:prestamos_app/data/models/loan.dart';
 
 /// CENTRALIZED Loan Calculation Result
 ///
 /// This class is the SINGLE SOURCE OF TRUTH for all loan calculations.
 /// All UI components, validation, and reports MUST use this.
+/// Resultado centralizado de los cálculos de un préstamo.
+/// Esta clase es la única fuente de verdad para todos los cálculos.
 class LoanCalculationResult {
+  /// Crea una instancia de [LoanCalculationResult].
+  const LoanCalculationResult({
+    required this.overdueCycles,
+    required this.currentCycle,
+    required this.overdueInterest,
+    required this.currentCycleInterest,
+    required this.proportionalInterest,
+    required this.partialDays,
+    required this.totalPendingInterest,
+    required this.principalBalance,
+  });
+
   /// List of overdue cycles (due date < today)
   final List<BillingCycle> overdueCycles;
 
@@ -46,17 +60,6 @@ class LoanCalculationResult {
   /// Total debt (principal + totalPendingInterest)
   double get totalDebt => principalBalance + totalPendingInterest;
 
-  const LoanCalculationResult({
-    required this.overdueCycles,
-    required this.currentCycle,
-    required this.overdueInterest,
-    required this.currentCycleInterest,
-    required this.proportionalInterest,
-    required this.partialDays,
-    required this.totalPendingInterest,
-    required this.principalBalance,
-  });
-
   @override
   String toString() =>
       'LoanCalculationResult('
@@ -73,24 +76,34 @@ class LoanCalculationResult {
 typedef InterestCalculationResult = LoanCalculationResult;
 
 /// Result of payment allocation calculation
+/// Resultado de la distribución de un pago.
 class PaymentDistribution {
-  final double toOverdueInterest;
-  final double toCurrentInterest;
-  final double toPrincipal;
-  final double remainingAmount;
-
+  /// Crea una instancia de [PaymentDistribution].
   const PaymentDistribution({
     required this.toOverdueInterest,
     required this.toCurrentInterest,
     required this.toPrincipal,
     required this.remainingAmount,
   });
+
+  /// Monto destinado a cubrir intereses moratorios.
+  final double toOverdueInterest;
+
+  /// Monto destinado a cubrir intereses corrientes.
+  final double toCurrentInterest;
+
+  /// Monto destinado a cubrir el capital.
+  final double toPrincipal;
+
+  /// Monto sobrante después de la distribución.
+  final double remainingAmount;
 }
 
-/// Service for centralized interest calculations
+/// Servicio centralizado para cálculos de intereses.
 class InterestCalculationService {
   InterestCalculationService._();
 
+  /// Instancia única (singleton) de [InterestCalculationService].
   static final InterestCalculationService instance =
       InterestCalculationService._();
 
@@ -166,14 +179,14 @@ class InterestCalculationService {
       dailyAccrualEnabled: dailyAccrualEnabled,
     );
 
-    double remaining = paymentAmount;
+    var remaining = paymentAmount;
     double toOverdue = 0;
     double toCurrent = 0;
     double toPrincipal = 0;
 
     // Logic Branch: Capital First or Interest First?
     // Capital First applies ONLY if Type is RECOVERY AND user configured CAPITAL_FIRST.
-    final bool prioritizeCapital =
+    final prioritizeCapital =
         paymentType == 'RECOVERY' && recoveryPriority == 'CAPITAL_FIRST';
 
     // A. Capital First Allocation (Step 1 of 2)
@@ -298,7 +311,7 @@ class InterestCalculationService {
     );
     double currentCycleInterest = 0;
     double partialInterest = 0;
-    int partialDays = 0;
+    var partialDays = 0;
 
     if (currentCycle != null) {
       final cycleStart = DateTime(
@@ -307,25 +320,42 @@ class InterestCalculationService {
         currentCycle.periodStartDate.day,
       );
 
-      // For CANCEL: ALWAYS calculate proportional interest for current cycle
+      // For CANCEL: Calculate proportional interest for current cycle
       // This ensures fair billing when cancelling mid-cycle
       if (paymentType == 'CANCEL') {
         // Days elapsed in current cycle (from cycle start to payment date)
         partialDays = paymentDateOnly.difference(cycleStart).inDays;
         if (partialDays < 1) partialDays = 1;
 
-        // Calculate cycle length in days
-        final cycleEnd = DateTime(
-          currentCycle.periodEndDate.year,
-          currentCycle.periodEndDate.month,
-          currentCycle.periodEndDate.day,
-        );
-        final cycleLengthDays = cycleEnd.difference(cycleStart).inDays;
-        final effectiveCycleLength = cycleLengthDays > 0 ? cycleLengthDays : 15;
+        // V32: Use policy-based calculation from loan snapshot
+        // If loanProrationRule == 'EXACT_DAYS': use actual calendar days
+        // If loanProrationRule == 'CYCLE_PROPORTION': use cycle length
+        final useExactDays = loan.loanProrationRule == 'EXACT_DAYS';
+        final daysPerMonth = loan.loanDaysPerMonth ?? 30;
 
-        // Proportional interest = expected interest * (days elapsed / cycle length)
-        final expectedInterest = currentCycle.interestExpected;
-        partialInterest = expectedInterest * partialDays / effectiveCycleLength;
+        if (useExactDays) {
+          // EXACT_DAYS: interest = principal * (rate/100) * (partialDays / daysPerMonth)
+          // This uses the configured days per month (30, or from policy)
+          final monthlyInterest =
+              loan.principalBalance * (loan.monthlyInterestRate / 100);
+          partialInterest = monthlyInterest * partialDays / daysPerMonth;
+        } else {
+          // CYCLE_PROPORTION: proportional to cycle length (original behavior)
+          final cycleEnd = DateTime(
+            currentCycle.periodEndDate.year,
+            currentCycle.periodEndDate.month,
+            currentCycle.periodEndDate.day,
+          );
+          final cycleLengthDays = cycleEnd.difference(cycleStart).inDays;
+          final effectiveCycleLength = cycleLengthDays > 0
+              ? cycleLengthDays
+              : daysPerMonth;
+
+          // Proportional interest = expected interest * (days elapsed / cycle length)
+          final expectedInterest = currentCycle.interestExpected;
+          partialInterest =
+              expectedInterest * partialDays / effectiveCycleLength;
+        }
         currentCycleInterest = _roundMoney(partialInterest);
       } else if (paymentType == 'INTEREST') {
         // INTEREST (Solo Interés): DO NOT include current cycle per fix.md #3A
@@ -406,9 +436,10 @@ class InterestCalculationService {
     return _roundMoney(calculateMonthlyInterest(loan) / 2);
   }
 
-  /// Calculate daily interest rate based on monthly rate
+  /// Calculate daily interest rate based on monthly rate and policy
   double calculateDailyInterest(Loan loan) {
-    return _roundMoney(calculateMonthlyInterest(loan) / 30);
+    final daysPerMonth = loan.loanDaysPerMonth ?? 30;
+    return _roundMoney(calculateMonthlyInterest(loan) / daysPerMonth);
   }
 
   /// Round to 2 decimal places for money

@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../../core/theme/app_colors.dart';
-import '../../../core/theme/app_typography.dart';
-import '../../../core/widgets/widgets.dart';
-import '../../../data/providers/database_providers.dart';
-import '../../../core/localization/locale_provider.dart';
+import 'package:prestamos_app/core/localization/locale_provider.dart';
+import 'package:prestamos_app/core/theme/app_colors.dart';
+import 'package:prestamos_app/core/theme/app_typography.dart';
+import 'package:prestamos_app/core/widgets/widgets.dart';
+import 'package:prestamos_app/data/providers/database_providers.dart';
 
+/// Pantalla para configurar el formato de DNI.
 class DniFormatScreen extends ConsumerStatefulWidget {
+  /// Crea una instancia de [DniFormatScreen].
   const DniFormatScreen({super.key});
 
   @override
@@ -46,14 +48,14 @@ class _DniFormatScreenState extends ConsumerState<DniFormatScreen> {
     if (mask.isEmpty) return true;
     if (input.length != mask.length) return false;
 
-    for (int i = 0; i < mask.length; i++) {
+    for (var i = 0; i < mask.length; i++) {
       final maskChar = mask[i];
       final inputChar = input[i];
 
       if (maskChar == '#') {
         if (!RegExp(r'\d').hasMatch(inputChar)) return false;
       } else if (maskChar == '@') {
-        if (!RegExp(r'[a-zA-Z]').hasMatch(inputChar)) return false;
+        if (!RegExp('[a-zA-Z]').hasMatch(inputChar)) return false;
       } else if (maskChar == '*') {
         // Any char is fine
       } else {
@@ -85,7 +87,7 @@ class _DniFormatScreenState extends ConsumerState<DniFormatScreen> {
         );
         context.pop();
       }
-    } catch (e) {
+    } on Exception catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -101,9 +103,9 @@ class _DniFormatScreenState extends ConsumerState<DniFormatScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final validationResult = _validateFormat
-        ? _validateInput(_testController.text, _maskController.text)
-        : true;
+    final validationResult =
+        !_validateFormat ||
+        _validateInput(_testController.text, _maskController.text);
 
     return Scaffold(
       appBar: AppBar(title: Text(S.of(context).dniFormatTitle)),

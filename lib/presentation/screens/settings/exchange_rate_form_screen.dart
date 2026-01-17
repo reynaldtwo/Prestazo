@@ -2,17 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
-import '../../../core/theme/app_colors.dart';
-import '../../../core/theme/app_typography.dart';
-import '../../../core/widgets/widgets.dart';
-import '../../../data/models/exchange_rate.dart';
-import '../../../data/providers/database_providers.dart';
-import '../../../core/localization/locale_provider.dart';
+import 'package:prestamos_app/core/localization/locale_provider.dart';
+import 'package:prestamos_app/core/theme/app_colors.dart';
+import 'package:prestamos_app/core/theme/app_typography.dart';
+import 'package:prestamos_app/core/widgets/widgets.dart';
+import 'package:prestamos_app/data/models/exchange_rate.dart';
+import 'package:prestamos_app/data/providers/database_providers.dart';
 
+/// Pantalla de formulario para crear o editar una tasa de cambio.
 class ExchangeRateFormScreen extends ConsumerStatefulWidget {
-  final String? rateId;
-
+  /// Crea una instancia de [ExchangeRateFormScreen].
   const ExchangeRateFormScreen({super.key, this.rateId});
+
+  /// ID opcional de la tasa de cambio a editar.
+  final String? rateId;
 
   @override
   ConsumerState<ExchangeRateFormScreen> createState() =>
@@ -56,7 +59,7 @@ class _ExchangeRateFormScreenState
         _selectedDate = _existingRate!.date;
         _buyController.text = _existingRate!.buyRate.toString();
         _sellController.text = _existingRate!.sellRate.toString();
-      } catch (e) {
+      } on Exception catch (e) {
         // Handle error if rate not found
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -118,7 +121,7 @@ class _ExchangeRateFormScreenState
     if (_sourceCurrency == _targetCurrency) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Las monedas deben ser diferentes'), // Loc TODO
+          content: Text('Las monedas deben ser diferentes'),
           backgroundColor: AppColors.warning,
         ),
       );
@@ -153,6 +156,7 @@ class _ExchangeRateFormScreenState
         );
 
         if (exists) {
+          if (!mounted) return;
           throw Exception(S.of(context).rateAlreadyExists);
         }
 
@@ -168,7 +172,7 @@ class _ExchangeRateFormScreenState
       if (mounted) {
         context.pop(true); // Return success
       }
-    } catch (e) {
+    } on Exception catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -256,10 +260,12 @@ class _ExchangeRateFormScreenState
                         decimal: true,
                       ),
                       validator: (v) {
-                        if (v == null || v.isEmpty)
+                        if (v == null || v.isEmpty) {
                           return S.of(context).requiredField;
-                        if (double.tryParse(v) == null)
+                        }
+                        if (double.tryParse(v) == null) {
                           return S.of(context).invalidRate;
+                        }
                         return null;
                       },
                     ),
@@ -274,10 +280,12 @@ class _ExchangeRateFormScreenState
                         decimal: true,
                       ),
                       validator: (v) {
-                        if (v == null || v.isEmpty)
+                        if (v == null || v.isEmpty) {
                           return S.of(context).requiredField;
-                        if (double.tryParse(v) == null)
+                        }
+                        if (double.tryParse(v) == null) {
                           return S.of(context).invalidRate;
+                        }
                         return null;
                       },
                     ),

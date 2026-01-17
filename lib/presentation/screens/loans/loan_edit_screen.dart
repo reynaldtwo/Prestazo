@@ -2,21 +2,22 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
-import '../../../core/theme/app_colors.dart';
-import '../../../core/theme/app_typography.dart';
-import '../../../core/widgets/widgets.dart';
-import '../../../data/models/loan.dart';
-import '../../../data/providers/providers.dart';
-import '../../../core/providers/currency_provider.dart';
-import '../../../core/localization/locale_provider.dart';
-import '../../../data/providers/payment_frequency_provider.dart';
+import 'package:prestamos_app/core/localization/locale_provider.dart';
+import 'package:prestamos_app/core/providers/currency_provider.dart';
+import 'package:prestamos_app/core/theme/app_colors.dart';
+import 'package:prestamos_app/core/theme/app_typography.dart';
+import 'package:prestamos_app/core/widgets/widgets.dart';
+import 'package:prestamos_app/data/models/loan.dart';
+import 'package:prestamos_app/data/providers/providers.dart';
 
-/// Screen for editing an existing loan
-/// Note: Allows editing Capital, Date, Rate, Notes.
+/// Pantalla para editar un préstamo existente.
+/// Nota: Permite editar Capital, Fecha, Tasa, Notas.
 class LoanEditScreen extends ConsumerStatefulWidget {
-  final String loanId;
+  /// Crea una instancia de [LoanEditScreen].
+  const LoanEditScreen({required this.loanId, super.key});
 
-  const LoanEditScreen({super.key, required this.loanId});
+  /// Identificador único del préstamo a editar.
+  final String loanId;
 
   @override
   ConsumerState<LoanEditScreen> createState() => _LoanEditScreenState();
@@ -32,7 +33,7 @@ class _LoanEditScreenState extends ConsumerState<LoanEditScreen> {
   String _billingFrequency = 'MONTHLY';
   int? _paymentFrequencyDays;
 
-  Loan? _loan;
+  late Loan _loan;
   bool _isLoading = false;
   bool _isLoaded = false;
   String? _errorMessage;
@@ -53,7 +54,7 @@ class _LoanEditScreenState extends ConsumerState<LoanEditScreen> {
       if (loan != null) {
         setState(() {
           _loan = loan;
-          _rateController.text = loan.monthlyInterestRate.toStringAsFixed(1);
+          _rateController.text = loan.monthlyInterestRate.toStringAsFixed(2);
           _notesController.text = loan.notes ?? '';
           _principalController.text = loan.principalOriginal.toStringAsFixed(2);
           _disbursementDate = loan.disbursementDate;
@@ -69,7 +70,7 @@ class _LoanEditScreenState extends ConsumerState<LoanEditScreen> {
           _isLoaded = true;
         });
       }
-    } catch (e) {
+    } on Exception catch (e) {
       if (mounted) {
         setState(() {
           _errorMessage = 'Error al cargar datos: $e';
@@ -94,7 +95,7 @@ class _LoanEditScreenState extends ConsumerState<LoanEditScreen> {
         appBar: AppBar(title: const Text('Error')),
         body: Center(
           child: Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: const EdgeInsets.all(16),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -153,7 +154,6 @@ class _LoanEditScreenState extends ConsumerState<LoanEditScreen> {
             AppButton(
               label: 'Guardar y Recalcular',
               icon: Icons.save,
-              variant: AppButtonVariant.primary,
               isFullWidth: true,
               isLoading: _isLoading,
               onPressed: _saveLoan,
@@ -182,9 +182,9 @@ class _LoanEditScreenState extends ConsumerState<LoanEditScreen> {
             const Divider(height: 24),
             _buildInfoRow(
               'Saldo Actual',
-              currencyFormat.format(_loan!.principalBalance),
+              currencyFormat.format(_loan.principalBalance),
             ),
-            _buildInfoRow('Estado', _getStatusLabel(_loan!.status)),
+            _buildInfoRow('Estado', _getStatusLabel(_loan.status)),
           ],
         ),
       ),
@@ -329,25 +329,25 @@ class _LoanEditScreenState extends ConsumerState<LoanEditScreen> {
     try {
       final newPrincipal =
           double.tryParse(_principalController.text.replaceAll(',', '')) ??
-          _loan!.principalOriginal;
+          _loan.principalOriginal;
       final newRate = double.parse(_rateController.text);
       final notes = _notesController.text.trim();
 
       // Check if critical fields changed
-      final bool needsRecalculation =
-          newPrincipal != _loan!.principalOriginal ||
-          newRate != _loan!.monthlyInterestRate ||
-          _disbursementDate != _loan!.disbursementDate ||
-          _billingFrequency != _loan!.billingFrequency;
+      final needsRecalculation =
+          newPrincipal != _loan.principalOriginal ||
+          newRate != _loan.monthlyInterestRate ||
+          _disbursementDate != _loan.disbursementDate ||
+          _billingFrequency != _loan.billingFrequency;
 
-      double newBalance = _loan!.principalBalance;
-      if (newPrincipal != _loan!.principalOriginal) {
-        double paid = _loan!.principalOriginal - _loan!.principalBalance;
+      var newBalance = _loan.principalBalance;
+      if (newPrincipal != _loan.principalOriginal) {
+        final paid = _loan.principalOriginal - _loan.principalBalance;
         newBalance = newPrincipal - paid;
         if (newBalance < 0) newBalance = 0;
       }
 
-      final updatedLoan = _loan!.copyWith(
+      final updatedLoan = _loan.copyWith(
         principalOriginal: newPrincipal,
         principalBalance: newBalance,
         monthlyInterestRate: newRate,
@@ -369,13 +369,13 @@ class _LoanEditScreenState extends ConsumerState<LoanEditScreen> {
 
           await service.regenerateFutureCycles(updatedLoan);
 
-          ref.read(dashboardProvider.notifier).refresh();
-          ref.invalidate(loanByIdProvider(widget.loanId));
-          ref.invalidate(loansByCustomerProvider(updatedLoan.customerId));
-
-          // Force refresh of cycles and calculations
-          ref.invalidate(billingCyclesByLoanProvider(widget.loanId));
-          ref.invalidate(pendingBillingCyclesProvider(widget.loanId));
+          await ref.read(dashboardProvider.notifier).refresh();
+          ref
+            ..invalidate(loanByIdProvider(widget.loanId))
+            ..invalidate(loansByCustomerProvider(updatedLoan.customerId))
+            // Force refresh of cycles and calculations
+            ..invalidate(billingCyclesByLoanProvider(widget.loanId))
+            ..invalidate(pendingBillingCyclesProvider(widget.loanId));
         }
 
         if (mounted) {
@@ -395,7 +395,7 @@ class _LoanEditScreenState extends ConsumerState<LoanEditScreen> {
           ),
         );
       }
-    } catch (e) {
+    } on Exception catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -438,7 +438,7 @@ class _LoanEditScreenState extends ConsumerState<LoanEditScreen> {
           data: (frequencies) {
             return LayoutBuilder(
               builder: (context, constraints) {
-                final double itemWidth = (constraints.maxWidth - 8) / 2;
+                final itemWidth = (constraints.maxWidth - 8) / 2;
                 return Wrap(
                   spacing: 8,
                   runSpacing: 8,
@@ -543,13 +543,6 @@ class _LoanEditScreenState extends ConsumerState<LoanEditScreen> {
 }
 
 class _FrequencyOption extends StatelessWidget {
-  final String label;
-  final String subtitle;
-  final IconData icon;
-  final bool isSelected;
-  final VoidCallback onTap;
-  final bool isCompact;
-
   const _FrequencyOption({
     required this.label,
     required this.subtitle,
@@ -558,6 +551,12 @@ class _FrequencyOption extends StatelessWidget {
     required this.onTap,
     this.isCompact = false,
   });
+  final String label;
+  final String subtitle;
+  final IconData icon;
+  final bool isSelected;
+  final VoidCallback onTap;
+  final bool isCompact;
 
   @override
   Widget build(BuildContext context) {

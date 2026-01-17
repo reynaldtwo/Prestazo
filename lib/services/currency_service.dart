@@ -1,19 +1,20 @@
-import '../core/utils/finance_engine.dart';
-import '../data/models/app_settings.dart';
-import '../data/models/currency_context.dart';
-import '../data/repositories/exchange_rate_repository.dart';
+import 'package:prestamos_app/core/utils/finance_engine.dart';
+import 'package:prestamos_app/data/models/app_settings.dart';
+import 'package:prestamos_app/data/models/currency_context.dart';
+import 'package:prestamos_app/data/models/loan.dart';
+import 'package:prestamos_app/data/repositories/exchange_rate_repository.dart';
 
 /// Centralized service for currency conversion
 /// Uses STRICT rules: TODAY's Sell Rate ONLY, no fallbacks
 class CurrencyService {
-  final ExchangeRateRepository _exchangeRateRepo;
-  final AppSettings _settings;
-
+  /// Crea un [CurrencyService] con el repositorio de tasas y la configuración.
   CurrencyService({
     required ExchangeRateRepository exchangeRateRepo,
     required AppSettings settings,
   }) : _exchangeRateRepo = exchangeRateRepo,
        _settings = settings;
+  final ExchangeRateRepository _exchangeRateRepo;
+  final AppSettings _settings;
 
   // ============================================
   // UNIVERSAL CONTEXT & CONVERSION METHODS
@@ -159,24 +160,27 @@ class CurrencyService {
     List<dynamic> loans,
     CurrencyContext context,
   ) async {
-    double totalNormalizedBase = 0.0;
+    double totalNormalizedBase = 0;
     final baseCurrency = context.baseCurrency;
 
     // A. Normalization Phase (Caja Única)
-    for (var loan in loans) {
+    for (final item in loans) {
       String loanCurrencyCode;
       double principalBalance;
       double? appliedExchangeRate;
 
-      if (loan is Map) {
-        loanCurrencyCode = loan['currency_code'] ?? 'NIO';
-        principalBalance = (loan['principal_balance'] as num).toDouble();
-        appliedExchangeRate = (loan['applied_exchange_rate'] as num?)
+      if (item is Map) {
+        loanCurrencyCode = (item['currency_code'] as String?) ?? 'NIO';
+        principalBalance = (item['principal_balance'] as num).toDouble();
+        appliedExchangeRate = (item['applied_exchange_rate'] as num?)
             ?.toDouble();
+      } else if (item is Loan) {
+        loanCurrencyCode = item.currencyCode;
+        principalBalance = item.principalBalance;
+        appliedExchangeRate = item.appliedExchangeRate;
       } else {
-        loanCurrencyCode = loan.currencyCode;
-        principalBalance = loan.principalBalance;
-        appliedExchangeRate = loan.appliedExchangeRate;
+        // Final fallback for truly dynamic or other types
+        throw Exception('Unsupported loan type: ${item.runtimeType}');
       }
 
       if (loanCurrencyCode == baseCurrency.code) {
@@ -224,6 +228,7 @@ class CurrencyService {
   // LEGACY METHODS (for backward compatibility)
   // ============================================
 
+  /// Obtiene la tasa de cambio entre dos monedas para un tipo dado (BUY, SELL, MID).
   Future<double> getRate(
     String source,
     String target, {
@@ -269,14 +274,17 @@ class CurrencyService {
     return 1.0;
   }
 
+  /// Obtiene la tasa de cambio para desembolsos configurada en los ajustes.
   Future<double> getDisbursementRate(String source, String target) async {
     return getRate(source, target, type: _settings.disbursementRateType);
   }
 
+  /// Obtiene la tasa de cambio actual (MID) entre dos monedas.
   Future<double> getCurrentRate(String source, String target) async {
-    return getRate(source, target, type: 'MID');
+    return getRate(source, target);
   }
 
+  /// Obtiene la tasa de cambio para pagos configurada en los ajustes.
   Future<double> getPaymentRate(String source, String target) async {
     return getRate(source, target, type: _settings.paymentRateType);
   }
@@ -290,7 +298,7 @@ class CurrencyService {
     Map<String, double> amountsByCurrency,
     CurrencyContext context,
   ) async {
-    double totalInBase = 0.0;
+    double totalInBase = 0;
     final baseCurrency = context.baseCurrency.code;
 
     // Phase 1: Normalize all amounts to Base Currency
@@ -351,7 +359,7 @@ class CurrencyService {
     Map<String, double> amountsByCurrency,
     CurrencyContext context,
   ) async {
-    double totalInBase = 0.0;
+    double totalInBase = 0;
     final baseCurrency = context.baseCurrency.code;
 
     for (final entry in amountsByCurrency.entries) {
@@ -377,6 +385,7 @@ class CurrencyService {
     return totalInBase;
   }
 
+  /// Verifica si existe una tasa de cambio registrada para el día de hoy.
   Future<bool> hasRateForToday(String source, String target) async {
     return hasTodayRate(source, target);
   }

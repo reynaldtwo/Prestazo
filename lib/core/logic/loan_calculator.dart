@@ -1,16 +1,8 @@
-import 'dart:math';
-
-/// Result of a loan calculation
+/// Resultado detallado de un cálculo de préstamo.
 class LoanCalculationResult {
-  final int termDays;
-  final int installmentsCount;
-  final DateTime endDate;
-  final double totalPrincipal;
-  final double totalInterest;
-  final double totalPayable;
-  final double installmentAmount; // Regular installment
-  final double lastInstallmentAmount; // Adjusted last installment
+  // Ajuste de la última cuota
 
+  /// Crea un [LoanCalculationResult] con todos los detalles del cálculo.
   const LoanCalculationResult({
     required this.termDays,
     required this.installmentsCount,
@@ -22,13 +14,37 @@ class LoanCalculationResult {
     required this.lastInstallmentAmount,
   });
 
+  /// Plazo total del préstamo convertido a días.
+  final int termDays;
+
+  /// Cantidad total de cuotas calculadas.
+  final int installmentsCount;
+
+  /// Fecha estimada de finalización del préstamo.
+  final DateTime endDate;
+
+  /// Monto total del capital del préstamo.
+  final double totalPrincipal;
+
+  /// Monto total de intereses calculados.
+  final double totalInterest;
+
+  /// Suma total a pagar (capital + intereses).
+  final double totalPayable;
+
+  /// Monto de la cuota regular.
+  final double installmentAmount; // Regular installment
+
+  /// Monto de la última cuota (puede variar por centavos de ajuste).
+  final double lastInstallmentAmount;
+
   @override
   String toString() {
     return 'LoanCalculationResult(days: $termDays, installments: $installmentsCount, total: $totalPayable)';
   }
 }
 
-/// Standardized business logic for loan calculations
+/// Lógica de negocio estandarizada para cálculos de préstamos.
 class LoanCalculator {
   /// 1. Convert any term to days
   /// Uses commercial year (30 day months, 365 day years) logic as specified.
@@ -83,6 +99,7 @@ class LoanCalculator {
     required String termUnit, // 'Days', 'Weeks', 'Months', 'Years'
     required int frequencyDays,
     required DateTime disbursementDate,
+    int daysPerMonth = 30, // Policy configurable, defaults to 30
   }) {
     // Step 1: Term in Days
     final termDays = calculateTermInDays(term, termUnit);
@@ -111,13 +128,13 @@ class LoanCalculator {
 
     // Step 4: Total Interest (Add-on)
     // "Si el plazo está en meses: mesesEquivalentes = meses"
-    // "Si el plazo está en otra unidad: mesesEquivalentes = plazoDias / 30"
+    // "Si el plazo está en otra unidad: mesesEquivalentes = plazoDias / daysPerMonth"
     double equivalentMonths;
     final isMonths = termUnit == 'Months' || termUnit == 'Meses';
     if (isMonths) {
       equivalentMonths = term.toDouble();
     } else {
-      equivalentMonths = termDays / 30.0;
+      equivalentMonths = termDays / daysPerMonth;
     }
 
     // "interesTotal = capital * tasaMensual * mesesEquivalentes"

@@ -1,18 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
+import 'package:prestamos_app/core/localization/locale_provider.dart';
+import 'package:prestamos_app/core/theme/app_colors.dart';
+import 'package:prestamos_app/core/theme/app_typography.dart';
+import 'package:prestamos_app/core/widgets/app_text_field.dart';
+import 'package:prestamos_app/core/widgets/widgets.dart';
+import 'package:prestamos_app/data/models/payment_frequency.dart';
+import 'package:prestamos_app/data/providers/payment_frequency_provider.dart';
 import 'package:uuid/uuid.dart';
 
-import '../../../core/localization/locale_provider.dart';
-import '../../../core/theme/app_colors.dart';
-import '../../../core/theme/app_typography.dart';
-import '../../../core/widgets/widgets.dart';
-import '../../../data/models/payment_frequency.dart';
-import '../../../data/providers/payment_frequency_provider.dart';
-
-import '../../../core/widgets/app_text_field.dart';
-
+/// Pantalla para visualizar y gestionar las frecuencias de pago.
 class PaymentFrequenciesScreen extends ConsumerWidget {
+  /// Crea una instancia de [PaymentFrequenciesScreen].
   const PaymentFrequenciesScreen({super.key});
 
   @override
@@ -50,7 +49,7 @@ class PaymentFrequenciesScreen extends ConsumerWidget {
     BuildContext context, {
     PaymentFrequency? frequency,
   }) {
-    showDialog(
+    showDialog<void>(
       context: context,
       builder: (context) => _FrequencyDialog(frequency: frequency),
     );
@@ -58,23 +57,18 @@ class PaymentFrequenciesScreen extends ConsumerWidget {
 }
 
 class _FrequencyCard extends ConsumerWidget {
-  final PaymentFrequency frequency;
-
   const _FrequencyCard({required this.frequency});
+  final PaymentFrequency frequency;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isDefault = frequency.isDefault;
-    final statusColor = frequency.isActive
-        ? AppColors.success
-        : AppColors.danger;
-
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       child: ListTile(
         leading: CircleAvatar(
           backgroundColor: isDefault
-              ? AppColors.primary.withOpacity(0.1)
+              ? AppColors.primary.withValues(alpha: 0.1)
               : AppColors.surfaceVariant,
           child: Icon(
             Icons.calendar_today,
@@ -157,11 +151,10 @@ class _FrequencyCard extends ConsumerWidget {
 
     switch (value) {
       case 'edit':
-        showDialog(
+        await showDialog<void>(
           context: context,
           builder: (context) => _FrequencyDialog(frequency: frequency),
         );
-        break;
       case 'toggle_active':
         if (frequency.isActive) {
           // Check if used before deactivating
@@ -178,7 +171,6 @@ class _FrequencyCard extends ConsumerWidget {
         await notifier.updateFrequency(
           frequency.copyWith(isActive: !frequency.isActive),
         );
-        break;
       case 'delete':
         // Check if used before deleting
         final isUsed = await ref
@@ -208,19 +200,17 @@ class _FrequencyCard extends ConsumerWidget {
               ],
             ),
           );
-          if (confirm == true) {
+          if (confirm ?? false) {
             await notifier.delete(frequency.id);
           }
         }
-        break;
     }
   }
 }
 
 class _FrequencyDialog extends ConsumerStatefulWidget {
-  final PaymentFrequency? frequency;
-
   const _FrequencyDialog({this.frequency});
+  final PaymentFrequency? frequency;
 
   @override
   ConsumerState<_FrequencyDialog> createState() => _FrequencyDialogState();
@@ -277,10 +267,12 @@ class _FrequencyDialogState extends ConsumerState<_FrequencyDialog> {
       }
 
       if (mounted) Navigator.pop(context);
-    } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Error: $e')));
+    } on Exception catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: $e')));
+      }
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -327,7 +319,7 @@ class _FrequencyDialogState extends ConsumerState<_FrequencyDialog> {
             ),
             if (isDefault)
               Padding(
-                padding: const EdgeInsets.only(top: 8.0),
+                padding: const EdgeInsets.only(top: 8),
                 child: Text(
                   S.of(context).cantEditDefaultInterval,
                   style: const TextStyle(
