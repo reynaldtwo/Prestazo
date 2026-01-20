@@ -16,6 +16,7 @@ import 'package:prestamos_app/core/theme/theme_provider.dart';
 import 'package:prestamos_app/core/widgets/app_info_dialog.dart';
 import 'package:prestamos_app/core/widgets/widgets.dart';
 import 'package:prestamos_app/data/models/app_settings.dart';
+import 'package:prestamos_app/data/providers/cobrar_provider.dart';
 import 'package:prestamos_app/data/providers/database_providers.dart';
 import 'package:prestamos_app/presentation/screens/settings/financial_policy_screen.dart';
 import 'package:prestamos_app/services/services.dart';
@@ -46,6 +47,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   bool _isLoaded = false;
   bool _dailyAccrualEnabled = false;
   bool _allowMultipleLoans = false;
+  int _collectionPlanDays = 3;
 
   // Report settings state
   bool _showDisbursementSignatures = true;
@@ -75,6 +77,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     _shareReceiptsWhatsApp = settings.shareReceiptsWhatsApp;
     _enableCapitalRestriction = settings.enableCapitalRestriction;
     _capitalRestrictionDays = settings.capitalRestrictionDays;
+    _collectionPlanDays = settings.collectionPlanDays;
 
     _showDisbursementSignatures = settings.showDisbursementSignatures;
     _showPaymentSignatures = settings.showPaymentSignatures;
@@ -156,7 +159,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   Future<void> _saveSetting(String key, dynamic value) async {
     final repo = ref.read(settingsRepositoryProvider);
     await repo.updateSetting(key, value);
-    ref.invalidate(appSettingsProvider);
+    ref
+      ..invalidate(appSettingsProvider)
+      ..invalidate(cobrarProvider);
     // Force global refresh to update Dashboard and other screens dependent on settings
     ref.read(refreshTriggerProvider.notifier).state++;
   }
@@ -169,7 +174,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       appBar: AppBar(title: Text(S.of(context).settings)),
       body: settingsAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text(S.of(context).genericError(e))),
+        error: (e, _) =>
+            Center(child: Text(S.of(context).genericError(e.toString()))),
         data: (settings) {
           _loadSettings(settings);
           return RefreshIndicator(
@@ -818,6 +824,155 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     child: Icon(
                       Icons.add,
                       color: _moratoriumDays < 30
+                          ? (Theme.of(context).brightness == Brightness.dark
+                                ? AppColors.info
+                                : AppColors.primary)
+                          : Theme.of(context).colorScheme.outline,
+                      size: 20,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const Divider(),
+          // Collection Plan Days (Planificar cobro)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        S.of(context).collectionPlanDays,
+                        style: AppTypography.bodyMedium,
+                      ),
+                    ),
+                    InkWell(
+                      onTap: () {
+                        showAppInfoDialog(
+                          context,
+                          title: S.of(context).collectionPlanDaysTitle,
+                          info: S.of(context).collectionPlanDaysDescription,
+                        );
+                      },
+                      borderRadius: BorderRadius.circular(12),
+                      child: Padding(
+                        padding: const EdgeInsets.all(4),
+                        child: Icon(
+                          Icons.info_outline_rounded,
+                          size: 20,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  S.of(context).collectionPlanDaysDesc,
+                  style: AppTypography.bodySmall.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          // Counter with +/- buttons for collection plan days
+          Container(
+            decoration: BoxDecoration(
+              border: Border.all(
+                color: Theme.of(context).colorScheme.outlineVariant,
+              ),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Minus button
+                InkWell(
+                  onTap: _collectionPlanDays > 1
+                      ? () {
+                          setState(() => _collectionPlanDays--);
+                          _saveSetting(
+                            'collection_plan_days',
+                            _collectionPlanDays,
+                          );
+                        }
+                      : null,
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: _collectionPlanDays > 1
+                          ? (Theme.of(context).brightness == Brightness.dark
+                                    ? AppColors.info
+                                    : AppColors.primary)
+                                .withValues(alpha: 0.1)
+                          : Theme.of(
+                              context,
+                            ).colorScheme.surfaceContainerHighest,
+                      borderRadius: const BorderRadius.only(
+                        topLeft: Radius.circular(7),
+                        bottomLeft: Radius.circular(7),
+                      ),
+                    ),
+                    child: Icon(
+                      Icons.remove,
+                      color: _collectionPlanDays > 1
+                          ? (Theme.of(context).brightness == Brightness.dark
+                                ? AppColors.info
+                                : AppColors.primary)
+                          : Theme.of(context).colorScheme.outline,
+                      size: 20,
+                    ),
+                  ),
+                ),
+                // Value display
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                  color: Theme.of(context).colorScheme.surface,
+                  child: Text(
+                    '$_collectionPlanDays',
+                    style: AppTypography.titleMedium.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                // Plus button
+                InkWell(
+                  onTap: _collectionPlanDays < 30
+                      ? () {
+                          setState(() => _collectionPlanDays++);
+                          _saveSetting(
+                            'collection_plan_days',
+                            _collectionPlanDays,
+                          );
+                        }
+                      : null,
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: _collectionPlanDays < 30
+                          ? (Theme.of(context).brightness == Brightness.dark
+                                    ? AppColors.info
+                                    : AppColors.primary)
+                                .withValues(alpha: 0.1)
+                          : Theme.of(
+                              context,
+                            ).colorScheme.surfaceContainerHighest,
+                      borderRadius: const BorderRadius.only(
+                        topRight: Radius.circular(7),
+                        bottomRight: Radius.circular(7),
+                      ),
+                    ),
+                    child: Icon(
+                      Icons.add,
+                      color: _collectionPlanDays < 30
                           ? (Theme.of(context).brightness == Brightness.dark
                                 ? AppColors.info
                                 : AppColors.primary)
@@ -1959,7 +2114,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(S.of(context).genericError(e)),
+              content: Text(S.of(context).genericError(e.toString())),
               backgroundColor: AppColors.danger,
             ),
           );

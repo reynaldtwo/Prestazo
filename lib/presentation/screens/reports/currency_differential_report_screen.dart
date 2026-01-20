@@ -129,7 +129,8 @@ class CurrencyDifferentialReportScreen extends ConsumerWidget {
       appBar: AppBar(title: const Text('Reporte Diferencial Cambiario')),
       body: reportAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text(S.of(context).genericError(e))),
+        error: (e, _) =>
+            Center(child: Text(S.of(context).genericError(e.toString()))),
         data: (items) {
           if (items.isEmpty) {
             return Center(

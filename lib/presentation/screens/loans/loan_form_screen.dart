@@ -1293,13 +1293,39 @@ class _LoanFormScreenState extends ConsumerState<LoanFormScreen> {
               }
 
               if (mounted) {
-                await WhatsAppService.shareDisbursementReceipt(
-                  loan: createdLoan,
-                  customer: _customer!,
-                  settings: settings,
-                  locale: Localizations.localeOf(context),
-                  currencySymbol: loanCurrency.symbol ?? loanCurrency.code,
-                );
+                // Fetch next installment date
+                final nextCycle = await ref
+                    .read(billingCycleRepositoryProvider)
+                    .getCurrentCycle(createdLoan.loanId);
+                final nextInstallmentDate = nextCycle?.dueDate;
+
+                if (createdLoan.planId != null) {
+                  // Fetch the newly created cycles for the plan report
+                  final cycles = await ref
+                      .read(billingCycleRepositoryProvider)
+                      .getBillingCyclesByLoan(createdLoan.loanId);
+
+                  if (mounted) {
+                    await WhatsAppService.shareDisbursementWithPlanReceipt(
+                      loan: createdLoan,
+                      customer: _customer!,
+                      cycles: cycles,
+                      settings: settings,
+                      locale: Localizations.localeOf(context),
+                      currencySymbol: loanCurrency.symbol ?? loanCurrency.code,
+                      nextInstallmentDate: nextInstallmentDate,
+                    );
+                  }
+                } else if (mounted) {
+                  await WhatsAppService.shareDisbursementReceipt(
+                    loan: createdLoan,
+                    customer: _customer!,
+                    settings: settings,
+                    locale: Localizations.localeOf(context),
+                    currencySymbol: loanCurrency.symbol ?? loanCurrency.code,
+                    nextInstallmentDate: nextInstallmentDate,
+                  );
+                }
               }
             } else if (mounted) {
               ScaffoldMessenger.of(context).showSnackBar(

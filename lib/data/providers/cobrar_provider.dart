@@ -71,11 +71,15 @@ class LoanDueInfo {
     required this.principalBalance,
     required this.interestExpected,
     required this.interestPending,
+    this.loanNumber,
     this.nextDueDate,
   });
 
   /// ID del préstamo.
   final String loanId;
+
+  /// Número de préstamo descriptivo.
+  final String? loanNumber;
 
   /// Saldo actual de capital.
   final double principalBalance;
@@ -93,16 +97,10 @@ class LoanDueInfo {
 /// Filter type for A Cobrar screen
 /// Filtros disponibles para la pantalla "A Cobrar".
 enum CobrarFilter {
-  /// Préstamos quincenales vencidos.
-  biweekly,
+  /// Préstamos próximos a cobrar (según collectionPlanDays).
+  upcoming,
 
-  /// Préstamos mensuales vencidos.
-  monthly,
-
-  /// Vencimientos en los próximos 7 días.
-  next7Days,
-
-  /// Todos los préstamos en mora real.
+  /// Todos los préstamos atrasados.
   overdue,
 }
 
@@ -114,7 +112,7 @@ class CobrarState {
     this.filteredCustomers = const [],
     this.isLoading = false,
     this.error,
-    this.activeFilter = CobrarFilter.biweekly,
+    this.activeFilter = CobrarFilter.upcoming,
     this.searchQuery = '',
   });
 
@@ -265,6 +263,7 @@ class CobrarNotifier extends StateNotifier<CobrarState> {
             c.phone,
             l.billing_frequency,
             l.loan_id,
+            l.loan_number,
             l.principal_balance,
             bc.billing_cycle_id,
             bc.due_date,
@@ -282,8 +281,22 @@ class CobrarNotifier extends StateNotifier<CobrarState> {
         ''';
         args.add(cutoffDateStr);
 
-      case CobrarFilter.biweekly:
-        // Biweekly loans with OVERDUE cycles only (due_date < today)
+      case CobrarFilter.upcoming:
+        // Loans with cycles due within collectionPlanDays
+        // Get collectionPlanDays from settings
+        var collectionPlanDays = 3;
+        final planResult = await db.query(
+          'app_settings',
+          columns: ['collection_plan_days'],
+          where: 'settings_id = ?',
+          whereArgs: ['global'],
+        );
+        if (planResult.isNotEmpty) {
+          collectionPlanDays =
+              (planResult.first['collection_plan_days'] as int?) ?? 3;
+        }
+        final futureDate = today.add(Duration(days: collectionPlanDays - 1));
+        final futureDateStr = futureDate.toIso8601String().split('T')[0];
         query = '''
           SELECT 
             c.customer_id,
@@ -292,6 +305,7 @@ class CobrarNotifier extends StateNotifier<CobrarState> {
             c.phone,
             l.billing_frequency,
             l.loan_id,
+            l.loan_number,
             l.principal_balance,
             bc.billing_cycle_id,
             bc.due_date,
@@ -302,68 +316,12 @@ class CobrarNotifier extends StateNotifier<CobrarState> {
           FROM customers c
           INNER JOIN loans l ON c.customer_id = l.customer_id AND l.status IN ('ACTIVE', 'IN_MORA')
           INNER JOIN billing_cycles bc ON l.loan_id = bc.loan_id 
-            AND bc.status IN ('PENDING', 'PARTIAL', 'OVERDUE')
-            AND bc.due_date < ?
-          WHERE c.status = 'ACTIVE' AND l.billing_frequency = 'BIWEEKLY'
-          ORDER BY bc.due_date ASC, c.full_name ASC
-        ''';
-        args.add(todayStr);
-
-      case CobrarFilter.next7Days:
-        // Cycles due in next 7 days
-        final next7 = today.add(const Duration(days: 7));
-        final next7Str = next7.toIso8601String().split('T')[0];
-        query = '''
-          SELECT 
-            c.customer_id,
-            c.full_name,
-            c.alias,
-            c.phone,
-            l.billing_frequency,
-            l.loan_id,
-            l.principal_balance,
-            bc.billing_cycle_id,
-            bc.due_date,
-            bc.interest_expected,
-            bc.interest_paid,
-            bc.interest_pending,
-            (SELECT MAX(p.created_at) FROM payments p WHERE p.customer_id = c.customer_id AND p.status = 'VALID') as last_payment_date
-          FROM customers c
-          INNER JOIN loans l ON c.customer_id = l.customer_id AND l.status IN ('ACTIVE', 'IN_MORA')
-          INNER JOIN billing_cycles bc ON l.loan_id = bc.loan_id 
-            AND bc.status IN ('PENDING', 'PARTIAL', 'OVERDUE')
+            AND bc.status IN ('PENDING', 'PARTIAL')
             AND bc.due_date BETWEEN ? AND ?
           WHERE c.status = 'ACTIVE'
           ORDER BY bc.due_date ASC, c.full_name ASC
         ''';
-        args.addAll([todayStr, next7Str]);
-
-      case CobrarFilter.monthly:
-        // Monthly loans with OVERDUE cycles only (due_date < today)
-        query = '''
-          SELECT 
-            c.customer_id,
-            c.full_name,
-            c.alias,
-            c.phone,
-            l.billing_frequency,
-            l.loan_id,
-            l.principal_balance,
-            bc.billing_cycle_id,
-            bc.due_date,
-            bc.interest_expected,
-            bc.interest_paid,
-            bc.interest_pending,
-            (SELECT MAX(p.created_at) FROM payments p WHERE p.customer_id = c.customer_id AND p.status = 'VALID') as last_payment_date
-          FROM customers c
-          INNER JOIN loans l ON c.customer_id = l.customer_id AND l.status IN ('ACTIVE', 'IN_MORA')
-          INNER JOIN billing_cycles bc ON l.loan_id = bc.loan_id 
-            AND bc.status IN ('PENDING', 'PARTIAL', 'OVERDUE')
-            AND bc.due_date < ?
-          WHERE c.status = 'ACTIVE' AND l.billing_frequency = 'MONTHLY'
-          ORDER BY bc.due_date ASC, c.full_name ASC
-        ''';
-        args.add(todayStr);
+        args.addAll([todayStr, futureDateStr]);
     }
 
     final results = await db.rawQuery(query, args);
@@ -436,6 +394,7 @@ class CobrarNotifier extends StateNotifier<CobrarState> {
             ...existingCustomer.loans,
             LoanDueInfo(
               loanId: loanId,
+              loanNumber: row['loan_number'] as String?,
               principalBalance: principalBalance,
               interestExpected: interestExpected,
               interestPending: interestPending,
@@ -494,6 +453,8 @@ class CobrarNotifier extends StateNotifier<CobrarState> {
 final cobrarProvider = StateNotifierProvider<CobrarNotifier, CobrarState>((
   ref,
 ) {
+  // Watch refresh trigger to automatically reload data when database changes
+  ref.watch(refreshTriggerProvider);
   return CobrarNotifier(ref);
 });
 

@@ -63,7 +63,7 @@ class _ExchangeRateFormScreenState
         // Handle error if rate not found
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(S.of(context).genericError(e))),
+            SnackBar(content: Text(S.of(context).genericError(e.toString()))),
           );
           context.pop();
         }

@@ -181,7 +181,7 @@ class _PaymentCard extends StatelessWidget {
     if (diff == 0) return S.of(context).dateToday;
     if (diff == 1) return S.of(context).dateYesterday;
     if (diff < 7) {
-      return S.of(context).dateDaysAgo(diff.toString());
+      return S.of(context).dateDaysAgo(diff);
     }
 
     return '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';

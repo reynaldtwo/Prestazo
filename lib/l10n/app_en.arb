@@ -1,558 +1,2232 @@
 {
   "@@locale": "en",
   "appName": "Prestazo",
+  "@appName": {
+    "description": "The name of the application"
+  },
   "save": "Save",
+  "@save": {
+    "description": "General save action label"
+  },
   "cancel": "Cancel",
+  "@cancel": {
+    "description": "General cancel action label"
+  },
   "confirm": "Confirm",
+  "@confirm": {
+    "description": "General confirm action label"
+  },
   "delete": "Delete",
+  "@delete": {
+    "description": "General delete action label"
+  },
   "edit": "Edit",
+  "@edit": {
+    "description": "General edit action label"
+  },
   "close": "Close",
+  "@close": {
+    "description": "General close action label"
+  },
   "search": "Search",
+  "@search": {
+    "description": "General search action label"
+  },
   "loading": "Loading...",
+  "@loading": {
+    "description": "General loading state text"
+  },
   "error": "Error",
+  "@error": {
+    "description": "General error title"
+  },
   "success": "Success",
+  "@success": {
+    "description": "General success title"
+  },
   "warning": "Warning",
+  "@warning": {
+    "description": "General warning title"
+  },
   "info": "Information",
+  "@info": {
+    "description": "General information title"
+  },
   "understood": "Understood",
+  "@understood": {
+    "description": "Confirmation button label (I understand)"
+  },
   "continue_": "Continue",
+  "@continue_": {
+    "description": "General continue action label"
+  },
   "today": "Today",
+  "@today": {
+    "description": "Label for today's date"
+  },
   "yesterday": "Yesterday",
+  "@yesterday": {
+    "description": "Label for yesterday's date"
+  },
   "tomorrow": "Tomorrow",
+  "@tomorrow": {
+    "description": "Label for tomorrow's date"
+  },
   "viewAll": "View All",
+  "@viewAll": {
+    "description": "Action label to view all items in a list"
+  },
   "navHome": "Home",
+  "@navHome": {
+    "description": "Bottom navigation label for Home"
+  },
   "navCollect": "To Collect",
+  "@navCollect": {
+    "description": "Bottom navigation label for Collection screen"
+  },
   "navCustomers": "Customers",
+  "@navCustomers": {
+    "description": "Bottom navigation label for Customers screen"
+  },
   "navReports": "Reports",
+  "@navReports": {
+    "description": "Bottom navigation label for Reports screen"
+  },
   "navSettings": "Settings",
+  "@navSettings": {
+    "description": "Bottom navigation label for Settings screen"
+  },
   "customer": "Customer",
+  "@customer": {
+    "description": "Label for a single customer"
+  },
   "customers": "Customers",
+  "@customers": {
+    "description": "Label for multiple customers or Customers section"
+  },
   "newCustomer": "New Customer",
+  "@newCustomer": {
+    "description": "Button/Title for creating a new customer"
+  },
   "editCustomer": "Edit Customer",
+  "@editCustomer": {
+    "description": "Button/Title for editing a customer"
+  },
   "dniDuplicate": "Duplicate ID",
+  "@dniDuplicate": {
+    "description": "Error message for duplicate identification number"
+  },
   "customerUpdated": "Customer updated",
+  "@customerUpdated": {
+    "description": "Success message after updating a customer"
+  },
   "customerCreated": "Customer created successfully",
+  "@customerCreated": {
+    "description": "Success message after creating a customer"
+  },
   "customerName": "Name",
+  "@customerName": {
+    "description": "Label for customer's full name"
+  },
   "customerAlias": "Nickname",
+  "@customerAlias": {
+    "description": "Label for customer's alias or nickname"
+  },
   "customerPhone": "Phone",
+  "@customerPhone": {
+    "description": "Label for customer's phone number"
+  },
   "customerAddress": "Address",
+  "@customerAddress": {
+    "description": "Label for customer's residential address"
+  },
   "billingFrequency": "Billing Frequency",
+  "@billingFrequency": {
+    "description": "Label for how often the customer is billed"
+  },
   "biweekly": "Biweekly",
+  "@biweekly": {
+    "description": "Label for biweekly frequency (every 15 days)"
+  },
   "monthly": "Monthly",
+  "@monthly": {
+    "description": "Label for monthly frequency"
+  },
   "weekly": "Weekly",
+  "@weekly": {
+    "description": "Label for weekly frequency"
+  },
   "daily": "Daily",
+  "@daily": {
+    "description": "Label for daily frequency"
+  },
   "searchHint": "Search by name, alias or phone...",
+  "@searchHint": {
+    "description": "Placeholder text in customer search bar"
+  },
   "clearFilter": "Clear filter",
+  "@clearFilter": {
+    "description": "Action label to remove applied filters"
+  },
   "filterCustomers": "Filter customers",
+  "@filterCustomers": {
+    "description": "Title or tooltip for filtering customers"
+  },
   "all": "All",
+  "@all": {
+    "description": "General 'All' filter label"
+  },
   "statusInactive": "Inactive",
+  "@statusInactive": {
+    "description": "Status label for inactive customers"
+  },
   "noCustomers": "No customers",
+  "@noCustomers": {
+    "description": "Empty state text for customer list"
+  },
   "noResults": "No results found",
+  "@noResults": {
+    "description": "Text shown when search returns nothing"
+  },
   "addFirstCustomer": "Add your first customer by pressing +",
+  "@addFirstCustomer": {
+    "description": "Instructions shown when the customer list is empty"
+  },
   "tryAnotherTerm": "Try another search term",
+  "@tryAnotherTerm": {
+    "description": "Suggestion text when search results are empty"
+  },
   "loan": "Loan",
+  "@loan": {
+    "description": "Label for a single loan"
+  },
   "loans": "Loans",
+  "@loans": {
+    "description": "Label for multiple loans or Loans section"
+  },
   "newLoan": "New Loan",
+  "@newLoan": {
+    "description": "Button/Title for creating a new loan"
+  },
   "editLoan": "Edit Loan",
+  "@editLoan": {
+    "description": "Button/Title for editing a loan"
+  },
   "loanDetail": "Loan Details",
+  "@loanDetail": {
+    "description": "Title for loan information screen"
+  },
   "capital": "Principal",
+  "@capital": {
+    "description": "The original loan amount without interest"
+  },
   "originalCapital": "Original Principal",
+  "@originalCapital": {
+    "description": "The initial amount of the loan"
+  },
   "capitalRecovered": "Principal Recovered",
+  "@capitalRecovered": {
+    "description": "Portion of the principal that has been paid back"
+  },
   "currentBalance": "Current Balance",
+  "@currentBalance": {
+    "description": "The total amount currently owed (Principal + Interest)"
+  },
   "capitalBalance": "Principal Balance",
+  "@capitalBalance": {
+    "description": "Remaining principal amount to be paid"
+  },
   "interestRate": "Interest Rate",
+  "@interestRate": {
+    "description": "Percentage charged on the principal"
+  },
   "monthlyRate": "Monthly Rate",
+  "@monthlyRate": {
+    "description": "Interest rate per month"
+  },
   "otherRate": "Other Rate",
+  "@otherRate": {
+    "description": "Label for an alternative interest rate"
+  },
   "rate": "Rate",
+  "@rate": {
+    "description": "General rate label"
+  },
   "disbursement": "Disbursement",
+  "@disbursement": {
+    "description": "Label for loan payout event"
+  },
   "disbursementDate": "Disbursement Date",
+  "@disbursementDate": {
+    "description": "Label for the date the loan was paid out"
+  },
   "loanNumber": "Loan #",
+  "@loanNumber": {
+    "description": "Reference number for a loan"
+  },
   "pendingBalance": "Outstanding Balance",
+  "@pendingBalance": {
+    "description": "Amount that remains unpaid"
+  },
   "closeLoan": "Close Loan",
+  "@closeLoan": {
+    "description": "Action label to settle/finish a loan"
+  },
   "deleteLoan": "Delete Loan",
+  "@deleteLoan": {
+    "description": "Action label to permanently remove a loan"
+  },
   "selectLoan": "Select a loan",
+  "@selectLoan": {
+    "description": "Instructions to pick a loan from a list"
+  },
   "to": "to",
+  "@to": {
+    "description": "General 'to' preposition (e.g., Range from X to Y)"
+  },
   "totalEarningsInterestLateFees": "Total Earnings (Interest + Late Fees)",
+  "@totalEarningsInterestLateFees": {
+    "description": "Report label for combined interest and penalties income"
+  },
   "payment": "Payment",
+  "@payment": {
+    "description": "Label for a single payment"
+  },
   "payments": "Payments",
+  "@payments": {
+    "description": "Label for multiple payments or Payments section"
+  },
   "newPayment": "New Payment",
+  "@newPayment": {
+    "description": "Button/Title for creating a new payment"
+  },
   "registerPayment": "Register Payment",
+  "@registerPayment": {
+    "description": "Action label to submit a new payment"
+  },
   "paymentAmount": "Payment Amount",
+  "@paymentAmount": {
+    "description": "Label for the money amount to be paid"
+  },
   "paymentDate": "Payment Date",
+  "@paymentDate": {
+    "description": "Label for the date the payment was made"
+  },
   "paymentType": "Payment Type",
+  "@paymentType": {
+    "description": "Label for the classification of payment (Interest, Principal, etc.)"
+  },
   "typeInterest": "Interest Only",
+  "@typeInterest": {
+    "description": "Payment type option for paying only interest"
+  },
   "typePrincipal": "Principal Only",
+  "@typePrincipal": {
+    "description": "Payment type option for paying only principal"
+  },
   "typeCancel": "Payoff",
+  "@typeCancel": {
+    "description": "Payment type option for settling the entire loan"
+  },
   "planInstallmentMode": "Plan Installment",
+  "@planInstallmentMode": {
+    "description": "Mode/Option for paying a scheduled installment"
+  },
   "collectedToday": "Total Collected Today",
+  "@collectedToday": {
+    "description": "Dashboard label for total revenue collected today"
+  },
   "paymentsToday": "Today's Payments",
+  "@paymentsToday": {
+    "description": "Section title for payments received in the current day"
+  },
   "paymentHistory": "Payment History",
+  "@paymentHistory": {
+    "description": "Section title for the list of past payments"
+  },
   "viewAllPayments": "View all payments",
+  "@viewAllPayments": {
+    "description": "Action label to see the complete payment history"
+  },
   "receiptNumber": "Receipt #",
+  "@receiptNumber": {
+    "description": "Reference number for a payment receipt"
+  },
   "application": "Application:",
+  "@application": {
+    "description": "Label showing how the payment was applied (e.g., Interest/Principal)"
+  },
   "noDetailedAllocation": "No detailed allocation",
+  "@noDetailedAllocation": {
+    "description": "Message shown when payment breakdown is unavailable"
+  },
   "interest": "Interest",
+  "@interest": {
+    "description": "Label for interest component"
+  },
   "mora": "Late Fee",
+  "@mora": {
+    "description": "Label for late fee component"
+  },
   "cycle": "Cycle",
+  "@cycle": {
+    "description": "Label for a single billing cycle"
+  },
   "cycles": "Cycles",
+  "@cycles": {
+    "description": "Label for multiple billing cycles"
+  },
   "billingCycles": "Billing Cycles",
+  "@billingCycles": {
+    "description": "Title for the billing schedule/cycles section"
+  },
   "pendingCycles": "Pending Cycles",
+  "@pendingCycles": {
+    "description": "Label for cycles that are not yet paid"
+  },
   "overdueCycles": "Overdue Cycles",
+  "@overdueCycles": {
+    "description": "Label for cycles that are past their due date"
+  },
   "currentCycle": "Current Cycle",
+  "@currentCycle": {
+    "description": "Label for the cycle currently in progress"
+  },
   "pendingInterest": "Pending Interest",
+  "@pendingInterest": {
+    "description": "Amount of interest that remains unpaid"
+  },
   "expected": "Expected",
+  "@expected": {
+    "description": "Label for expected payment amount"
+  },
   "pending": "Pending",
+  "@pending": {
+    "description": "Label for pending payment amount"
+  },
   "dueDate": "Due:",
+  "@dueDate": {
+    "description": "Label for payment deadline"
+  },
   "noBillingCycles": "No billing cycles",
+  "@noBillingCycles": {
+    "description": "Empty state text for billing cycles list"
+  },
   "noPayments": "No payments",
+  "@noPayments": {
+    "description": "Empty state text for payment list"
+  },
   "reports": "Reports",
+  "@reports": {
+    "description": "Label for Reports section"
+  },
   "realizedEarnings": "Realized Earnings",
+  "@realizedEarnings": {
+    "description": "Earnings that have already been collected"
+  },
   "projectedEarnings": "Projected",
+  "@projectedEarnings": {
+    "description": "Estimated future earnings"
+  },
   "totalEarnings": "Total Earnings",
+  "@totalEarnings": {
+    "description": "Sum of realized and projected earnings"
+  },
   "dateRange": "Date Range",
+  "@dateRange": {
+    "description": "Label for selecting a period of time"
+  },
   "startDate": "Start Date",
+  "@startDate": {
+    "description": "The beginning date of a range"
+  },
   "endDate": "End Date",
+  "@endDate": {
+    "description": "The ending date of a range"
+  },
   "settings": "Settings",
+  "@settings": {
+    "description": "Label for Settings section"
+  },
   "monetaryManagement": "Monetary Management",
+  "@monetaryManagement": {
+    "description": "Label for currencies and exchange rates management"
+  },
   "monetarySubtitle": "Currencies, Capital & Exchange Rates",
+  "@monetarySubtitle": {
+    "description": "Subtitle for monetary management section"
+  },
   "baseConfiguration": "Base Configuration",
+  "@baseConfiguration": {
+    "description": "Header for fundamental app settings"
+  },
   "currencyCenter": "Currency Center",
+  "@currencyCenter": {
+    "description": "Title for the screen managing multiple currencies"
+  },
   "currencyMaster": "Exchange Rate Master",
+  "@currencyMaster": {
+    "description": "Title for the screen managing exchange rates"
+  },
   "snapshotPolicy": "Snapshot Policy",
+  "@snapshotPolicy": {
+    "description": "Label for how exchange rates are handled in transactions"
+  },
   "allowManualRate": "Allow manual rate edit on loan creation",
+  "@allowManualRate": {
+    "description": "Option to manually override exchange rates when creating a loan"
+  },
   "reportConsolidation": "Report Consolidation",
+  "@reportConsolidation": {
+    "description": "Option for merging reports across different currencies"
+  },
   "presentationCurrency": "Presentation Currency",
+  "@presentationCurrency": {
+    "description": "The default currency used to display totals in reports"
+  },
   "appearance": "Appearance",
+  "@appearance": {
+    "description": "Label for UI customization section"
+  },
   "themeMode": "Theme Mode",
+  "@themeMode": {
+    "description": "Label for selecting light, dark, or system theme"
+  },
   "themeLight": "Light",
+  "@themeLight": {
+    "description": "Label for Light theme option"
+  },
   "themeDark": "Dark",
+  "@themeDark": {
+    "description": "Label for Dark theme option"
+  },
   "themeSystem": "System",
+  "@themeSystem": {
+    "description": "Label for System default theme option"
+  },
   "language": "Language",
+  "@language": {
+    "description": "Label for selecting app language"
+  },
   "businessCapital": "Business Capital",
+  "@businessCapital": {
+    "description": "Label for managing the company's lending capital"
+  },
   "businessPolicies": "Business Policies",
+  "@businessPolicies": {
+    "description": "Label for business rules and configuration section"
+  },
   "maintenance": "Maintenance",
+  "@maintenance": {
+    "description": "Label for app maintenance and data management section"
+  },
   "about": "About",
+  "@about": {
+    "description": "Label for app information and version section"
+  },
   "backup": "Backup",
+  "@backup": {
+    "description": "Label for data backup section"
+  },
   "backups": "Backups",
+  "@backups": {
+    "description": "Label for multiple backup files"
+  },
   "localBackups": "Local Backups",
+  "@localBackups": {
+    "description": "Label for backups stored on the device"
+  },
   "createBackup": "Create Backup",
+  "@createBackup": {
+    "description": "Action label to generate a new backup"
+  },
   "restoreBackup": "Restore Backup",
+  "@restoreBackup": {
+    "description": "Action label to load data from a backup file"
+  },
   "shareBackup": "Share Backup",
+  "@shareBackup": {
+    "description": "Action label to send a backup file via other apps"
+  },
   "exportBackup": "Export Backup",
+  "@exportBackup": {
+    "description": "Action label to save the backup file externally"
+  },
   "creatingBackup": "Creating backup...",
+  "@creatingBackup": {
+    "description": "Progress message while generating a backup"
+  },
   "backupCreated": "Backup created successfully",
+  "@backupCreated": {
+    "description": "Success message after a backup is completed"
+  },
   "backupRestored": "Backup restored. Please restart the app.",
+  "@backupRestored": {
+    "description": "Success message and restart instruction after restoring data"
+  },
   "noBackups": "No backups available",
+  "@noBackups": {
+    "description": "Empty state text for backups list"
+  },
   "countryOfOperation": "Country of Operation",
+  "@countryOfOperation": {
+    "description": "Label for selecting the primary country where the app is used"
+  },
   "selectCountry": "Select a country",
+  "@selectCountry": {
+    "description": "Instructions to choose a country from a list"
+  },
   "whatsAppDisbursementMsg": "Hello {name}! 👋\n\nHere is the receipt for your loan #{loanNumber} for {amount}.\n\nThank you for your business! 🙏",
+  "@whatsAppDisbursementMsg": {
+    "description": "Welcome message and receipt delivery for a new loan via WhatsApp",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "loanNumber": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
   "whatsAppPaymentMsg": "Hello {name}! 👋\n\nAttached is your payment receipt #{receiptNumber} for {amount}.\n\nThank you for your payment! 🙏",
+  "@whatsAppPaymentMsg": {
+    "description": "Confirmation message and receipt delivery for a payment via WhatsApp",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "receiptNumber": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
   "whatsAppStatementMsg": "Hello {name}! 👋\n\nAttached is your account statement for loan #{loanNumber}.\n\nLet us know if you have any questions. 🤝",
+  "@whatsAppStatementMsg": {
+    "description": "Message for delivering an account statement via WhatsApp",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "loanNumber": {
+        "type": "String"
+      }
+    }
+  },
   "whatsAppBalancePending": "Your pending balance is: {amount}",
+  "@whatsAppBalancePending": {
+    "description": "Brief message showing the current outstanding amount",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
   "whatsAppLoanCompleted": "Congratulations! You have completed your loan. 🎉",
+  "@whatsAppLoanCompleted": {
+    "description": "Celebratory message sent when a loan is fully paid"
+  },
   "backupFileName": "Filename:",
+  "@backupFileName": {
+    "description": "Label for the backup file name input"
+  },
   "backupDestFolder": "Destination folder:",
+  "@backupDestFolder": {
+    "description": "Label for the selected backup storage folder"
+  },
   "backupWhatToDo": "What would you like to do?",
+  "@backupWhatToDo": {
+    "description": "Prompt for backup action selection"
+  },
   "backupSaveAs": "Save As...",
+  "@backupSaveAs": {
+    "description": "Action label to save the backup with a specific name"
+  },
   "backupProcessing": "Processing backup...",
+  "@backupProcessing": {
+    "description": "Message shown while backup is being handled"
+  },
   "backupSaveDialogTitle": "Save backup as...",
+  "@backupSaveDialogTitle": {
+    "description": "Title for the file save dialog"
+  },
   "backupSaved": "Backup saved:",
+  "@backupSaved": {
+    "description": "Prefix for successful backup save message"
+  },
   "backupError": "Error creating backup",
+  "@backupError": {
+    "description": "Message shown when backup creation fails"
+  },
   "backupFolderNotExist": "Selected folder does not exist",
+  "@backupFolderNotExist": {
+    "description": "Error message when the backup destination is missing"
+  },
   "backupNoFolderConfigured": "No folder configured",
+  "@backupNoFolderConfigured": {
+    "description": "Warning message when no backup directory is set"
+  },
   "fileExistsTitle": "File Exists",
+  "@fileExistsTitle": {
+    "description": "Title for overwrite confirmation dialog"
+  },
   "fileExistsMsg": "A file named \"{fileName}\" already exists in this location.\n\nDo you want to replace it with the new backup?",
+  "@fileExistsMsg": {
+    "description": "Message asking to overwrite an existing backup file",
+    "placeholders": {
+      "fileName": {
+        "type": "String"
+      }
+    }
+  },
   "replace": "Replace",
+  "@replace": {
+    "description": "Action label to overwrite a file"
+  },
   "backupFolder": "Backup Folder",
+  "@backupFolder": {
+    "description": "Label for the backup directory setting"
+  },
   "viewBackups": "View Backups",
+  "@viewBackups": {
+    "description": "Action label to see the list of backup files"
+  },
   "createNewBackup": "Create New Backup",
+  "@createNewBackup": {
+    "description": "Action label to start a fresh backup process"
+  },
   "backupFileExistsRename": "A file with this name already exists. Please change the name.",
+  "@backupFileExistsRename": {
+    "description": "Error message when a backup filename is taken"
+  },
   "restoreSuccessRestart": "Backup restored successfully.\n\nThe app will close to apply changes. Please reopen it.",
+  "@restoreSuccessRestart": {
+    "description": "Success message and restart instruction after restoring data"
+  },
   "shareReceiptsWhatsApp": "Send receipts via WhatsApp",
+  "@shareReceiptsWhatsApp": {
+    "description": "Label for the toggle to enable WhatsApp receipt sharing"
+  },
   "shareReceiptsWhatsAppDesc": "Send disbursement receipts and payment receipts to customer after each transaction",
+  "@shareReceiptsWhatsAppDesc": {
+    "description": "Description for the WhatsApp receipt sharing setting"
+  },
   "noValidWhatsAppNumber": "Customer has no valid WhatsApp number",
+  "@noValidWhatsAppNumber": {
+    "description": "Warning when attempting to share via WhatsApp without a valid number"
+  },
   "sendingToWhatsApp": "Opening WhatsApp...",
+  "@sendingToWhatsApp": {
+    "description": "Feedback message while transitioning to WhatsApp"
+  },
   "statusActive": "Active",
+  "@statusActive": {
+    "description": "Status label for an open/ongoing loan"
+  },
   "statusClosed": "Closed",
+  "@statusClosed": {
+    "description": "Status label for a fully settled loan"
+  },
   "statusPending": "Pending",
+  "@statusPending": {
+    "description": "Status label for a loan or payment that is pending"
+  },
   "statusOverdue": "Overdue",
+  "@statusOverdue": {
+    "description": "Status label for a loan with late payments"
+  },
   "statusPaid": "Paid",
+  "@statusPaid": {
+    "description": "Status label for a paid cycle or payment"
+  },
   "statusInMora": "In Default",
+  "@statusInMora": {
+    "description": "Status label for serious delinquency"
+  },
   "fieldRequired": "This field is required",
+  "@fieldRequired": {
+    "description": "Validation error message for mandatory inputs"
+  },
   "invalidAmount": "Invalid amount",
+  "@invalidAmount": {
+    "description": "Validation error message for incorrect numeric currency inputs"
+  },
   "invalidRate": "Invalid rate",
+  "@invalidRate": {
+    "description": "Validation error message for incorrect interest rate inputs"
+  },
   "maxRate100": "Maximum 100%",
+  "@maxRate100": {
+    "description": "Validation error message when interest rate exceeds 100"
+  },
   "confirmDeleteTitle": "Delete?",
+  "@confirmDeleteTitle": {
+    "description": "Title for general deletion confirmation dialog"
+  },
   "confirmRestoreTitle": "Restore Backup",
+  "@confirmRestoreTitle": {
+    "description": "Title for backup restoration confirmation dialog"
+  },
   "confirmPaymentTitle": "Confirm Payment",
+  "@confirmPaymentTitle": {
+    "description": "Title for payment submission confirmation dialog"
+  },
   "cannotDelete": "Cannot delete",
+  "@cannotDelete": {
+    "description": "Title for error dialog when deletion is restricted"
+  },
   "loanHasPayments": "This loan has registered payments and cannot be deleted.\n\nTo delete it, you must first void all associated payments.",
+  "@loanHasPayments": {
+    "description": "Reason explanation why a loan cannot be deleted"
+  },
   "savedSuccessfully": "Saved successfully",
+  "@savedSuccessfully": {
+    "description": "Generic success message for saving data"
+  },
   "deletedSuccessfully": "Deleted successfully",
+  "@deletedSuccessfully": {
+    "description": "Generic success message for deleting data"
+  },
   "updatedSuccessfully": "Updated successfully",
+  "@updatedSuccessfully": {
+    "description": "Generic success message for updating data"
+  },
   "errorOccurred": "An error occurred",
+  "@errorOccurred": {
+    "description": "Generic error message"
+  },
   "quickActions": "Quick Actions",
+  "@quickActions": {
+    "description": "Label for the dashboard's fast navigation section"
+  },
   "collectionRoute": "Collection Route",
+  "@collectionRoute": {
+    "description": "Label for the daily collection flow/route"
+  },
   "viewCollectionCustomers": "View customers to collect today",
+  "@viewCollectionCustomers": {
+    "description": "Description for the collection route action"
+  },
   "viewCustomers": "View Customers",
+  "@viewCustomers": {
+    "description": "Action label to open the customer list"
+  },
   "allCustomersList": "List of all customers",
+  "@allCustomersList": {
+    "description": "Description for the view customers action"
+  },
   "generate": "Generate",
+  "@generate": {
+    "description": "Action label to trigger creation of a report or PDF"
+  },
   "share": "Share",
+  "@share": {
+    "description": "Action label to share a file"
+  },
   "consolidatedReport": "Consolidated Report",
+  "@consolidatedReport": {
+    "description": "Label for report that merges multiple currencies or areas"
+  },
   "earningsReport": "Earnings Report",
+  "@earningsReport": {
+    "description": "Label for report showing income and profits"
+  },
   "paymentBreakdown": "Payment Breakdown",
+  "@paymentBreakdown": {
+    "description": "Section showing details of how a payment was divided"
+  },
   "basedOn": "Based on",
+  "@basedOn": {
+    "description": "Label indicating the data source for a calculation"
+  },
   "activeLoansLower": "active loans",
+  "@activeLoansLower": {
+    "description": "Generic label for active loans (lowercase, used in sentences)"
+  },
   "loanDetailByLoan": "Loan Detail",
+  "@loanDetailByLoan": {
+    "description": "Header for a specific loan's report"
+  },
   "returnPerMonth": "Return/Month",
+  "@returnPerMonth": {
+    "description": "Label for monthly return on investment or yield"
+  },
   "and": "and",
+  "@and": {
+    "description": "The 'and' conjunction"
+  },
   "morePayments": "more payments",
+  "@morePayments": {
+    "description": "Label for additional payments beyond a certain number"
+  },
   "companyData": "Company Data",
+  "@companyData": {
+    "description": "Label for the section where company's identity and contact info are managed"
+  },
   "companySubtitle": "Name, TAX ID, logo, address and contact",
+  "@companySubtitle": {
+    "description": "Subtitle for company data section"
+  },
   "availableCapital": "Capital available for lending",
+  "@availableCapital": {
+    "description": "Label for the total cash pool assigned for loans"
+  },
   "availableCapitalDesc": "Maximum amount available for lending",
+  "@availableCapitalDesc": {
+    "description": "Description of the available capital field"
+  },
   "validateCapital": "Validate working capital",
+  "@validateCapital": {
+    "description": "Toggle to enforce lending limits based on available capital"
+  },
   "validateCapitalDesc": "Loan amount will be validated against available limits",
+  "@validateCapitalDesc": {
+    "description": "Description for active capital validation"
+  },
   "validateCapitalDescDisabled": "Balance limits will not be validated",
+  "@validateCapitalDescDisabled": {
+    "description": "Description for disabled capital validation"
+  },
   "capitalSaved": "Capital saved",
+  "@capitalSaved": {
+    "description": "Feedback message when capital settings are updated"
+  },
   "capitalizeInterest": "Capitalize unpaid interest",
+  "@capitalizeInterest": {
+    "description": "Toggle to add overdue interest to the loan's principal"
+  },
   "capitalizeInterestDesc": "Add overdue interest to principal",
+  "@capitalizeInterestDesc": {
+    "description": "Description for capitalization feature"
+  },
   "dailyAccrual": "Calculate daily interest (Final Payment)",
+  "@dailyAccrual": {
+    "description": "Toggle to enable interest calculation based on elapsed days"
+  },
   "dailyAccrualDesc": "Charge interest for days until payoff",
+  "@dailyAccrualDesc": {
+    "description": "Description for daily accrual calculation"
+  },
   "allowMultipleLoans": "Allow multiple loans",
+  "@allowMultipleLoans": {
+    "description": "Toggle to permit customers to have more than one active loan"
+  },
   "allowMultipleLoansDesc": "A customer can have multiple active loans",
+  "@allowMultipleLoansDesc": {
+    "description": "Description for allowing multiple loans"
+  },
   "allowMultipleLoansDescDisabled": "Only one active loan per customer",
+  "@allowMultipleLoansDescDisabled": {
+    "description": "Description for restricting to a single loan"
+  },
   "validateUniqueDni": "Validate Unique ID",
+  "@validateUniqueDni": {
+    "description": "Toggle to ensure no duplicate IDs exist in the system"
+  },
   "validateUniqueDniDesc": "Verify no customers exist with the same ID",
+  "@validateUniqueDniDesc": {
+    "description": "Description for ID uniqueness validation"
+  },
   "validateUniqueDniDescDisabled": "Allow duplicate ID registration",
+  "@validateUniqueDniDescDisabled": {
+    "description": "Description for disabled ID validation"
+  },
   "toleranceDays": "Grace period days",
+  "@toleranceDays": {
+    "description": "Number of days before a payment is considered overdue"
+  },
   "toleranceDaysDesc": "Days before marking as overdue",
+  "@toleranceDaysDesc": {
+    "description": "Description for grace period setting"
+  },
   "paymentOrder": "Payment application order",
+  "@paymentOrder": {
+    "description": "Label for selecting how payments are allocated (Interest vs Principal)"
+  },
   "paymentOrderInterestFirst": "Interest first",
+  "@paymentOrderInterestFirst": {
+    "description": "Option to apply payments to interest before principal"
+  },
   "paymentOrderCapitalFirst": "Principal first",
+  "@paymentOrderCapitalFirst": {
+    "description": "Option to apply payments to principal before interest"
+  },
   "lastLoanGenerated": "Last Loan Generated",
+  "@lastLoanGenerated": {
+    "description": "Label for the most recent loan sequence number"
+  },
   "nextLoanSequenceDesc": "The next loan will follow this sequence",
+  "@nextLoanSequenceDesc": {
+    "description": "Description for the loan numbering sequence"
+  },
   "lastReceiptGenerated": "Last Receipt Generated",
+  "@lastReceiptGenerated": {
+    "description": "Label for the most recent payment receipt sequence number"
+  },
   "nextReceiptSequenceDesc": "The next receipt will follow this sequence",
+  "@nextReceiptSequenceDesc": {
+    "description": "Description for the receipt numbering sequence"
+  },
   "sequenceUpdated": "Sequence updated",
+  "@sequenceUpdated": {
+    "description": "Feedback message when sequence numbers are modified"
+  },
   "receiptSequenceUpdated": "Receipt sequence updated",
+  "@receiptSequenceUpdated": {
+    "description": "Feedback message when receipt sequence numbers are modified"
+  },
   "recalculatePortfolio": "Recalculate portfolio",
+  "@recalculatePortfolio": {
+    "description": "Action label to audit and fix balance inconsistencies"
+  },
   "recalculatePortfolioDesc": "Verify balance consistency",
+  "@recalculatePortfolioDesc": {
+    "description": "Description for portfolio audit action"
+  },
   "deleteData": "Delete data",
+  "@deleteData": {
+    "description": "Label for the data clearing section"
+  },
   "deleteDataDesc": "Delete records (Payments, Loans, etc.)",
+  "@deleteDataDesc": {
+    "description": "Description for data deletion section"
+  },
   "business": "Business",
+  "@business": {
+    "description": "Label for the Business configuration section"
+  },
   "sequences": "Sequences",
+  "@sequences": {
+    "description": "Label for managing document numbering sequences"
+  },
   "exportBackupDesc": "Save a copy of the database",
+  "@exportBackupDesc": {
+    "description": "Description for export backup action"
+  },
   "restoreBackupDesc": "Load database from file",
+  "@restoreBackupDesc": {
+    "description": "Description for restore backup action"
+  },
   "themeModeDesc": "Choose how the app looks",
+  "@themeModeDesc": {
+    "description": "Description for theme selection setting"
+  },
   "light": "Light",
+  "@light": {
+    "description": "One-word label for Light theme"
+  },
   "dark": "Dark",
+  "@dark": {
+    "description": "One-word label for Dark theme"
+  },
   "system": "System",
+  "@system": {
+    "description": "One-word label for System theme"
+  },
   "languageDesc": "Select application language",
+  "@languageDesc": {
+    "description": "Description for language selection setting"
+  },
   "deleteDialogTitle": "Delete Data",
+  "@deleteDialogTitle": {
+    "description": "Title for data deletion confirmation dialog"
+  },
   "deletePayments": "Delete Payments",
+  "@deletePayments": {
+    "description": "Action label to clear only payments"
+  },
   "deletePaymentsDesc": "Deletes only payment history. Keeps loans and customers.",
+  "@deletePaymentsDesc": {
+    "description": "Warning/Info for payments-only deletion"
+  },
   "deleteLoans": "Delete Loans",
+  "@deleteLoans": {
+    "description": "Action label to clear loans and payments"
+  },
   "deleteLoansDesc": "Deletes loans and payments. Keeps customers.",
+  "@deleteLoansDesc": {
+    "description": "Warning/Info for loans deletion"
+  },
   "deleteCustomers": "Delete Customers",
+  "@deleteCustomers": {
+    "description": "Action label to clear everything associated with customers"
+  },
   "deleteCustomersDesc": "Deletes customers and all associated info.",
+  "@deleteCustomersDesc": {
+    "description": "Warning/Info for customers deletion"
+  },
   "deleteAll": "Delete ALL",
+  "@deleteAll": {
+    "description": "Action label to wipe the entire database"
+  },
   "deleteAllDesc": "ALL information will be deleted, including settings, sequences and preferences. This action is irreversible.",
+  "@deleteAllDesc": {
+    "description": "Critical warning for full database wipe"
+  },
   "restrictedAction": "Restricted Action",
+  "@restrictedAction": {
+    "description": "Header for messages explaining why an action is blocked"
+  },
   "deleteRestrictedMsg": "Cannot delete customers while active loans exist.\n\nYou must delete loans first or select \"Delete ALL\" to clear database completely.",
+  "@deleteRestrictedMsg": {
+    "description": "Detailed explanation for restricted customer deletion"
+  },
   "loanAmountLabel": "Loan Amount (Principal) *",
+  "@loanAmountLabel": {
+    "description": "Label for principal amount input in loan form"
+  },
   "monthlyRateLabel": "Monthly Interest Rate (%) *",
+  "@monthlyRateLabel": {
+    "description": "Label for interest rate input in loan form"
+  },
   "notes": "Notes",
+  "@notes": {
+    "description": "Label for generic notes/comments field"
+  },
   "loanObservations": "Loan observations...",
+  "@loanObservations": {
+    "description": "Placeholder text for loan notes field"
+  },
   "createLoanAction": "Create Loan",
+  "@createLoanAction": {
+    "description": "Action label to submit the new loan form"
+  },
   "errorLoadCustomer": "Error loading customer",
+  "@errorLoadCustomer": {
+    "description": "Generic error message when customer data fails to fetch"
+  },
   "recoverLoan": "Recover Loan",
+  "@recoverLoan": {
+    "description": "Action label for a specialized loan closure process"
+  },
   "recoverLoanDescPart1": "This option will close the loan by paying only the outstanding principal (C$ ",
+  "@recoverLoanDescPart1": {
+    "description": "Part 1 of the explanation for loan recovery action"
+  },
   "recoverLoanDescPart2": ").\n\nOutstanding interest and late fees will be VOIDED.\n\nAre you sure you want to continue?",
+  "@recoverLoanDescPart2": {
+    "description": "Part 2 of the explanation for loan recovery action"
+  },
   "approveRecovery": "Approve Recovery",
+  "@approveRecovery": {
+    "description": "Action label to confirm a loan recovery"
+  },
   "finalizeRecovery": "Finalize Recovery",
+  "@finalizeRecovery": {
+    "description": "Action label to complete the recovery process"
+  },
   "recoveryNotePrompt": "Enter a note about this recovery:",
+  "@recoveryNotePrompt": {
+    "description": "Prompt for user to add a comment to the recovery transaction"
+  },
   "recoveryReasonHint": "Reason for recovery/closure...",
+  "@recoveryReasonHint": {
+    "description": "Placeholder for recovery reason input"
+  },
   "markRestricted": "Mark customer as \"DO NOT LEND AGAIN\"",
+  "@markRestricted": {
+    "description": "Option to blacklist a customer during recovery"
+  },
   "recoverySuccess": "Recovery successfully registered",
+  "@recoverySuccess": {
+    "description": "Success message after a recovery is recorded"
+  },
   "restrictedCustomerTitle": "Restricted Customer",
+  "@restrictedCustomerTitle": {
+    "description": "Title for a customer who is blacklisted"
+  },
   "restrictedCustomerWarning": "Warning: This customer is marked as \"DO NOT LEND\".",
+  "@restrictedCustomerWarning": {
+    "description": "Warning message shown when selecting a restricted customer"
+  },
   "reasonLabel": "Reason:",
+  "@reasonLabel": {
+    "description": "Label for the reason of restriction or action"
+  },
   "noReasonSpecified": "No reason specified",
+  "@noReasonSpecified": {
+    "description": "Fallback text when no reason is provided"
+  },
   "continueAnywayPrompt": "Do you wish to proceed with the loan anyway?",
+  "@continueAnywayPrompt": {
+    "description": "Prompt to override a restricted customer warning"
+  },
   "cancelReturn": "Cancel (Return)",
+  "@cancelReturn": {
+    "description": "Action label to abort and go back"
+  },
   "goodMorning": "Good morning",
+  "@goodMorning": {
+    "description": "Greeting for morning time"
+  },
   "goodAfternoon": "Good afternoon",
+  "@goodAfternoon": {
+    "description": "Greeting for afternoon time"
+  },
   "goodEvening": "Good evening",
+  "@goodEvening": {
+    "description": "Greeting for evening time"
+  },
   "loanStatement": "Loan Statement",
+  "@loanStatement": {
+    "description": "Title for report showing loan activity and status"
+  },
   "disbursementReceipt": "Disbursement Receipt",
+  "@disbursementReceipt": {
+    "description": "Title for the document given when paying out a loan"
+  },
+  "disbursementReceiptWithPlan": "Disbursement Receipt with Payment Plan",
+  "@disbursementReceiptWithPlan": {
+    "description": "Title for report showing detailed billing schedule"
+  },
+  "nextInstallmentDateLabel": "Next installment date",
+  "@nextInstallmentDateLabel": {
+    "description": "Label for the date when the next payment is expected"
+  },
+  "printDateTime": "Print Date and Time",
+  "@printDateTime": {
+    "description": "Label for when the document was generated"
+  },
+  "disbursementDateTime": "Disbursement Date and Time",
+  "@disbursementDateTime": {
+    "description": "Label for when the funds were delivered"
+  },
+  "tableHeaderStart": "Start Date",
+  "@tableHeaderStart": {
+    "description": "Header for cycle start column"
+  },
+  "tableHeaderEnd": "End Date",
+  "@tableHeaderEnd": {
+    "description": "Header for cycle end column"
+  },
+  "tableHeaderPrincipal": "Principal",
+  "@tableHeaderPrincipal": {
+    "description": "Header for principal portion column"
+  },
+  "tableHeaderInterest": "Interest",
+  "@tableHeaderInterest": {
+    "description": "Header for interest portion column"
+  },
+  "tableHeaderTotal": "Total",
+  "@tableHeaderTotal": {
+    "description": "Header for installment total column"
+  },
   "paymentReceipt": "Payment Receipt",
+  "@paymentReceipt": {
+    "description": "Title for the document given when receiving a payment"
+  },
   "thankYouPreference": "Thank you for your business!",
+  "@thankYouPreference": {
+    "description": "Closing message on disbursement receipts"
+  },
   "thankYouPayment": "Thank you for your payment!",
+  "@thankYouPayment": {
+    "description": "Closing message on payment receipts"
+  },
   "receivedBy": "Received by",
+  "@receivedBy": {
+    "description": "Signature line label for the person receiving money"
+  },
   "deliveredBy": "Delivered by",
+  "@deliveredBy": {
+    "description": "Signature line label for the person delivering money"
+  },
   "distribution": "Distribution",
+  "@distribution": {
+    "description": "Label for payment breakdown section"
+  },
   "remainingBalance": "Remaining Balance",
+  "@remainingBalance": {
+    "description": "Label for the outstanding amount after a payment"
+  },
   "dateLabel": "Date:",
+  "@dateLabel": {
+    "description": "General date label with colon"
+  },
   "amountGranted": "Amount Granted:",
+  "@amountGranted": {
+    "description": "Label for original loan amount on receipts"
+  },
   "reportSettings": "Report Settings",
+  "@reportSettings": {
+    "description": "Label for the Report configuration section in settings"
+  },
   "showDisbursementSignatures": "Signatures on disbursement",
+  "@showDisbursementSignatures": {
+    "description": "Option to show signature lines on disbursement receipts"
+  },
   "showPaymentSignatures": "Signatures on receipt",
+  "@showPaymentSignatures": {
+    "description": "Option to show signature lines on payment receipts"
+  },
   "disbursementLegend": "Legend on disbursement",
+  "@disbursementLegend": {
+    "description": "Label for custom text field on disbursement receipts"
+  },
   "paymentLegend": "Legend on receipt",
+  "@paymentLegend": {
+    "description": "Label for custom text field on payment receipts"
+  },
   "legendHint": "Enter optional text...",
+  "@legendHint": {
+    "description": "Placeholder for receipt legend input"
+  },
   "showLegend": "Show legend",
+  "@showLegend": {
+    "description": "Toggle to include the custom legend on documents"
+  },
   "labelRuc": "Tax ID:",
+  "@labelRuc": {
+    "description": "Abbreviated Tax ID label for receipts"
+  },
   "labelDir": "Addr:",
+  "@labelDir": {
+    "description": "Abbreviated Address label for receipts"
+  },
   "labelTel": "Ph:",
+  "@labelTel": {
+    "description": "Abbreviated Landline Phone label for receipts"
+  },
   "labelCel": "Mob:",
+  "@labelCel": {
+    "description": "Abbreviated Mobile Phone label for receipts"
+  },
   "labelWa": "WA:",
+  "@labelWa": {
+    "description": "Abbreviated WhatsApp label for receipts"
+  },
   "interestRateLabel": "Interest Rate:",
+  "@interestRateLabel": {
+    "description": "Label for interest rate value on reports"
+  },
   "frequencyLabel": "Frequency:",
+  "@frequencyLabel": {
+    "description": "Label for billing frequency on reports"
+  },
+  "labelCurrency": "Currency:",
+  "@labelCurrency": {
+    "description": "Label for the type of currency of the loan"
+  },
   "maturityDateLabel": "Maturity Date:",
+  "@maturityDateLabel": {
+    "description": "Label for loan end date on reports"
+  },
   "totalPaidLabel": "Total Paid:",
+  "@totalPaidLabel": {
+    "description": "Label for cumulative payments on reports"
+  },
   "interestMoraLabel": "Interest/Late Fee:",
+  "@interestMoraLabel": {
+    "description": "Label for interest and penalites on reports"
+  },
   "capitalLabel": "Principal:",
+  "@capitalLabel": {
+    "description": "Label for principal amount on reports"
+  },
   "loanLabel": "Loan #:",
+  "@loanLabel": {
+    "description": "Label for loan identifier on reports"
+  },
+  "loanLabelPrefix": "Loan #:",
+  "@loanLabelPrefix": {
+    "description": "Prefix for loan number display"
+  },
   "clientLabel": "Customer:",
+  "@clientLabel": {
+    "description": "Label for customer name on reports"
+  },
   "dniLabel": "ID Card:",
+  "@dniLabel": {
+    "description": "Label for identification number on reports"
+  },
   "restrictedEditTitle": "Restricted Edit",
+  "@restrictedEditTitle": {
+    "description": "Title for warning dialog when trying to edit a loan with payments"
+  },
   "restrictedEditMessage": "This loan cannot be edited because it already has registered payments.\n\nOnly loans that have not started amortization (no payments) can be edited.",
+  "@restrictedEditMessage": {
+    "description": "Detailed explanation why editing is restricted for loans with payments"
+  },
   "errorVerifyingPayments": "Error verifying payments",
+  "@errorVerifyingPayments": {
+    "description": "Generic error message for payment verification failure"
+  },
   "cannotDeleteTitle": "Cannot Delete",
+  "@cannotDeleteTitle": {
+    "description": "Title for error dialog when loan deletion is blocked"
+  },
   "cannotDeleteMessage": "This loan has registered payments and cannot be deleted.\n\nIf you wish to delete it, you must first void all associated payments.",
+  "@cannotDeleteMessage": {
+    "description": "Detailed explanation why deleting is restricted for loans with payments"
+  },
   "deleteLoanTitle": "Delete Loan",
+  "@deleteLoanTitle": {
+    "description": "Title for loan deletion confirmation dialog"
+  },
   "deleteLoanConfirmation": "Are you sure you want to delete this loan?\n\nThis action will also delete all associated billing cycles.\n\nThis action cannot be undone.",
+  "@deleteLoanConfirmation": {
+    "description": "Warning message for loan deletion confirmation"
+  },
   "loanDeletedSuccess": "Loan deleted successfully",
+  "@loanDeletedSuccess": {
+    "description": "Success message after a loan is deleted"
+  },
   "errorDeletingLoan": "Error deleting loan",
+  "@errorDeletingLoan": {
+    "description": "Message shown when loan deletion fails"
+  },
   "errorProcessingRequest": "Error processing request",
+  "@errorProcessingRequest": {
+    "description": "Generic error message for a failed operation"
+  },
   "generatingStatement": "Generating statement...",
+  "@generatingStatement": {
+    "description": "Progress message while creating a loan statement PDF"
+  },
   "loanNotLoaded": "Loan not loaded",
+  "@loanNotLoaded": {
+    "description": "Error message when loan data is missing during a task"
+  },
   "customerNotFound": "Customer not found",
+  "@customerNotFound": {
+    "description": "Error message when a customer cannot be retrieved"
+  },
   "generatingReceipt": "Generating receipt...",
-  "errorGeneratingReceipt": "Error generating receipt",
+  "@generatingReceipt": {
+    "description": "Progress message while creating a payment receipt PDF"
+  },
+  "errorGeneratingReceiptTitle": "Error generating receipt",
+  "@errorGeneratingReceiptTitle": {
+    "description": "Title for PDF generation error dialog"
+  },
   "generatingDisbursement": "Generating disbursement receipt...",
+  "@generatingDisbursement": {
+    "description": "Progress message while creating a disbursement receipt PDF"
+  },
   "errorGeneratingDisbursement": "Error generating receipt",
+  "@errorGeneratingDisbursement": {
+    "description": "Generic message for disbursement PDF failure"
+  },
   "disbursementReceiptTooltip": "Disbursement Receipt",
+  "@disbursementReceiptTooltip": {
+    "description": "Tooltip for the disbursement receipt download/view button"
+  },
   "editTooltip": "Edit",
+  "@editTooltip": {
+    "description": "Tooltip for the Edit action button"
+  },
   "deleteTooltip": "Delete",
+  "@deleteTooltip": {
+    "description": "Tooltip for the Delete action button"
+  },
   "otherFreq": "Other",
+  "@otherFreq": {
+    "description": "Label for an unspecified billing frequency"
+  },
   "freqDaily": "Daily",
+  "@freqDaily": {
+    "description": "Label for daily cycle frequency"
+  },
   "freqWeekly": "Weekly",
+  "@freqWeekly": {
+    "description": "Label for weekly cycle frequency"
+  },
   "freqBiweekly": "Biweekly",
+  "@freqBiweekly": {
+    "description": "Label for biweekly cycle frequency"
+  },
   "collectionTitle": "To Collect",
-  "tabBiweekly": "Biweekly",
-  "tabMonthly": "Month",
+  "@collectionTitle": {
+    "description": "Header for the collection management screen"
+  },
   "tabOverdue": "Overdue",
-  "accountSummary": "Account Summary",
-  "totalCapital": "Total Principal",
-  "monthlyInterest": "Monthly Interest",
-  "closedLoansTitle": "Closed loans",
-  "activeLoansTitle": "Active loans",
-  "noLoans": "No loans",
-  "noLoansDesc": "This customer has no registered loans",
-  "actionDenied": "Action denied",
-  "cannotDeleteWithPayments": "Cannot delete a loan with registered payments.",
-  "registeredDate": "Registered:",
-  "deactivateCustomer": "Deactivate customer",
-  "viewFullHistory": "View full history",
-  "confirmDelete": "Confirm deletion",
-  "deleteLoanConfirmationMsg": "Are you sure you want to delete this loan?\nThis action cannot be undone.",
-  "loanDeleted": "Loan deleted successfully",
-  "errorDeleting": "Error deleting:",
-  "selectCustomer": "Select Customer",
-  "createCustomer": "Create Customer",
-  "paymentAmountLabel": "Payment Amount *",
-  "invalidAmountMsg": "Enter a valid amount",
-  "identity": "Identity",
-  "contact": "Contact",
-  "location": "Location",
-  "branding": "Branding",
-  "companyName": "Company Name",
-  "rucId": "TAX ID / Identification",
-  "phoneFixed": "Landline",
-  "cellPhone": "Mobile",
-  "whatsapp": "WhatsApp",
-  "address": "Address",
-  "logoPath": "Logo Path (PNG)",
-  "selectFile": "Select file...",
-  "visible": "Visible",
-  "hidden": "Hidden",
-  "companyInfoHelp": "Toggle the switch to show this data on receipts and reports.",
-  "saveChanges": "Save Changes",
-  "onlyPng": "Only PNG images are allowed",
-  "errorPickingImage": "Error picking image:",
-  "searchCollectionHint": "Search by name or amount...",
-  "noActiveLoans": "This customer has no active loans",
-  "createLoan": "Create Loan",
-  "originalAmount": "Original",
-  "selectedLoan": "Selected Loan",
-  "paymentTypeMixed": "Mixed",
-  "paymentTypeRecovery": "Recovery",
-  "paymentApplication": "Payment Application",
-  "toOverdueInterest": "To Overdue Interest",
-  "toCurrentInterest": "To Current Interest",
-  "toPrincipal": "To Principal",
-  "totalApplied": "Total Applied",
-  "projectedMonthlyEarnings": "Projected Monthly Earnings",
-  "paymentsInRange": "payments in range",
-  "noResultsFor": "for",
-  "noCollectionBiweeklyTitle": "No pending collections this fortnight",
-  "noCollectionBiweeklyMsg": "Biweekly customers will appear here when they have pending payments",
-  "noCollectionMonthlyTitle": "No pending collections this month",
-  "noCollectionMonthlyMsg": "Customers with pending payments will appear here",
-  "noCollectionOverdueTitle": "No overdue customers!",
+  "@tabOverdue": {
+    "description": "Tab label for overdue collections"
+  },
+  "collectionPlanDays": "Collection Planning",
+  "@collectionPlanDays": {
+    "description": "Label for the collection planning setting"
+  },
+  "collectionPlanDaysTitle": "Collection Planning",
+  "@collectionPlanDaysTitle": {
+    "description": "Title for the collection planning info dialog"
+  },
+  "collectionPlanDaysDesc": "Anticipation days for collection planning",
+  "@collectionPlanDaysDesc": {
+    "description": "Subtitle for the collection planning setting"
+  },
+  "collectionPlanDaysDescription": "This field allows you to define how many days in advance pending loans will be shown on the \"To Collect\" screen.\n\n**Example:**\nIf you set 3 days, loans due within the next 3 days will appear in the collection list.\n\n**Usage:**\nIncrease this value if you need more time to plan your collection route.",
+  "@collectionPlanDaysDescription": {
+    "description": "Detailed explanation of the collection anticipation feature"
+  },
+  "noCollectionUpcomingTitle": "No upcoming collections",
+  "@noCollectionUpcomingTitle": {
+    "description": "Title for empty upcoming collections tab"
+  },
+  "noCollectionUpcomingMsg": "No loans due within the next few days",
+  "@noCollectionUpcomingMsg": {
+    "description": "Message for empty upcoming collections tab"
+  },
+  "noCollectionOverdueTitle": "All up to date!",
+  "@noCollectionOverdueTitle": {
+    "description": "Title for empty overdue collections tab"
+  },
   "noCollectionOverdueMsg": "All your customers are up to date",
+  "@noCollectionOverdueMsg": {
+    "description": "Message for empty overdue collections tab"
+  },
+  "accountSummary": "Account Summary",
+  "@accountSummary": {
+    "description": "Section header for customer's financial overview"
+  },
+  "totalCapital": "Total Principal",
+  "@totalCapital": {
+    "description": "Label for total lent amount across all loans"
+  },
+  "monthlyInterest": "Monthly Interest",
+  "@monthlyInterest": {
+    "description": "Label for expected interest income per month"
+  },
+  "closedLoansTitle": "Closed loans",
+  "@closedLoansTitle": {
+    "description": "Section header for customer's finished loans"
+  },
+  "activeLoansTitle": "Active loans",
+  "@activeLoansTitle": {
+    "description": "Section header for customer's ongoing loans"
+  },
+  "noLoans": "No loans",
+  "@noLoans": {
+    "description": "Message when a customer has no loan records"
+  },
+  "noLoansDesc": "This customer has no registered loans",
+  "@noLoansDesc": {
+    "description": "Detailed empty state description for no loans"
+  },
+  "actionDenied": "Action denied",
+  "@actionDenied": {
+    "description": "Generic title for unauthorized or restricted action attempt"
+  },
+  "cannotDeleteWithPayments": "Cannot delete a loan with registered payments.",
+  "@cannotDeleteWithPayments": {
+    "description": "Reason message for blocked deletion"
+  },
+  "registeredDate": "Registered:",
+  "@registeredDate": {
+    "description": "Label showing when a record was created"
+  },
+  "deactivateCustomer": "Deactivate customer",
+  "@deactivateCustomer": {
+    "description": "Action label to mark a customer as inactive"
+  },
+  "viewFullHistory": "View full history",
+  "@viewFullHistory": {
+    "description": "Action label to see all past records"
+  },
+  "confirmDelete": "Confirm deletion",
+  "@confirmDelete": {
+    "description": "General confirmation title for delete actions"
+  },
+  "deleteLoanConfirmationMsg": "Are you sure you want to delete this loan?\nThis action cannot be undone.",
+  "@deleteLoanConfirmationMsg": {
+    "description": "Detailed warning for loan deletion"
+  },
+  "loanDeleted": "Loan deleted successfully",
+  "@loanDeleted": {
+    "description": "Generic success message for loan deletion"
+  },
+  "errorDeleting": "Error deleting:",
+  "@errorDeleting": {
+    "description": "Prefix for deletion error messages"
+  },
+  "selectCustomer": "Select Customer",
+  "@selectCustomer": {
+    "description": "Instruction to pick a customer from a list"
+  },
+  "createCustomer": "Create Customer",
+  "@createCustomer": {
+    "description": "Action label for creating a new customer"
+  },
+  "paymentAmountLabel": "Payment Amount *",
+  "@paymentAmountLabel": {
+    "description": "Label for payment input with asterisk indicating required"
+  },
+  "paymentAmountLabelRequired": "Payment Amount *",
+  "@paymentAmountLabelRequired": {
+    "description": "Alternative label for required payment input"
+  },
+  "invalidAmountMsg": "Enter a valid amount",
+  "@invalidAmountMsg": {
+    "description": "Validation message for incorrect payment amounts"
+  },
+  "identity": "Identity",
+  "@identity": {
+    "description": "Label for customer identity information section"
+  },
+  "contact": "Contact",
+  "@contact": {
+    "description": "Label for customer contact information section"
+  },
+  "location": "Location",
+  "@location": {
+    "description": "Label for customer address/location information section"
+  },
+  "branding": "Branding",
+  "@branding": {
+    "description": "Label for company branding settings (logo, name, etc)"
+  },
+  "companyName": "Company Name",
+  "@companyName": {
+    "description": "Label for the company's official name"
+  },
+  "companyPhone": "Contact Phone",
+  "@companyPhone": {
+    "description": "Label for the lender's primary phone number"
+  },
+  "companyAddress": "Address",
+  "@companyAddress": {
+    "description": "Label for the lender's physical office"
+  },
+  "rucId": "TAX ID / Identification",
+  "@rucId": {
+    "description": "Label for the company's tax identification number"
+  },
+  "phoneFixed": "Landline",
+  "@phoneFixed": {
+    "description": "Label for the company's fixed phone line"
+  },
+  "cellPhone": "Mobile",
+  "@cellPhone": {
+    "description": "Label for the company's mobile phone number"
+  },
+  "whatsapp": "WhatsApp",
+  "@whatsapp": {
+    "description": "Label for the company's WhatsApp number"
+  },
+  "address": "Address",
+  "@address": {
+    "description": "Label for the company's office address"
+  },
+  "logoPath": "Logo Path (PNG)",
+  "@logoPath": {
+    "description": "Label for the company's logo file location"
+  },
+  "selectFile": "Select file...",
+  "@selectFile": {
+    "description": "Action label to choose a file from the device"
+  },
+  "visible": "Visible",
+  "@visible": {
+    "description": "Label for showing an item"
+  },
+  "hidden": "Hidden",
+  "@hidden": {
+    "description": "Label for hiding an item"
+  },
+  "companyInfoHelp": "Toggle the switch to show this data on receipts and reports.",
+  "@companyInfoHelp": {
+    "description": "Tooltip/Help text explaining how branding visibility works"
+  },
+  "saveChanges": "Save Changes",
+  "@saveChanges": {
+    "description": "Action label to commit modifications"
+  },
+  "onlyPng": "Only PNG images are allowed",
+  "@onlyPng": {
+    "description": "Instruction/Error message for logo upload format"
+  },
+  "errorPickingImage": "Error picking image:",
+  "@errorPickingImage": {
+    "description": "Prefix for image selection error messages"
+  },
+  "searchCollectionHint": "Search by name or amount...",
+  "@searchCollectionHint": {
+    "description": "Placeholder for the search bar in the collection screen"
+  },
+  "noActiveLoans": "This customer has no active loans",
+  "@noActiveLoans": {
+    "description": "Message when a customer is selected for collection but has no debt"
+  },
+  "allLoansPaid": "All loans are paid!",
+  "@allLoansPaid": {
+    "description": "Positive summary message for collection lists"
+  },
+  "loansPendingTitle": "Pending Loans",
+  "@loansPendingTitle": {
+    "description": "Header for active debt list"
+  },
+  "createLoan": "Create Loan",
+  "@createLoan": {
+    "description": "Action label for starting a new loan process"
+  },
+  "originalAmount": "Original",
+  "@originalAmount": {
+    "description": "Label for the initial loan amount"
+  },
+  "selectedLoan": "Selected Loan",
+  "@selectedLoan": {
+    "description": "Label showing which loan is currently being viewed or paid"
+  },
+  "paymentTypeMixed": "Mixed",
+  "@paymentTypeMixed": {
+    "description": "Payment option that applies to both interest and principal"
+  },
+  "paymentTypeRecovery": "Recovery",
+  "@paymentTypeRecovery": {
+    "description": "Specialized payment type for loan closure/recovery"
+  },
+  "paymentApplication": "Payment Application",
+  "@paymentApplication": {
+    "description": "Header for showing how a payment amount was distributed"
+  },
+  "toOverdueInterest": "To Overdue Interest",
+  "@toOverdueInterest": {
+    "description": "Amount from payment applied to accumulated past interest"
+  },
+  "toCurrentInterest": "To Current Interest",
+  "@toCurrentInterest": {
+    "description": "Amount from payment applied to the current cycle's interest"
+  },
+  "toPrincipal": "To Principal",
+  "@toPrincipal": {
+    "description": "Amount from payment applied to the loan's principal"
+  },
+  "totalApplied": "Total Applied",
+  "@totalApplied": {
+    "description": "The sum of all payment components applied to the loan"
+  },
+  "projectedMonthlyEarnings": "Projected Monthly Earnings",
+  "@projectedMonthlyEarnings": {
+    "description": "Report label for estimated interest income for the month"
+  },
+  "paymentsInRange": "payments in range",
+  "@paymentsInRange": {
+    "description": "Suffix for number of payments found in a date filter"
+  },
+  "noResultsFor": "for",
+  "@noResultsFor": {
+    "description": "Preposition used in 'No results for [term]'"
+  },
   "noData": "No data",
+  "@noData": {
+    "description": "Generic message for missing information"
+  },
   "interestExpected": "Expected Interest",
+  "@interestExpected": {
+    "description": "Label for interest that according to schedule should be paid"
+  },
   "capitalPending": "Pending Principal",
+  "@capitalPending": {
+    "description": "Label for principal amount remaining on a loan"
+  },
   "daysOverdue": "days overdue",
+  "@daysOverdue": {
+    "description": "Suffix for length of delinquency"
+  },
   "activeLoansCount": "active loans",
+  "@activeLoansCount": {
+    "description": "Generic label for number of active loans"
+  },
   "lastPayment": "Last payment",
+  "@lastPayment": {
+    "description": "Label prefix for the most recent payment date"
+  },
   "historyTitle": "Payment History",
+  "@historyTitle": {
+    "description": "Title for the history of transactions for a loan"
+  },
   "noPaymentsTitle": "No payments registered",
+  "@noPaymentsTitle": {
+    "description": "Header for empty payment history"
+  },
   "noPaymentsMsg": "Registered payments will appear here",
+  "@noPaymentsMsg": {
+    "description": "Message for empty payment history"
+  },
   "dateToday": "Today",
+  "@dateToday": {
+    "description": "Relative date label for today"
+  },
   "dateYesterday": "Yesterday",
+  "@dateYesterday": {
+    "description": "Relative date label for yesterday"
+  },
   "dateDaysAgo": "{days} days ago",
-  "activeCustomersLabel": "Active Customers",
-  "activeLoansLabel": "Active Loans",
-  "overdueLoansLabel": "Overdue Loans",
-  "earningsMonthLabel": "Earnings (Mes)",
-  "projectedMonthLabel": "Projected Month",
-  "capitalPlacedLabel": "Capital Placed",
-  "ofLabel": "of",
-  "newCustomerLabel": "New Customer",
-  "freqMonthly": "Monthly",
-  "generated": "Generated:",
-  "ignoreAndContinue": "Ignore and Continue",
-  "enableCapitalRestriction": "Restrict capital payment by date",
-  "enableCapitalRestrictionDesc": "Prevent capital payment when cycle is concluding",
-  "capitalRestrictionDays": "Min days before cycle end",
-  "capitalRestrictionDaysDesc": "Restrict payments if less than {days} days remain in cycle",
-  "errorCycleConcluding": "Cannot pay principal because the cycle is concluding.\n\n{remaining} days left until cutoff. Principal payment is only allowed when more than {required} days remain.",
-  "cycleConcluding": "Cycle Concluding",
-  "aboutTitle": "About Prestazo",
-  "aboutVersion": "Version",
-  "aboutTagline": "Your financial ally",
-  "aboutDescription": "Prestazo is an app designed to simplify your personal loan management. With Prestazo, you can keep total control over your customers, credits, and collections, all from the palm of your hand.",
-  "featureCustomers": "Manage your customer portfolio easily.",
-  "featureCalculations": "Calculate interest and amortization automatically.",
-  "featureCollections": "Visualize pending collections by day, week, or month.",
-  "featureReports": "Generate earnings reports and income projection.",
-  "selectCurrency": "Select Currency",
-  "searchCurrencyHint": "Search currency...",
-  "currencyUpdated": "Currency updated",
-  "exchangeRateMissingContract": "Error: A foreign currency loan is missing its contract exchange rate. Please contact support.",
-  "defineExchangeRateMessage": "Please define an exchange rate for the selected display currency.",
-  "noExchangeRateToday": "No exchange rate has been defined for today. Please add a rate before creating a loan in this currency.",
-  "goToExchangeRates": "Go to Exchange Rates",
-  "validations": "Validations",
-  "dniFormatTitle": "ID Format",
-  "dniFormatSubtitle": "Configure ID mask and validation",
-  "validateDniFormat": "Validate ID format",
-  "validateDniFormatDesc": "Require ID to match the defined mask",
-  "defineMaskTitle": "Define Mask / Format",
-  "maskHelpText": "Use the following characters to define the format:\n# : Digit (0-9)\n@ : Letter (A-Z)\n* : Any\nOthers : Separators (-, ., /)",
-  "maskLabel": "Mask",
-  "maskHint": "Ex: ###-######-####@",
-  "testValidation": "Test Validation",
-  "testDniLabel": "Test ID",
-  "testDniHint": "Type to test...",
-  "formatMismatch": "Format does not match the mask",
-  "saveConfiguration": "Save Configuration",
-  "configurationSaved": "Configuration saved",
-  "reportCurrencyTitle": "Report Currency",
-  "reportCurrencySubtitle": "Configure currency and exchange rate",
-  "exchangeRateLabel": "Exchange Rate",
-  "exchangeRateHint": "Ex: 36.50",
-  "exchangeRateHelper": "1 Report Currency = X Base Currency",
-  "saveSettings": "Save settings",
-  "reportSettingsInfoTitle": "Report Currency",
-  "reportSettingsInfo": "Define the currency you want to see your earnings and reports in. If you lend in another currency, use the Exchange Rate to convert the amounts.",
-  "loanCurrencyLabel": "Loan Currency",
-  "selectCountryTitle": "Select Country",
-  "searchCountryHint": "Search country...",
-  "availableCapitalTitle": "Available Lending Capital",
-  "availableCapitalDescription": "\"Available Lending Capital\" works as a safety limit and financial planning tool for your lending business.\n\n**What is it for?**\nThis value sets a maximum ceiling for the total capital you can have lent out (on the street) at any given time. It is not a real bank account, but an administrative limit you define yourself.\n\n**What happens if I enable it?**\nWhen \"Validate Working Capital\" is enabled, before creating a new loan, the system will check if you have sufficient available balance.\n\n1. **Calculation:** The sum of all active lent capital is subtracted from this global limit.\n2. **Validation:** If the new loan exceeds the remaining amount, the system will warn you and prevent loan creation to avoid unplanned overdrafts.\n\n**Recommendation:**\nKeep this value updated according to your actual investment capacity or the budget you have assigned for your loan portfolio. If your business grows, remember to increase this limit.",
-  "capitalizeInterestTitle": "Interest Capitalization",
-  "capitalizeInterestDescription": "This option allows converting unpaid interest into new principal.\n\n**What does it mean?**\nIf a customer fails to pay interest on time, it is added to the loan's principal balance, generating new interest on the accumulated amount (compound interest).\n\n**Usage:** Enable this if your business model charges interest on interest for prolonged delinquency.",
-  "dailyAccrualTitle": "Daily Accrual (Prorated)",
-  "dailyAccrualDescription": "Controls how interest is charged if the customer pays off the loan early.\n\n**Enabled:**\nInterest is charged only for the exact days elapsed in the current cycle.\n*Example:* Paying halfway through the month costs only half a month's interest.\n\n**Disabled:**\nThe full cycle's interest is charged regardless of the payment day.\n*Example:* One day into the month counts as the full month's interest.",
-  "allowMultipleLoansTitle": "Multiple Loans",
-  "allowMultipleLoansDescription": "**Enabled:**\nAllows a single customer to have multiple active loans simultaneously.\n\n**Disabled:**\nA customer must pay off their current loan before applying for a new one.",
-  "validateDniTitle": "Unique ID Validation",
-  "validateDniDescription": "Prevents duplicate customers in your database.\nWhen registering a new customer, the system will check if the ID number (DNI/ID Card) already exists.",
-  "whatsappReceiptsTitle": "WhatsApp Receipts",
-  "whatsappReceiptsDescription": "Enables quick sending of payment and disbursement receipts via WhatsApp.\nThe system will generate the PDF and automatically open WhatsApp with the file ready to send.",
-  "capitalRestrictionTitle": "Capital Payment Restriction",
-  "capitalRestrictionDescription": "Prevents customers from paying down principal if there are few days left until their cutoff date.\n\n**Goal:**\nEnsure full collection of cycle interest. If principal is paid too close to the payment date, the calculated interest would drop drastically, affecting your expected profit.\n\n**Configuration:**\nYou define how many days before the cutoff this block is activated (e.g., 10 days).",
-  "toleranceDaysTitle": "Grace Period Days",
-  "toleranceDaysDescription": "Additional days you grant after the payment date before considering the loan \"Overdue\".\n\n**Example (2 days grace period):**\nIf paid on day 1 or 2 after the deadline, it's considered on time. On day 3, it becomes Overdue.",
-  "paymentOrderTitle": "Payment Application Order",
-  "paymentOrderDescription": "Defines the priority with which received money is distributed.\n\n**Interest First (Recommended):**\n1. Pending late fees\n2. Current interest\n3. Principal payment\n\n**Principal First:**\n1. Deducts directly from principal\n2. Then covers interest\n*Note: This option reduces the balance faster but may affect interest recovery.*",
-  "reportSettingsTitle": "Report Configuration",
-  "reportSettingsDescription": "Customize the appearance of PDF receipts given to your customers.\n\n* **Signatures:** Adds lines for \"Delivered by\" and \"Received by\" signatures.\n* **Legends:** Adds legal text or footnotes (e.g., \"Thank you for your payment\", \"Subject to late fees\").",
-  "sequencesTitle": "Sequences",
-  "sequencesDescription": "Allows manual adjustment of control numbers for Loans and Receipts.\n\n**Loans:**\nDefines the number of the *last* created loan (e.g., 100). The next loan will be 101.\nUseful if you are migrating data from another system and want to continue your numbering.\n\n**Receipts:**\nSame as loans, defines the last number generated for payment receipts.",
-  "maintenanceTitle": "Maintenance & Backups",
-  "maintenanceDescription": "Critical tools to protect and manage your data.\n\n**Export Backup:** Creates a full copy of your database. Do this regularly!\n**Backup Folder:** Choose where backups are saved (useful for cloud syncing).\n**Restore:** Recover your data from a previous backup file.\n**Recalculate Portfolio:** Fixes balance inconsistencies if you notice calculation errors.\n**Delete Data:** *Danger Zone*. Permanently removes data to reset or clean up.",
-  "appearanceTitle": "Appearance",
-  "appearanceDescription": "Customize how the application looks.\n\n**Light Mode:** Ideal for bright environments.\n**Dark Mode:** Reduces eye strain and saves battery.\n**System:** Automatically adapts to your phone's settings.",
-  "languageTitle": "Language",
-  "languageDescription": "Change the language of the entire application interface.\nWe currently support Spanish and English.",
-  "onLoanCreation": "On loan creation",
-  "onLoanCreationDesc": "Backup every time a loan is created",
-  "onPayment": "On payment",
-  "onPaymentDesc": "Backup every time a payment is registered",
-  "advancedSettings": "Advanced Settings",
-  "fileNamePrefix": "File name prefix",
-  "keepBackupsFor": "Keep backups for: {days} days",
-  "@keepBackupsFor": {
+  "@dateDaysAgo": {
+    "description": "Relative date label for past days",
     "placeholders": {
       "days": {
         "type": "int"
       }
     }
   },
-  "saveConfiguration": "Save Configuration",
-  "autoBackupInfo": "Automatic backups are checked when you open the app. Make sure to open the app regularly.",
-  "errorCheckingPayments": "Error verifying payments: {error}",
-  "@errorCheckingPayments": {
+  "activeCustomersLabel": "Active Customers",
+  "@activeCustomersLabel": {
+    "description": "Statistic label for total non-deactivated customers"
+  },
+  "activeLoansLabel": "Active Loans",
+  "@activeLoansLabel": {
+    "description": "Statistic label for total non-closed loans"
+  },
+  "overdueLoansLabel": "Overdue Loans",
+  "@overdueLoansLabel": {
+    "description": "Statistic label for loans with late payments"
+  },
+  "earningsMonthLabel": "Earnings (Mes)",
+  "@earningsMonthLabel": {
+    "description": "Statistic label for interest collected in the current month"
+  },
+  "projectedMonthLabel": "Projected Month",
+  "@projectedMonthLabel": {
+    "description": "Statistic label for interest expected this month"
+  },
+  "capitalPlacedLabel": "Capital Placed",
+  "@capitalPlacedLabel": {
+    "description": "Statistic label for total principal currently on loan"
+  },
+  "ofLabel": "of",
+  "@ofLabel": {
+    "description": "The 'of' preposition (e.g., Page X of Y)"
+  },
+  "newCustomerLabel": "New Customer",
+  "@newCustomerLabel": {
+    "description": "Label for marking new customer entries"
+  },
+  "freqMonthly": "Monthly",
+  "@freqMonthly": {
+    "description": "Label for monthly cycle frequency"
+  },
+  "generated": "Generated:",
+  "@generated": {
+    "description": "Label showing when a document was created"
+  },
+  "ignoreAndContinue": "Ignore and Continue",
+  "@ignoreAndContinue": {
+    "description": "Action label to bypass a warning"
+  },
+  "enableCapitalRestriction": "Restrict capital payment by date",
+  "@enableCapitalRestriction": {
+    "description": "Setting title to prevent late-cycle principal payments"
+  },
+  "enableCapitalRestrictionDesc": "Prevent capital payment when cycle is concluding",
+  "@enableCapitalRestrictionDesc": {
+    "description": "Description for capital payment restriction setting"
+  },
+  "capitalRestrictionDays": "Min days before cycle end",
+  "@capitalRestrictionDays": {
+    "description": "Setting label for the restriction threshold"
+  },
+  "capitalRestrictionDaysDesc": "Restrict payments if less than {days} days remain in cycle",
+  "@capitalRestrictionDaysDesc": {
+    "description": "Detailed description for the restriction days setting",
     "placeholders": {
-      "error": {
-        "type": "Object"
+      "days": {
+        "type": "int"
       }
     }
   },
-  "loanNotLoaded": "Loan not loaded",
-  "customerNotFound": "Customer not found",
-  "configNotLoaded": "Configuration not loaded",
-  "errorGeneratingPdf": "Error generating PDF: {error}",
-  "@errorGeneratingPdf": {
+  "errorCycleConcluding": "Cannot pay principal because the cycle is concluding.\n\n{remaining} days left until cutoff. Principal payment is only allowed when more than {required} days remain.",
+  "@errorCycleConcluding": {
+    "description": "Alert message when cycle is too close to end to accept principal",
+    "placeholders": {
+      "remaining": {
+        "type": "int"
+      },
+      "required": {
+        "type": "int"
+      }
+    }
+  },
+  "cycleConcluding": "Cycle Concluding",
+  "@cycleConcluding": {
+    "description": "Title for the cycle expiration warning dialog"
+  },
+  "aboutTitle": "About Prestazo",
+  "@aboutTitle": {
+    "description": "Title for the app information screen"
+  },
+  "aboutVersion": "Version",
+  "@aboutVersion": {
+    "description": "Label for app version number"
+  },
+  "aboutTagline": "Your financial ally",
+  "@aboutTagline": {
+    "description": "Marketing tagline for the app"
+  },
+  "aboutDescription": "Prestazo is an app designed to simplify your personal loan management. With Prestazo, you can keep total control over your customers, credits, and collections, all from the palm of your hand.",
+  "@aboutDescription": {
+    "description": "Detailed description of the app's purpose"
+  },
+  "featureCustomers": "Manage your customer portfolio easily.",
+  "@featureCustomers": {
+    "description": "Marketing bullet point for customer management"
+  },
+  "featureCalculations": "Calculate interest and amortization automatically.",
+  "@featureCalculations": {
+    "description": "Marketing bullet point for calculations"
+  },
+  "featureCollections": "Visualize pending collections by day, week, or month.",
+  "@featureCollections": {
+    "description": "Marketing bullet point for collections"
+  },
+  "featureReports": "Generate earnings reports and income projection.",
+  "@featureReports": {
+    "description": "Marketing bullet point for reporting"
+  },
+  "selectCurrency": "Select Currency",
+  "@selectCurrency": {
+    "description": "Instruction to pick a currency from a list"
+  },
+  "searchCurrencyHint": "Search currency...",
+  "@searchCurrencyHint": {
+    "description": "Placeholder for currency search input"
+  },
+  "currencyUpdated": "Currency updated",
+  "@currencyUpdated": {
+    "description": "Success message when currency settings change"
+  },
+  "exchangeRateMissingContract": "Error: A foreign currency loan is missing its contract exchange rate. Please contact support.",
+  "@exchangeRateMissingContract": {
+    "description": "Critical error message for corrupted rate data"
+  },
+  "defineExchangeRateMessage": "Please define an exchange rate for the selected display currency.",
+  "@defineExchangeRateMessage": {
+    "description": "Warning when a currency is chosen but has no rate"
+  },
+  "noExchangeRateToday": "No exchange rate has been defined for today. Please add a rate before creating a loan in this currency.",
+  "@noExchangeRateToday": {
+    "description": "Warning message when the daily rate is missing"
+  },
+  "goToExchangeRates": "Go to Exchange Rates",
+  "@goToExchangeRates": {
+    "description": "Action label to navigate to rate management"
+  },
+  "validations": "Validations",
+  "@validations": {
+    "description": "Label for the Validations section in settings"
+  },
+  "dniFormatTitle": "ID Format",
+  "@dniFormatTitle": {
+    "description": "Title for ID mask configuration"
+  },
+  "dniFormatSubtitle": "Configure ID mask and validation",
+  "@dniFormatSubtitle": {
+    "description": "Subtitle for ID mask section"
+  },
+  "validateDniFormat": "Validate ID format",
+  "@validateDniFormat": {
+    "description": "Toggle to enforce id format masking"
+  },
+  "validateDniFormatDesc": "Require ID to match the defined mask",
+  "@validateDniFormatDesc": {
+    "description": "Description for ID format validation toggle"
+  },
+  "defineMaskTitle": "Define Mask / Format",
+  "@defineMaskTitle": {
+    "description": "Title for the input defining the ID format"
+  },
+  "maskHelpText": "Use the following characters to define the format:\n# : Digit (0-9)\n@ : Letter (A-Z)\n* : Any\nOthers : Separators (-, ., /)",
+  "@maskHelpText": {
+    "description": "Instructions on how to build a validation mask"
+  },
+  "maskLabel": "Mask",
+  "@maskLabel": {
+    "description": "Label for mask input field"
+  },
+  "maskHint": "Ex: ###-######-####@",
+  "@maskHint": {
+    "description": "Placeholder example for mask input"
+  },
+  "testValidation": "Test Validation",
+  "@testValidation": {
+    "description": "Button to verify if a sample text passes the mask"
+  },
+  "testDniLabel": "Test ID",
+  "@testDniLabel": {
+    "description": "Label for sample ID input"
+  },
+  "testDniHint": "Type to test...",
+  "@testDniHint": {
+    "description": "Placeholder for sample ID test input"
+  },
+  "formatMismatch": "Format does not match the mask",
+  "@formatMismatch": {
+    "description": "Validation error message for ID format mismatch"
+  },
+  "saveConfiguration": "Save Configuration",
+  "@saveConfiguration": {
+    "description": "Action label to save mask settings"
+  },
+  "configurationSaved": "Configuration saved",
+  "@configurationSaved": {
+    "description": "Success message after saving mask settings"
+  },
+  "reportCurrencyTitle": "Report Currency",
+  "@reportCurrencyTitle": {
+    "description": "Title for report currency configuration"
+  },
+  "reportCurrencySubtitle": "Configure currency and exchange rate",
+  "@reportCurrencySubtitle": {
+    "description": "Subtitle for report currency section"
+  },
+  "exchangeRateLabel": "Exchange Rate",
+  "@exchangeRateLabel": {
+    "description": "Label for the numerical exchange rate"
+  },
+  "exchangeRateHint": "Ex: 36.50",
+  "@exchangeRateHint": {
+    "description": "Placeholder for exchange rate input"
+  },
+  "exchangeRateHelper": "1 Report Currency = X Base Currency",
+  "@exchangeRateHelper": {
+    "description": "Hint explaining the exchange rate math"
+  },
+  "officialRate": "Official Rate",
+  "@officialRate": {
+    "description": "The central bank or standard rate"
+  },
+  "cannotDeleteBaseCurrencyRate": "Cannot delete base currency",
+  "@cannotDeleteBaseCurrencyRate": {
+    "description": "Permission error for primary currency"
+  },
+  "lastUpdated": "Last updated: {date}",
+  "@lastUpdated": {
+    "description": "Timestamp label for data refreshes",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "suggestedRate": "Suggested rate",
+  "@suggestedRate": {
+    "description": "Label for recommended currency conversion factor"
+  },
+  "useOfficialRate": "Use Official Rate",
+  "@useOfficialRate": {
+    "description": "Check option to override manual input"
+  },
+  "saveSettings": "Save settings",
+  "@saveSettings": {
+    "description": "Action label to commit currency settings"
+  },
+  "reportSettingsInfoTitle": "Report Currency",
+  "@reportSettingsInfoTitle": {
+    "description": "Title for report currency info dialog"
+  },
+  "reportSettingsInfo": "Define the currency you want to see your earnings and reports in. If you lend in another currency, use the Exchange Rate to convert the amounts.",
+  "@reportSettingsInfo": {
+    "description": "Explanation of report currency feature"
+  },
+  "loanCurrencyLabel": "Loan Currency",
+  "@loanCurrencyLabel": {
+    "description": "Label for currency selected at loan creation"
+  },
+  "selectCountryTitle": "Select Country",
+  "@selectCountryTitle": {
+    "description": "Title for country selection dialog"
+  },
+  "searchCountryHint": "Search country...",
+  "@searchCountryHint": {
+    "description": "Placeholder for country search input"
+  },
+  "availableCapitalTitle": "Available Lending Capital",
+  "@availableCapitalTitle": {
+    "description": "Title for the detailed help dialog about available capital"
+  },
+  "availableCapitalDescription": "\"Available Lending Capital\" works as a safety limit and financial planning tool for your lending business.\n\n**What is it for?**\nThis value sets a maximum ceiling for the total capital you can have lent out (on the street) at any given time. It is not a real bank account, but an administrative limit you define yourself.\n\n**What happens if I enable it?**\nWhen \"Validate Working Capital\" is enabled, before creating a new loan, the system will check if you have sufficient available balance.\n\n1. **Calculation:** The sum of all active lent capital is subtracted from this global limit.\n2. **Validation:** If the new loan exceeds the remaining amount, the system will warn you and prevent loan creation to avoid unplanned overdrafts.\n\n**Recommendation:**\nKeep this value updated according to your actual investment capacity or the budget you have assigned for your loan portfolio. If your business grows, remember to increase this limit.",
+  "@availableCapitalDescription": {
+    "description": "Detailed explanation of the available capital feature"
+  },
+  "capitalizeInterestTitle": "Interest Capitalization",
+  "@capitalizeInterestTitle": {
+    "description": "Title for the detailed help dialog about interest capitalization"
+  },
+  "capitalizeInterestDescription": "This option allows converting unpaid interest into new principal.\n\n**What does it mean?**\nIf a customer fails to pay interest on time, it is added to the loan's principal balance, generating new interest on the accumulated amount (compound interest).\n\n**Usage:** Enable this if your business model charges interest on interest for prolonged delinquency.",
+  "@capitalizeInterestDescription": {
+    "description": "Detailed explanation of the interest capitalization feature"
+  },
+  "dailyAccrualTitle": "Daily Accrual (Prorated)",
+  "@dailyAccrualTitle": {
+    "description": "Title for the detailed help dialog about daily accrual"
+  },
+  "dailyAccrualDescription": "Controls how interest is charged if the customer pays off the loan early.\n\n**Enabled:**\nInterest is charged only for the exact days elapsed in the current cycle.\n*Example:* Paying halfway through the month costs only half a month's interest.\n\n**Disabled:**\nThe full cycle's interest is charged regardless of the payment day.\n*Example:* One day into the month counts as the full month's interest.",
+  "@dailyAccrualDescription": {
+    "description": "Detailed explanation of the daily accrual feature"
+  },
+  "allowMultipleLoansTitle": "Multiple Loans",
+  "@allowMultipleLoansTitle": {
+    "description": "Title for the detailed help dialog about allowing multiple loans"
+  },
+  "allowMultipleLoansDescription": "**Enabled:**\nAllows a single customer to have multiple active loans simultaneously.\n\n**Disabled:**\nA customer must pay off their current loan before applying for a new one.",
+  "@allowMultipleLoansDescription": {
+    "description": "Detailed explanation of the multiple loans policy"
+  },
+  "validateDniTitle": "Unique ID Validation",
+  "@validateDniTitle": {
+    "description": "Title for the detailed help dialog about ID validation"
+  },
+  "validateDniDescription": "Prevents duplicate customers in your database.\nWhen registering a new customer, the system will check if the ID number (DNI/ID Card) already exists.",
+  "@validateDniDescription": {
+    "description": "Detailed explanation of the unique ID validation feature"
+  },
+  "whatsappReceiptsTitle": "WhatsApp Receipts",
+  "@whatsappReceiptsTitle": {
+    "description": "Title for the detailed help dialog about WhatsApp receipts"
+  },
+  "whatsappReceiptsDescription": "Enables quick sending of payment and disbursement receipts via WhatsApp.\nThe system will generate the PDF and automatically open WhatsApp with the file ready to send.",
+  "@whatsappReceiptsDescription": {
+    "description": "Detailed explanation of the WhatsApp receipts feature"
+  },
+  "capitalRestrictionTitle": "Capital Payment Restriction",
+  "@capitalRestrictionTitle": {
+    "description": "Title for the detailed help dialog about capital payment restriction"
+  },
+  "capitalRestrictionDescription": "Prevents customers from paying down principal if there are few days left until their cutoff date.\n\n**Goal:**\nEnsure full collection of cycle interest. If principal is paid too close to the payment date, the calculated interest would drop drastically, affecting your expected profit.\n\n**Configuration:**\nYou define how many days before the cutoff this block is activated (e.g., 10 days).",
+  "@capitalRestrictionDescription": {
+    "description": "Detailed explanation of the capital restriction feature"
+  },
+  "toleranceDaysTitle": "Grace Period Days",
+  "@toleranceDaysTitle": {
+    "description": "Title for the detailed help dialog about grace periods"
+  },
+  "toleranceDaysDescription": "Additional days you grant after the payment date before considering the loan \"Overdue\".\n\n**Example (2 days grace period):**\nIf paid on day 1 or 2 after the deadline, it's considered on time. On day 3, it becomes Overdue.",
+  "@toleranceDaysDescription": {
+    "description": "Detailed explanation of the grace period setting"
+  },
+  "paymentOrderTitle": "Payment Application Order",
+  "@paymentOrderTitle": {
+    "description": "Title for the detailed help dialog about payment application order"
+  },
+  "paymentOrderDescription": "Defines the priority with which received money is distributed.\n\n**Interest First (Recommended):**\n1. Pending late fees\n2. Current interest\n3. Principal payment\n\n**Principal First:**\n1. Deducts directly from principal\n2. Then covers interest\n*Note: This option reduces the balance faster but may affect interest recovery.*",
+  "@paymentOrderDescription": {
+    "description": "Detailed explanation of the payment application order policy"
+  },
+  "reportSettingsTitle": "Report Configuration",
+  "@reportSettingsTitle": {
+    "description": "Title for the detailed help dialog about report configuration"
+  },
+  "reportSettingsDescription": "Customize the appearance of PDF receipts given to your customers.\n\n* **Signatures:** Adds lines for \"Delivered by\" and \"Received by\" signatures.\n* **Legends:** Adds legal text or footnotes (e.g., \"Thank you for your payment\", \"Subject to late fees\").",
+  "@reportSettingsDescription": {
+    "description": "Detailed explanation of the report personalization settings"
+  },
+  "sequencesTitle": "Sequences",
+  "@sequencesTitle": {
+    "description": "Title for the detailed help dialog about sequences"
+  },
+  "sequencesDescription": "Allows manual adjustment of control numbers for Loans and Receipts.\n\n**Loans:**\nDefines the number of the *last* created loan (e.g., 100). The next loan will be 101.\nUseful if you are migrating data from another system and want to continue your numbering.\n\n**Receipts:**\nSame as loans, defines the last number generated for payment receipts.",
+  "@sequencesDescription": {
+    "description": "Detailed explanation of the sequence management feature"
+  },
+  "maintenanceTitle": "Maintenance & Backups",
+  "@maintenanceTitle": {
+    "description": "Title for the detailed help dialog about maintenance"
+  },
+  "maintenanceDescription": "Critical tools to protect and manage your data.\n\n**Export Backup:** Creates a full copy of your database. Do this regularly!\n**Backup Folder:** Choose where backups are saved (useful for cloud syncing).\n**Restore:** Recover your data from a previous backup file.\n**Recalculate Portfolio:** Fixes balance inconsistencies if you notice calculation errors.\n**Delete Data:** *Danger Zone*. Permanently removes data to reset or clean up.",
+  "@maintenanceDescription": {
+    "description": "Detailed explanation of the maintenance tools"
+  },
+  "appearanceTitle": "Appearance",
+  "@appearanceTitle": {
+    "description": "Title for the detailed help dialog about appearance"
+  },
+  "appearanceDescription": "Customize how the application looks.\n\n**Light Mode:** Ideal for bright environments.\n**Dark Mode:** Reduces eye strain and saves battery.\n**System:** Automatically adapts to your phone's settings.",
+  "@appearanceDescription": {
+    "description": "Detailed explanation of the theme settings"
+  },
+  "languageTitle": "Language",
+  "@languageTitle": {
+    "description": "Title for the detailed help dialog about language"
+  },
+  "languageDescription": "Change the language of the entire application interface.\nWe currently support Spanish and English.",
+  "@languageDescription": {
+    "description": "Detailed explanation of the language settings"
+  },
+  "onLoanCreation": "On loan creation",
+  "@onLoanCreation": {
+    "description": "Label for automatic backup trigger when creating a loan"
+  },
+  "onLoanCreationDesc": "Backup every time a loan is created",
+  "@onLoanCreationDesc": {
+    "description": "Description for loan creation backup trigger"
+  },
+  "onPayment": "On payment",
+  "@onPayment": {
+    "description": "Label for automatic backup trigger when registering a payment"
+  },
+  "onPaymentDesc": "Backup every time a payment is registered",
+  "@onPaymentDesc": {
+    "description": "Description for payment registration backup trigger"
+  },
+  "advancedSettings": "Advanced Settings",
+  "@advancedSettings": {
+    "description": "Header for more complex configuration options"
+  },
+  "fileNamePrefix": "File name prefix",
+  "@fileNamePrefix": {
+    "description": "Label for the prefix used when naming automated backup files"
+  },
+  "keepBackupsFor": "Keep backups for: {days} days",
+  "@keepBackupsFor": {
+    "description": "Label for backup retention policy",
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "autoBackupInfo": "Automatic backups are checked when you open the app. Make sure to open the app regularly.",
+  "@autoBackupInfo": {
+    "description": "Informational message about how auto-backups are triggered"
+  },
+  "errorCheckingPayments": "Error verifying payments: {error}",
+  "@errorCheckingPayments": {
+    "description": "Error message for payment verification failure",
     "placeholders": {
       "error": {
-        "type": "Object"
+        "type": "String"
+      }
+    }
+  },
+  "configNotLoaded": "Configuration not loaded",
+  "@configNotLoaded": {
+    "description": "Error message when app settings fail to initialize"
+  },
+  "errorGeneratingPdf": "Error generating PDF: {error}",
+  "@errorGeneratingPdf": {
+    "description": "Error message for generic PDF generation failure",
+    "placeholders": {
+      "error": {
+        "type": "String"
       }
     }
   },
   "errorGeneratingReceipt": "Error generating receipt: {error}",
   "@errorGeneratingReceipt": {
+    "description": "Error message for receipt PDF generation failure",
     "placeholders": {
       "error": {
-        "type": "Object"
+        "type": "String"
       }
     }
   },
   "errorGeneratingVoucher": "Error generating voucher: {error}",
   "@errorGeneratingVoucher": {
+    "description": "Error message for voucher PDF generation failure",
     "placeholders": {
       "error": {
-        "type": "Object"
+        "type": "String"
       }
     }
   },
   "generatedBillingCycles": "{count} new billing cycles generated",
   "@generatedBillingCycles": {
+    "description": "Success message after generating scheduled charges",
     "placeholders": {
       "count": {
         "type": "int"
@@ -561,43 +2235,82 @@
   },
   "genericError": "Error: {error}",
   "@genericError": {
+    "description": "General error message with details",
     "placeholders": {
       "error": {
-        "type": "Object"
+        "type": "String"
       }
     }
   },
   "loanNotFound": "Loan not found",
+  "@loanNotFound": {
+    "description": "Error message when a specific loan record is missing"
+  },
   "generatingEarningsReport": "Generating Earnings Report...",
+  "@generatingEarningsReport": {
+    "description": "Loading message during earnings report creation"
+  },
   "noPaymentDataForReport": "No payment data to generate report",
+  "@noPaymentDataForReport": {
+    "description": "Feedback message when no payment records match filter"
+  },
   "generatingConsolidatedReport": "Generating Consolidated Report...",
+  "@generatingConsolidatedReport": {
+    "description": "Loading message during consolidated report creation"
+  },
   "noActiveLoansForReport": "No active loans to report",
+  "@noActiveLoansForReport": {
+    "description": "Feedback message when no active loans exist for report"
+  },
   "errorGeneratingReport": "Error generating report: {error}",
   "@errorGeneratingReport": {
+    "description": "Generic error message for all report types",
     "placeholders": {
       "error": {
-        "type": "Object"
+        "type": "String"
       }
     }
   },
-  "creatingBackup": "Creating backup...",
   "recalculatingPortfolio": "Recalculating portfolio...",
+  "@recalculatingPortfolio": {
+    "description": "Status message during balance recount"
+  },
   "errorRestoringBackup": "Error restoring backup",
+  "@errorRestoringBackup": {
+    "description": "General error during data restoration"
+  },
   "errorSelectingFile": "Error selecting file: {error}",
   "@errorSelectingFile": {
+    "description": "Error during file picker operation",
     "placeholders": {
       "error": {
-        "type": "Object"
+        "type": "String"
       }
     }
   },
   "invalidAmountTitle": "Invalid Amount",
+  "@invalidAmountTitle": {
+    "description": "Title for numeric validation error"
+  },
   "invalidAmountMessage": "Amount must be greater than zero.",
+  "@invalidAmountMessage": {
+    "description": "Explanation why zero or negative amount is invalid"
+  },
   "invalidPaymentTypeTitle": "Invalid Type",
+  "@invalidPaymentTypeTitle": {
+    "description": "Title for selection error"
+  },
   "invalidPaymentTypeMessage": "Unrecognized payment type.",
+  "@invalidPaymentTypeMessage": {
+    "description": "Explanation for unknown payment method"
+  },
   "incorrectCancelAmountTitle": "Incorrect Amount to Cancel",
+  "@incorrectCancelAmountTitle": {
+    "description": "Title for loan closure validation"
+  },
   "incorrectCancelAmountMessage": "To cancel the loan, the amount must be exactly {symbol} {amount} (Principal + Interest).",
   "@incorrectCancelAmountMessage": {
+    "description": "Explains requirements for total payoff",
     "placeholders": {
       "symbol": {
         "type": "String"
@@ -608,6 +2321,9 @@
     }
   },
   "amountExceedsInterestTitle": "Amount Exceeds Interest",
+  "@amountExceedsInterestTitle": {
+    "description": "Title for interest-only payment overflow"
+  },
   "amountExceedsInterestMessage": "The amount ({symbol} {paid}) exceeds the pending interest ({symbol} {pending}).\n\nSelect \"Mixed\" to apply to principal.",
   "@amountExceedsInterestMessage": {
     "placeholders": {
@@ -623,8 +2339,12 @@
     }
   },
   "insufficientMixedAmountTitle": "Insufficient Amount for Mixed",
+  "@insufficientMixedAmountTitle": {
+    "description": "Title for mixed payment validation error"
+  },
   "insufficientMixedAmountMessage": "For a mixed payment, the amount must be greater than the pending interest ({symbol} {pending}).\n\nIf you only want to pay interest, select \"Interest Only\".",
   "@insufficientMixedAmountMessage": {
+    "description": "Explanation why mixed type requires more money",
     "placeholders": {
       "symbol": {
         "type": "String"
@@ -635,8 +2355,12 @@
     }
   },
   "pendingInterestTitle": "Pending Interest",
+  "@pendingInterestTitle": {
+    "description": "Title for priority validation alert"
+  },
   "pendingInterestMessage": "You cannot pay principal only because you have pending interest ({symbol} {pending}).\n\nYou must pay the interest first.",
   "@pendingInterestMessage": {
+    "description": "Rule enforcement message: interest must be paid before principal",
     "placeholders": {
       "symbol": {
         "type": "String"
@@ -647,8 +2371,12 @@
     }
   },
   "amountExceedsPrincipalTitle": "Amount Exceeds Principal",
+  "@amountExceedsPrincipalTitle": {
+    "description": "Title for principal overflow alert"
+  },
   "amountExceedsPrincipalMessage": "The amount ({symbol} {paid}) exceeds the pending principal ({symbol} {pending}).",
   "@amountExceedsPrincipalMessage": {
+    "description": "Explanation for principal payment overflow",
     "placeholders": {
       "symbol": {
         "type": "String"
@@ -662,54 +2390,127 @@
     }
   },
   "calculating": "Calculating...",
+  "@calculating": {
+    "description": "Progress message during complex math tasks"
+  },
   "errorLoadingCycles": "Error loading cycles: {error}",
   "@errorLoadingCycles": {
+    "description": "Error message for failing to fetch billing cycles",
     "placeholders": {
       "error": {
-        "type": "Object"
+        "type": "String"
       }
     }
   },
   "errorLoadingPayments": "Error loading payments: {error}",
   "@errorLoadingPayments": {
+    "description": "Error message for failing to fetch customer payments",
     "placeholders": {
       "error": {
-        "type": "Object"
+        "type": "String"
       }
     }
   },
   "noPaymentsRegistered": "No payments registered",
+  "@noPaymentsRegistered": {
+    "description": "Status message for loans with no transactions"
+  },
   "loadingDetails": "Loading details...",
+  "@loadingDetails": {
+    "description": "Progress message for generic details fetch"
+  },
   "errorLoadingDetails": "Error loading details",
+  "@errorLoadingDetails": {
+    "description": "Error message for generic details fetch failure"
+  },
   "noAllocationDetails": "No allocation details",
+  "@noAllocationDetails": {
+    "description": "Message when payment breakdown is missing"
+  },
   "companyDataUpdated": "Company data updated",
+  "@companyDataUpdated": {
+    "description": "Success message after saving branding info"
+  },
   "errorSaving": "Error saving: {error}",
   "@errorSaving": {
+    "description": "Generic save failure message",
     "placeholders": {
       "error": {
-        "type": "Object"
+        "type": "String"
       }
     }
   },
   "selectALoan": "Select a loan",
+  "@selectALoan": {
+    "description": "Instruction label to choose a loan record"
+  },
   "loanUpdatedRecalculated": "Loan updated and recalculated",
+  "@loanUpdatedRecalculated": {
+    "description": "Success notification after editing a loan"
+  },
   "exchangeRates": "Exchange Rates",
+  "@exchangeRates": {
+    "description": "Header for Currency rate management"
+  },
   "addExchangeRate": "Add Rate",
+  "@addExchangeRate": {
+    "description": "Action label to create a new rate entry"
+  },
   "editExchangeRate": "Edit Rate",
+  "@editExchangeRate": {
+    "description": "Action label to modify an existing rate entry"
+  },
   "sourceCurrency": "Source Currency",
+  "@sourceCurrency": {
+    "description": "Label for the starting currency in a pair"
+  },
   "targetCurrency": "Target Currency",
+  "@targetCurrency": {
+    "description": "Label for the resulting currency in a pair"
+  },
   "buyRate": "Buy Rate",
+  "@buyRate": {
+    "description": "Label for the purchase value of a currency"
+  },
   "sellRate": "Sell Rate",
+  "@sellRate": {
+    "description": "Label for the sale value of a currency"
+  },
   "rateDate": "Date",
+  "@rateDate": {
+    "description": "Label for the effective date of an exchange rate"
+  },
   "noRatesAvailable": "No rates available",
+  "@noRatesAvailable": {
+    "description": "Empty state for exchange rates table"
+  },
   "rateAddedSuccessfully": "Rate added successfully",
+  "@rateAddedSuccessfully": {
+    "description": "Success message after creating a rate"
+  },
   "rateUpdatedSuccessfully": "Rate updated successfully",
+  "@rateUpdatedSuccessfully": {
+    "description": "Success message after editing a rate"
+  },
   "rateDeletedSuccessfully": "Rate deleted",
+  "@rateDeletedSuccessfully": {
+    "description": "Success message after removing a rate"
+  },
   "averageRate": "Average Rate",
+  "@averageRate": {
+    "description": "Label for calculation source based on multiple rates"
+  },
   "deleteRateConfirmation": "Are you sure you want to delete this rate?",
+  "@deleteRateConfirmation": {
+    "description": "Warning dialog for rate removal"
+  },
   "rateAlreadyExists": "A rate already exists for this date and currency pair",
+  "@rateAlreadyExists": {
+    "description": "Validation alert for duplicate rates"
+  },
   "workingCapitalIn": "Working Capital in {currency}",
   "@workingCapitalIn": {
+    "description": "Label showing the pool of money in a specific currency",
     "placeholders": {
       "currency": {
         "type": "String"
@@ -717,15 +2518,40 @@
     }
   },
   "recalculateCapitalQuestion": "Would you like to recalculate working capital to the new base currency?",
+  "@recalculateCapitalQuestion": {
+    "description": "Prompt when base currency changes"
+  },
   "baseCurrencyChanged": "Base currency changed",
+  "@baseCurrencyChanged": {
+    "description": "Notification title for base currency update"
+  },
   "capitalWillBeRecalculated": "Capital will be recalculated according to the current rate",
+  "@capitalWillBeRecalculated": {
+    "description": "Explanation for automatic financial conversion"
+  },
   "allowManualExchangeRate": "Allow manual rate modification",
+  "@allowManualExchangeRate": {
+    "description": "Setting title for contract-specific rates"
+  },
   "allowManualExchangeRateDesc": "The lender can edit the rate when creating a loan",
+  "@allowManualExchangeRateDesc": {
+    "description": "Policy description for manual rates"
+  },
   "appliedExchangeRate": "Applied Rate",
+  "@appliedExchangeRate": {
+    "description": "Label showing the conversion factor used for a loan"
+  },
   "noRateForToday": "No rate registered for today",
+  "@noRateForToday": {
+    "description": "Alert when the daily rate sheet is empty"
+  },
   "usingFallbackRate": "Using fallback rate",
+  "@usingFallbackRate": {
+    "description": "Notice that the last available rate is being used"
+  },
   "totalInBaseCurrency": "Total in {currency}",
   "@totalInBaseCurrency": {
+    "description": "Label for cumulative values converted to base",
     "placeholders": {
       "currency": {
         "type": "String"
@@ -733,16 +2559,44 @@
     }
   },
   "currencyDifferentialReport": "Currency Differential Report",
+  "@currencyDifferentialReport": {
+    "description": "Title for report tracking gain/loss from fx shifts"
+  },
   "exchangeGain": "Exchange Gain",
+  "@exchangeGain": {
+    "description": "Report label for profit due to rate increase"
+  },
   "exchangeLoss": "Exchange Loss",
+  "@exchangeLoss": {
+    "description": "Report label for loss due to rate decrease"
+  },
   "portfolioDifferential": "Portfolio Differential",
+  "@portfolioDifferential": {
+    "description": "Summary label for global fx impact"
+  },
   "atDisbursement": "At Disbursement",
+  "@atDisbursement": {
+    "description": "Time reference for rate used at loan start"
+  },
   "atCurrentRate": "At Current Rate",
+  "@atCurrentRate": {
+    "description": "Time reference for rate used today"
+  },
   "contractRate": "Contract Rate",
+  "@contractRate": {
+    "description": "Label for the specific rate agreed for a loan"
+  },
   "currentRate": "Current Rate",
+  "@currentRate": {
+    "description": "Label for the system's latest official rate"
+  },
   "noDifferentials": "No exchange differentials",
+  "@noDifferentials": {
+    "description": "Message when portfolio's fx value hasn't shifted"
+  },
   "loansWithDifferential": "{count} loans with differential",
   "@loansWithDifferential": {
+    "description": "Summary count for the fx report",
     "placeholders": {
       "count": {
         "type": "int"
@@ -750,38 +2604,132 @@
     }
   },
   "manageExchangeRates": "Manage exchange rates",
+  "@manageExchangeRates": {
+    "description": "Action label to open the rate table"
+  },
   "baseCurrency": "Base Currency",
+  "@baseCurrency": {
+    "description": "Label for the primary operational currency"
+  },
   "baseCurrencyDesc": "Main currency for calculations and reports",
+  "@baseCurrencyDesc": {
+    "description": "Brief description of the base currency's role"
+  },
   "baseCurrencyInfo": "The Base Currency is the local currency in which your lending business operates.\n\nWhat does it affect?\n• The Working Capital field is shown in this currency\n• Exchange rates are recorded against this currency\n• Loans in other currencies use the day's rate for conversion\n\nExample: If you operate in Nicaragua, your base currency would be Córdoba (NIO).",
+  "@baseCurrencyInfo": {
+    "description": "Detailed explanation of the base currency setting"
+  },
   "capitalConverted": "Capital converted",
+  "@capitalConverted": {
+    "description": "Success notification after financial unit change"
+  },
   "contractRatePolicy": "Contract Rate Policy",
+  "@contractRatePolicy": {
+    "description": "Header for rate-related rules"
+  },
   "contractRatePolicyDesc": "Allow manual exchange rate modification when creating a loan",
+  "@contractRatePolicyDesc": {
+    "description": "Description of the rate override setting"
+  },
   "helpFunc": "Function",
+  "@helpFunc": {
+    "description": "Column header for help tables"
+  },
   "helpAffects": "Affects",
+  "@helpAffects": {
+    "description": "Column header for impact of settings"
+  },
   "helpExample": "Example",
+  "@helpExample": {
+    "description": "Column header for illustrative cases"
+  },
   "helpBaseCurrencyFunc": "Main currency for your business accounting.",
+  "@helpBaseCurrencyFunc": {
+    "description": "Description of base currency role"
+  },
   "helpBaseCurrencyAffects": "Defines the Working Capital currency and is the basis for all profitability reports.",
+  "@helpBaseCurrencyAffects": {
+    "description": "Scope of base currency influence"
+  },
   "helpBaseCurrencyEx": "If your base is Cordobas, the system will convert any loan in another currency to Cordobas for global totals.",
+  "@helpBaseCurrencyEx": {
+    "description": "Base currency illustrative example"
+  },
   "helpAvailableCapitalFunc": "Maximum limit of own money assigned for lending.",
+  "@helpAvailableCapitalFunc": {
+    "description": "Description of available capital role"
+  },
   "helpAvailableCapitalAffects": "Defines the available balance in your investment ceiling.",
+  "@helpAvailableCapitalAffects": {
+    "description": "Scope of available capital influence"
+  },
   "helpAvailableCapitalEx": "If you have 20,000 and lend 10,000, the system will indicate only 10,000 remains available.",
+  "@helpAvailableCapitalEx": {
+    "description": "Available capital illustrative example"
+  },
   "helpValidateCapitalFunc": "Security control to prevent lending more money than you have.",
+  "@helpValidateCapitalFunc": {
+    "description": "Description of capital validation role"
+  },
   "helpValidateCapitalAffects": "Blocks creation of new loans if the amount (converted to base currency) exceeds available capital.",
+  "@helpValidateCapitalAffects": {
+    "description": "Scope of capital validation influence"
+  },
   "helpValidateCapitalEx": "If you only have C$ 5,000 left and try to lend $200 USD (approx C$ 7,400), the app will block it.",
+  "@helpValidateCapitalEx": {
+    "description": "Capital validation illustrative example"
+  },
   "helpContractRatePolicyFunc": "Defines if the exchange rate can be manually edited at disbursement.",
+  "@helpContractRatePolicyFunc": {
+    "description": "Description of contract rate logic"
+  },
   "helpContractRatePolicyAffects": "Allows using a custom rate for a specific contract instead of the official daily rate.",
+  "@helpContractRatePolicyAffects": {
+    "description": "Scope of contract rate influence"
+  },
   "helpContractRatePolicyEx": "If official rate is 36.60, but you agree on 37.00 with the client, you can adjust it manually if this is active.",
+  "@helpContractRatePolicyEx": {
+    "description": "Contract rate illustrative example"
+  },
   "helpPresentationCurrencyFunc": "Changes the currency in which you see totals on the Dashboard.",
+  "@helpPresentationCurrencyFunc": {
+    "description": "Description of display currency toggling"
+  },
   "helpPresentationCurrencyAffects": "Only affects the aesthetic view of reports; does not alter actual client balances.",
+  "@helpPresentationCurrencyAffects": {
+    "description": "Scope of display currency influence"
+  },
   "languageSystem": "System Default",
+  "@languageSystem": {
+    "description": "Language option to match the phone OS"
+  },
   "selectReportType": "Select a report type",
+  "@selectReportType": {
+    "description": "Instruction to choose a reporting tool"
+  },
   "viewRealizedEarnings": "View collected earnings in the period",
+  "@viewRealizedEarnings": {
+    "description": "Description for the collected interest report"
+  },
   "viewProjectedEarnings": "View expected interest income",
+  "@viewProjectedEarnings": {
+    "description": "Description for the scheduled interest report"
+  },
   "fxDifferentialReport": "FX Differential Earnings",
+  "@fxDifferentialReport": {
+    "description": "Title for report on currency profit/loss"
+  },
   "fxDifferentialReportTitle": "FX Differential Report",
+  "@fxDifferentialReportTitle": {
+    "description": "Main header for the fx variation document"
+  },
   "periodLabel": "Period",
+  "@periodLabel": {
+    "description": "Section header for time range in a report"
+  },
   "periodFromTo": "Period: {startDate} to {endDate}",
   "@periodFromTo": {
+    "description": "Date range display for reports",
     "placeholders": {
       "startDate": {
         "type": "String"
@@ -792,34 +2740,108 @@
     }
   },
   "periodSummary": "Period Summary",
+  "@periodSummary": {
+    "description": "Header for cumulative period data"
+  },
   "totalFxPayments": "Total payments in foreign currency",
+  "@totalFxPayments": {
+    "description": "Label for foreign currency transaction volume"
+  },
   "totalFxDifferential": "Total FX differential earned",
+  "@totalFxDifferential": {
+    "description": "Label for the sum of all fx gains and losses"
+  },
   "foreignCurrencyUsed": "Foreign currency used",
+  "@foreignCurrencyUsed": {
+    "description": "Label indicating which unit was transacted"
+  },
   "operationsDetail": "Operations Detail",
+  "@operationsDetail": {
+    "description": "Header for specific transaction logs in reports"
+  },
   "indicator": "Indicator",
+  "@indicator": {
+    "description": "Table column for metric name"
+  },
   "value": "Value",
+  "@value": {
+    "description": "Table column for metric amount"
+  },
   "totalEquivalentConverted": "Total equivalent converted",
+  "@totalEquivalentConverted": {
+    "description": "Metric label for converted volume"
+  },
   "totalAppliedToDebt": "Total applied to debt",
+  "@totalAppliedToDebt": {
+    "description": "Metric label for principal reduction volume"
+  },
   "differentialProfit": "Differential profit",
+  "@differentialProfit": {
+    "description": "Metric label for net fx gain"
+  },
   "date": "Date",
+  "@date": {
+    "description": "Column header for operation date"
+  },
   "client": "Client",
-  "loanLabel": "Loan",
+  "@client": {
+    "description": "Column header for customer involved"
+  },
   "receiptNo": "Receipt No.",
+  "@receiptNo": {
+    "description": "Column header for voucher identifier"
+  },
   "paymentCurrency": "Payment Currency",
-  "paymentAmountLabel": "Payment Amount",
+  "@paymentCurrency": {
+    "description": "Column header for unit given by client"
+  },
   "appliedRate": "Applied Rate",
+  "@appliedRate": {
+    "description": "Column header for conversion factor used"
+  },
   "equivalentCalculated": "Equivalent Calculated",
+  "@equivalentCalculated": {
+    "description": "Column header for value in converted currency"
+  },
   "amountAppliedToDebt": "Amount Applied to Debt",
+  "@amountAppliedToDebt": {
+    "description": "Column header for principal deduction in report currency"
+  },
   "fxDifferential": "FX Differential",
+  "@fxDifferential": {
+    "description": "Column header for specific transaction fx gain"
+  },
   "sharePdf": "Share PDF",
+  "@sharePdf": {
+    "description": "Action label for report distribution"
+  },
   "refresh": "Refresh",
+  "@refresh": {
+    "description": "Action label to reload current data view"
+  },
   "noFxOperations": "No FX operations",
+  "@noFxOperations": {
+    "description": "Empty state for the fx table"
+  },
   "noFxPaymentsInPeriod": "No payments in foreign currency\nin the selected period",
+  "@noFxPaymentsInPeriod": {
+    "description": "Informational message when filter yields no results"
+  },
   "fxPayments": "FX Payments",
+  "@fxPayments": {
+    "description": "Report segment title for currency exchanges"
+  },
   "applied": "Applied",
+  "@applied": {
+    "description": "General label for a finished or deducted value"
+  },
   "differentialProfit2": "Differential Profit",
+  "@differentialProfit2": {
+    "description": "Alternative label for fx gain summary"
+  },
   "pdfGenerationError": "Error generating PDF: {error}",
   "@pdfGenerationError": {
+    "description": "Specific failure message for PDF rendering",
     "placeholders": {
       "error": {
         "type": "String"
@@ -827,29 +2849,96 @@
     }
   },
   "shareReportText": "FX Differential Report",
+  "@shareReportText": {
+    "description": "Default text used when sharing the fx document"
+  },
   "catalog": "Catalog",
+  "@catalog": {
+    "description": "Menu label for categorized lists"
+  },
   "catalogDescription": "Manage lists and categories",
+  "@catalogDescription": {
+    "description": "Brief description of the catalog section"
+  },
   "categorizeCustomerAs": "Customer Categories",
+  "@categorizeCustomerAs": {
+    "description": "Label for the customer grouping section"
+  },
   "categorizeCustomerAsDesc": "Define categories to classify your customers",
+  "@categorizeCustomerAsDesc": {
+    "description": "Explanation of customer grouping role"
+  },
   "customerCategories": "Customer Categories",
+  "@customerCategories": {
+    "description": "Header for customer type management"
+  },
   "addCategory": "Add Category",
+  "@addCategory": {
+    "description": "Action label to create a new customer type"
+  },
   "editCategory": "Edit Category",
+  "@editCategory": {
+    "description": "Action label to modify a customer type"
+  },
   "deleteCategory": "Delete Category",
+  "@deleteCategory": {
+    "description": "Action label to remove a customer type"
+  },
   "categoryName": "Category Name",
+  "@categoryName": {
+    "description": "Label for the group title input"
+  },
   "categoryColor": "Color",
+  "@categoryColor": {
+    "description": "Label for color coding types"
+  },
   "recoveryPriority": "Recovery Priority",
+  "@recoveryPriority": {
+    "description": "Header for special payment distribution logic"
+  },
   "recoveryPriorityDesc": "Defines how the payment is applied when using the \"Recover\" option.",
+  "@recoveryPriorityDesc": {
+    "description": "Explanation of recovery logic setting"
+  },
   "recoveryPriorityAffects": "Affects the order of debt reduction in recovery payments.",
+  "@recoveryPriorityAffects": {
+    "description": "Impact of recovery logic selection"
+  },
   "recoveryPriorityEx": "Prioritize Principal: The payment first reduces the loaned principal. Prioritize Interest: The payment first reduces overdue interest.",
+  "@recoveryPriorityEx": {
+    "description": "Illustration of priority options"
+  },
   "prioritizeCapital": "Prioritize Principal (Recommended)",
+  "@prioritizeCapital": {
+    "description": "Option to favor debt over interest during recovery"
+  },
   "prioritizeInterest": "Prioritize Overdue Interest",
+  "@prioritizeInterest": {
+    "description": "Option to favor interest over debt during recovery"
+  },
   "categoryRequired": "Category name is required",
+  "@categoryRequired": {
+    "description": "Validation message for empty group title"
+  },
   "categoryCreated": "Category created",
+  "@categoryCreated": {
+    "description": "Success notification for group creation"
+  },
   "categoryUpdated": "Category updated",
+  "@categoryUpdated": {
+    "description": "Success notification for group modification"
+  },
   "categoryDeleted": "Category deleted",
+  "@categoryDeleted": {
+    "description": "Success notification for group removal"
+  },
   "categoryInUse": "Category in use",
+  "@categoryInUse": {
+    "description": "Title for the block on category removal"
+  },
   "categoryInUseByOne": "This category is assigned to {customerName}. Remove it from the customer before deleting.",
   "@categoryInUseByOne": {
+    "description": "Alert for single dependency on a category",
     "placeholders": {
       "customerName": {
         "type": "String"
@@ -858,6 +2947,7 @@
   },
   "categoryInUseByMany": "This category is assigned to {count} customers. Remove it from all customers before deleting.",
   "@categoryInUseByMany": {
+    "description": "Alert for multiple dependencies on a category",
     "placeholders": {
       "count": {
         "type": "int"
@@ -865,59 +2955,212 @@
     }
   },
   "noCategories": "No categories",
+  "@noCategories": {
+    "description": "Empty state for categorization table"
+  },
   "noCategoriesHint": "Add categories to classify your customers",
+  "@noCategoriesHint": {
+    "description": "Informative clue for adding categories"
+  },
   "customerCategory": "Category",
+  "@customerCategory": {
+    "description": "Label showing a customer's classification"
+  },
   "selectCategory": "Select a category",
+  "@selectCategory": {
+    "description": "Instruction to choose from the catalog"
+  },
   "optional": "Optional",
+  "@optional": {
+    "description": "Suffix for non-mandatory fields"
+  },
   "rateThisCustomer": "Rate this customer",
+  "@rateThisCustomer": {
+    "description": "Action label for manually setting a rating"
+  },
   "rateCustomerPrompt": "Would you like to rate this customer?",
+  "@rateCustomerPrompt": {
+    "description": "Dialog question for customer classification"
+  },
   "notNow": "Not now",
+  "@notNow": {
+    "description": "Action label to dismiss classification"
+  },
   "rateCustomer": "Rate",
+  "@rateCustomer": {
+    "description": "Action label to confirm classification"
+  },
   "mustSelectCategory": "You must select a category",
+  "@mustSelectCategory": {
+    "description": "Validation message when ranking is mandatory"
+  },
   "customerRated": "Customer rated successfully",
+  "@customerRated": {
+    "description": "Success notification for rating update"
+  },
   "good": "Good",
+  "@good": {
+    "description": "Positive classification label"
+  },
   "veryGood": "Very good",
+  "@veryGood": {
+    "description": "Highly positive classification label"
+  },
   "regular": "Regular",
+  "@regular": {
+    "description": "Neutral classification label"
+  },
   "doNotLend": "Do not lend",
+  "@doNotLend": {
+    "description": "Negative/Restricted classification label"
+  },
   "bad": "Bad",
+  "@bad": {
+    "description": "Negative classification label"
+  },
   "paymentSuccess": "Payment registered successfully",
-  "monetaryManagement": "Monetary Management",
+  "@paymentSuccess": {
+    "description": "Generic success message after transaction"
+  },
   "catalogInfoTitle": "What is the Catalog?",
+  "@catalogInfoTitle": {
+    "description": "Header for Catalog help dialog"
+  },
   "catalogInfoDescription": "The catalog allows you to create custom categories to classify your customers (e.g., Good, Regular, Do Not Lend).\n\nWith categories assigned to customers, you can:\n• Quickly identify the type of each customer\n• Generate reports filtered by category\n• Make better credit decisions based on history",
+  "@catalogInfoDescription": {
+    "description": "Detailed explanation of catalog benefits"
+  },
   "colorSelector": "Color",
+  "@colorSelector": {
+    "description": "Label for choosing a representative color"
+  },
   "selectColor": "Select color",
+  "@selectColor": {
+    "description": "Instruction label to pick from palette"
+  },
   "customColor": "Custom color",
+  "@customColor": {
+    "description": "Label for manual hex input or advanced picker"
+  },
   "paymentFrequencies": "Payment Frequencies",
+  "@paymentFrequencies": {
+    "description": "Header for billing interval management"
+  },
   "paymentFrequenciesSubtitle": "Manage payment frequencies (Daily, Weekly, etc)",
+  "@paymentFrequenciesSubtitle": {
+    "description": "Secondary label for frequency management"
+  },
   "newFrequency": "New Frequency",
+  "@newFrequency": {
+    "description": "Action label to create a billing interval"
+  },
   "editFrequency": "Edit Frequency",
+  "@editFrequency": {
+    "description": "Action label to modify a billing interval"
+  },
   "frequencyName": "Name",
+  "@frequencyName": {
+    "description": "Label for interval title input"
+  },
   "frequencyNameHint": "Ex: Monthly, Biweekly",
+  "@frequencyNameHint": {
+    "description": "Placeholder for custom interval name"
+  },
   "daysInterval": "Interval (Days)",
+  "@daysInterval": {
+    "description": "Label for the duration of the billing cycle in days"
+  },
   "daysIntervalHint": "Ex: 30",
+  "@daysIntervalHint": {
+    "description": "Placeholder for numeric interval value"
+  },
   "cantEditDefaultInterval": "Cannot edit interval of default frequencies",
+  "@cantEditDefaultInterval": {
+    "description": "Block alert for system-protected intervals"
+  },
   "deactivateFrequencyConfirm": "Deactivate this frequency?",
+  "@deactivateFrequencyConfirm": {
+    "description": "Confirmation title for switching off an interval"
+  },
   "activeFrequency": "Active",
+  "@activeFrequency": {
+    "description": "Status label for a usable frequency"
+  },
   "inactiveFrequency": "Inactive",
+  "@inactiveFrequency": {
+    "description": "Status label for a hidden frequency"
+  },
   "validationFrequencyInUse": "This frequency is in use by active loans and cannot be modified/deleted",
+  "@validationFrequencyInUse": {
+    "description": "Rule enforcement: busy frequencies are frozen"
+  },
   "deleteFrequencyConfirm": "Delete this frequency?",
+  "@deleteFrequencyConfirm": {
+    "description": "Confirmation title for frequency removal"
+  },
   "paymentFrequenciesInfoTitle": "What are Frequencies?",
+  "@paymentFrequenciesInfoTitle": {
+    "description": "Header for frequency help dialog"
+  },
   "paymentFrequenciesInfoDescription": "Define time periods for payments (e.g., daily, biweekly, 20 days).\nYou can create custom frequencies with specific day intervals to suit your loans.",
+  "@paymentFrequenciesInfoDescription": {
+    "description": "Detailed explanation of frequency role"
+  },
   "freqAnnually": "Annually",
+  "@freqAnnually": {
+    "description": "Label for yearly cycle frequency"
+  },
   "selectFrequency": "Select Frequency",
+  "@selectFrequency": {
+    "description": "Instruction label to choose a cycle"
+  },
   "searchFrequency": "Search frequency...",
+  "@searchFrequency": {
+    "description": "Placeholder for frequency search bar"
+  },
   "sortBy": "Sort by",
+  "@sortBy": {
+    "description": "Label for table sorting options"
+  },
   "sortByName": "Name",
+  "@sortByName": {
+    "description": "Option to sort list alphabetically"
+  },
   "sortByDays": "Days",
+  "@sortByDays": {
+    "description": "Option to sort list by duration"
+  },
   "noFrequenciesFound": "No frequencies found",
+  "@noFrequenciesFound": {
+    "description": "Empty state for frequency search"
+  },
   "planTerm": "Term",
+  "@planTerm": {
+    "description": "Label for the total duration of a payment plan"
+  },
   "planTermUnit": "Term Unit",
+  "@planTermUnit": {
+    "description": "Label for measuring time (days, months, etc)"
+  },
   "termDays": "Days",
+  "@termDays": {
+    "description": "Option for term in days"
+  },
   "termWeeks": "Weeks",
+  "@termWeeks": {
+    "description": "Option for term in weeks"
+  },
   "termMonths": "Months",
+  "@termMonths": {
+    "description": "Option for term in months"
+  },
   "termYears": "Years",
+  "@termYears": {
+    "description": "Option for term in years"
+  },
   "calculatedInstallments": "Calculated Installments: {count}",
   "@calculatedInstallments": {
+    "description": "Label showing number of pay periods resulting from term/frequency",
     "placeholders": {
       "count": {
         "type": "int"
@@ -926,6 +3169,7 @@
   },
   "calculatedInstallmentsWarning": "Warning: Term is not an exact multiple of frequency. Adjusted to {count} installments.",
   "@calculatedInstallmentsWarning": {
+    "description": "Notice that rounding/trimming occurred in plan math",
     "placeholders": {
       "count": {
         "type": "int"
@@ -933,44 +3177,243 @@
     }
   },
   "applicableCategories": "Applicable Categories",
+  "@applicableCategories": {
+    "description": "Header for the list of customer types that can use a plan"
+  },
   "allCategories": "All Categories",
+  "@allCategories": {
+    "description": "Option to let any customer type use a plan"
+  },
   "selectCategories": "Select Categories",
+  "@selectCategories": {
+    "description": "Instruction label for multi-selection list"
+  },
   "distributeCapitalInterestTooltip": "If active, calculated installment includes principal and amortized interest. If inactive, cycle charge is interest only.",
+  "@distributeCapitalInterestTooltip": {
+    "description": "Tooltip explaining level vs interest-only pay plans"
+  },
   "periodStartsOnDisbursementTooltip": "Active: Start date is disbursement date. Inactive: Manual start date required.",
+  "@periodStartsOnDisbursementTooltip": {
+    "description": "Tooltip explaining automated billing start date"
+  },
   "paymentPlans": "Payment Plans",
+  "@paymentPlans": {
+    "description": "Header for loan templates/presets management"
+  },
   "paymentPlansSubtitle": "Configure preconfigured plans for loans",
+  "@paymentPlansSubtitle": {
+    "description": "Secondary label for loan template management"
+  },
   "noPaymentPlans": "No payment plans",
+  "@noPaymentPlans": {
+    "description": "Empty state for plan management"
+  },
   "addPaymentPlanHint": "Press the + button to add a plan",
+  "@addPaymentPlanHint": {
+    "description": "Instruction clue for creating presets"
+  },
   "newPaymentPlan": "New Payment Plan",
+  "@newPaymentPlan": {
+    "description": "Action label for creating a loan template"
+  },
   "editPaymentPlan": "Edit Payment Plan",
+  "@editPaymentPlan": {
+    "description": "Action label for modifying a loan template"
+  },
   "planName": "Plan Name",
+  "@planName": {
+    "description": "Label for naming the template"
+  },
   "installments": "installments",
+  "@installments": {
+    "description": "General reference to pay periods"
+  },
   "installmentsTotal": "Total Installments",
+  "@installmentsTotal": {
+    "description": "Label for final count of pay periods"
+  },
   "minAmount": "Minimum Amount",
+  "@minAmount": {
+    "description": "Lower validation bound for a loan under this plan"
+  },
   "maxAmount": "Maximum Amount",
+  "@maxAmount": {
+    "description": "Upper validation bound for a loan under this plan"
+  },
   "days": "days",
+  "@days": {
+    "description": "General reference to time unit"
+  },
   "distributeCapitalInterest": "Distribute Capital and Interest",
+  "@distributeCapitalInterest": {
+    "description": "Policy title for level installment math"
+  },
   "distributeCapitalInterestDesc": "Calculate fixed installments with capital + interest distributed",
+  "@distributeCapitalInterestDesc": {
+    "description": "Description of level installment policy"
+  },
   "periodStartsOnDisbursement": "Period starts on disbursement",
+  "@periodStartsOnDisbursement": {
+    "description": "Policy title for automated start dating"
+  },
   "periodStartsOnDisbursementDesc": "Disbursement date auto-fills with current date",
+  "@periodStartsOnDisbursementDesc": {
+    "description": "Description of automated start dating policy"
+  },
   "allowCurrencyChange": "Allow currency change on loan",
+  "@allowCurrencyChange": {
+    "description": "Policy title for letting the user deviate from base"
+  },
   "activate": "Activate",
+  "@activate": {
+    "description": "Action label to turn on a feature"
+  },
   "deactivate": "Deactivate",
+  "@deactivate": {
+    "description": "Action label to turn off a feature"
+  },
   "cannotDeactivatePlanWithLoans": "Cannot deactivate a plan with active loans",
+  "@cannotDeactivatePlanWithLoans": {
+    "description": "Rule enforcement: active plans are protected"
+  },
   "cannotDeletePlanWithLoans": "Cannot delete a plan with active loans",
+  "@cannotDeletePlanWithLoans": {
+    "description": "Rule enforcement: busy plans are frozen"
+  },
   "deletePlanConfirmation": "Are you sure you want to delete this payment plan?",
+  "@deletePlanConfirmation": {
+    "description": "Warning dialog for template removal"
+  },
   "planNameHint": "Ex: Quick Personal Loan",
+  "@planNameHint": {
+    "description": "Placeholder for template title"
+  },
   "financialData": "Financial Data",
+  "@financialData": {
+    "description": "Section header for money-related inputs"
+  },
   "allowCurrencyChangeTitle": "Allow currency change",
+  "@allowCurrencyChangeTitle": {
+    "description": "Header for currency pick policy"
+  },
   "allowCurrencyChangeSubtitle": "When creating the loan",
+  "@allowCurrencyChangeSubtitle": {
+    "description": "Secondary label for currency pick policy"
+  },
   "distributeCapitalInterestTitle": "Distribute capital and interest",
+  "@distributeCapitalInterestTitle": {
+    "description": "Header for level installment policy"
+  },
   "distributeCapitalInterestSubtitle": "In level installments",
+  "@distributeCapitalInterestSubtitle": {
+    "description": "Secondary label for level installment policy"
+  },
   "periodStartsOnDisbursementTitle": "Period starts on disbursement",
+  "@periodStartsOnDisbursementTitle": {
+    "description": "Header for auto-start policy"
+  },
   "limitByCategoryTitle": "Apply to customers with category (optional)",
+  "@limitByCategoryTitle": {
+    "description": "Header for target-marketing a plan"
+  },
   "limitByCategorySubtitle": "Limit this plan to a specific customer type",
+  "@limitByCategorySubtitle": {
+    "description": "Secondary label for target-marketing a plan"
+  },
   "noCategoriesCreated": "No categories created. Create a category first.",
+  "@noCategoriesCreated": {
+    "description": "Blocked state when required list is empty"
+  },
   "labelSelectCategory": "Select Category",
+  "@labelSelectCategory": {
+    "description": "Instruction label to filter by group"
+  },
   "planNotFound": "Plan not found",
+  "@planNotFound": {
+    "description": "Error message when a template record is missing"
+  },
   "selectStartCategory": "Select a category",
-  "selectPlan": "Select Plan"
+  "@selectStartCategory": {
+    "description": "Instruction label to begin grouping"
+  },
+  "selectPlan": "Select Plan",
+  "@selectPlan": {
+    "description": "Instruction label to choose a template"
+  },
+  "scheduledBackupTitle": "Scheduled Backup",
+  "@scheduledBackupTitle": {
+    "description": "Header for automatic database safety settings"
+  },
+  "frequency": "Frequency",
+  "@frequency": {
+    "description": "Label for how often a task runs"
+  },
+  "disabled": "Disabled",
+  "@disabled": {
+    "description": "Status label for an inactive task"
+  },
+  "preferredTime": "Preferred Time",
+  "@preferredTime": {
+    "description": "Label for the time of day a task should run"
+  },
+  "automaticTriggers": "Automatic Triggers",
+  "@automaticTriggers": {
+    "description": "Header for event-based task starts"
+  },
+  "backupSettingsSaved": "Backup settings saved",
+  "@backupSettingsSaved": {
+    "description": "Success notification for safety config update"
+  },
+  "reportCurrencyDialogDesc": "Currency used for financial reports",
+  "@reportCurrencyDialogDesc": {
+    "description": "Subtitle for currency picker in report settings"
+  },
+  "reportCurrencyInfoBanner": "Reports will be shown in this currency",
+  "@reportCurrencyInfoBanner": {
+    "description": "Notice highlighting the current active unit"
+  },
+  "tapToChange": "Tap to change",
+  "@tapToChange": {
+    "description": "Instruction clue for interactive cards"
+  },
+  "exchangeRateTitle": "Exchange Rate",
+  "@exchangeRateTitle": {
+    "description": "General header for conversion value section"
+  },
+  "invalidRateError": "Invalid rate",
+  "@invalidRateError": {
+    "description": "Validation message for corrupt or zero rate"
+  },
+  "saveButton": "Save",
+  "@saveButton": {
+    "description": "Generic action label to commit data"
+  },
+  "requiredField": "Required",
+  "@requiredField": {
+    "description": "General validation message for empty inputs"
+  },
+  "scheduledBackupDesc": "Configure automatic backups",
+  "@scheduledBackupDesc": {
+    "description": "Description for the scheduled backup section"
+  },
+  "interestFirst": "Interest First",
+  "@interestFirst": {
+    "description": "Policy option for payment distribution"
+  },
+  "principalFirst": "Principal First",
+  "@principalFirst": {
+    "description": "Alternative policy option for payment distribution"
+  },
+  "noBackupsAvailable": "No backups available",
+  "@noBackupsAvailable": {
+    "description": "Empty state for backup list"
+  },
+  "settingsSaved": "Settings saved",
+  "@settingsSaved": {
+    "description": "Generic success message for configuration update"
+  },
+  "invalidExchangeRate": "Invalid exchange rate",
+  "@invalidExchangeRate": {
+    "description": "Alternative validation alert for rate inputs"
+  }
 }

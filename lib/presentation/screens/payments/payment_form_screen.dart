@@ -1852,6 +1852,12 @@ class _PaymentFormScreenState extends ConsumerState<PaymentFormScreen> {
               // Ignore error fetching updated loan
             }
 
+            // Fetch next installment date
+            final nextCycle = await ref
+                .read(billingCycleRepositoryProvider)
+                .getCurrentCycle(_selectedLoan!.loanId);
+            final nextInstallmentDate = nextCycle?.dueDate;
+
             if (!mounted) return;
             await WhatsAppService.sharePaymentReceipt(
               payment: createdPayment,
@@ -1861,6 +1867,7 @@ class _PaymentFormScreenState extends ConsumerState<PaymentFormScreen> {
               settings: settings,
               locale: locale,
               currencySymbol: loanCurrency.symbol ?? loanCurrency.code,
+              nextInstallmentDate: nextInstallmentDate,
             );
           } else if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(

@@ -7,6 +7,7 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:prestamos_app/core/localization/locale_provider.dart';
 import 'package:prestamos_app/data/models/app_settings.dart';
+import 'package:prestamos_app/data/models/billing_cycle.dart';
 import 'package:prestamos_app/data/models/customer.dart';
 import 'package:prestamos_app/data/models/loan.dart';
 import 'package:prestamos_app/data/models/payment.dart';
@@ -137,6 +138,7 @@ class PdfGeneratorService {
     required AppSettings settings,
     required Locale locale,
     required String currencySymbol,
+    DateTime? nextInstallmentDate,
   }) async {
     final s = lookupS(locale);
     final pdf = pw.Document();
@@ -157,6 +159,7 @@ class PdfGeneratorService {
           settings,
           s,
           currencyFormat,
+          nextInstallmentDate: nextInstallmentDate,
         ),
       ),
     );
@@ -175,6 +178,7 @@ class PdfGeneratorService {
     required Locale locale,
     required String currencySymbol,
     String? frequencyName,
+    DateTime? nextInstallmentDate,
   }) async {
     final s = lookupS(locale);
     final pdf = pw.Document();
@@ -194,6 +198,7 @@ class PdfGeneratorService {
           s,
           currencyFormat,
           frequencyName: frequencyName,
+          nextInstallmentDate: nextInstallmentDate,
         ),
       ),
     );
@@ -205,6 +210,84 @@ class PdfGeneratorService {
     );
   }
 
+  /// Genera un recibo de desembolso con plan de pago y lo envía a la cola de impresión.
+  Future<void> generateDisbursementWithPlanReceipt({
+    required Loan loan,
+    required Customer customer,
+    required List<BillingCycle> cycles,
+    required AppSettings settings,
+    required Locale locale,
+    required String currencySymbol,
+    String? frequencyName,
+    DateTime? nextInstallmentDate,
+  }) async {
+    final s = lookupS(locale);
+    final pdf = pw.Document();
+    final currencyFormat = NumberFormat.currency(
+      symbol: '$currencySymbol ',
+      decimalDigits: 2,
+    );
+
+    pdf.addPage(
+      pw.Page(
+        pageFormat: PdfPageFormat.roll80,
+        margin: const pw.EdgeInsets.all(10),
+        build: (context) => _buildDisbursementWithPlanReceiptContent(
+          loan,
+          customer,
+          cycles,
+          settings,
+          s,
+          currencyFormat,
+          frequencyName: frequencyName,
+          nextInstallmentDate: nextInstallmentDate,
+        ),
+      ),
+    );
+
+    await Printing.layoutPdf(
+      onLayout: (format) async => pdf.save(),
+      name:
+          '${s.disbursementReceiptWithPlan.replaceAll(" ", "_")}_${loan.loanNumber ?? loan.loanId}',
+    );
+  }
+
+  /// Get disbursement receipt with plan as PDF bytes (for sharing via WhatsApp/email)
+  Future<List<int>> getDisbursementWithPlanReceiptBytes({
+    required Loan loan,
+    required Customer customer,
+    required List<BillingCycle> cycles,
+    required AppSettings settings,
+    required Locale locale,
+    required String currencySymbol,
+    DateTime? nextInstallmentDate,
+  }) async {
+    final s = lookupS(locale);
+    final pdf = pw.Document();
+    final currencyFormat = NumberFormat.currency(
+      symbol: '$currencySymbol ',
+      decimalDigits: 2,
+    );
+
+    pdf.addPage(
+      pw.Page(
+        pageFormat: PdfPageFormat.roll80,
+        margin: const pw.EdgeInsets.all(10),
+        build: (context) => _buildDisbursementWithPlanReceiptContent(
+          loan,
+          customer,
+          cycles,
+          settings,
+          s,
+          currencyFormat,
+          nextInstallmentDate: nextInstallmentDate,
+        ),
+      ),
+    );
+
+    return pdf.save();
+  }
+
   /// Get disbursement receipt as PDF bytes (for sharing via WhatsApp/email)
   /// Uses the same format as generateDisbursementReceipt
   Future<List<int>> getDisbursementReceiptBytes({
@@ -213,6 +296,7 @@ class PdfGeneratorService {
     required AppSettings settings,
     required Locale locale,
     required String currencySymbol,
+    DateTime? nextInstallmentDate,
   }) async {
     final s = lookupS(locale);
     final pdf = pw.Document();
@@ -231,6 +315,7 @@ class PdfGeneratorService {
           settings,
           s,
           currencyFormat,
+          nextInstallmentDate: nextInstallmentDate,
         ),
       ),
     );
@@ -248,6 +333,7 @@ class PdfGeneratorService {
     required AppSettings settings,
     required Locale locale,
     required String currencySymbol,
+    DateTime? nextInstallmentDate,
   }) async {
     final s = lookupS(locale);
     final pdf = pw.Document();
@@ -268,6 +354,7 @@ class PdfGeneratorService {
           settings,
           s,
           currencyFormat,
+          nextInstallmentDate: nextInstallmentDate,
         ),
       ),
     );
@@ -874,6 +961,7 @@ class PdfGeneratorService {
     S s,
     NumberFormat currencyFormat, {
     String? frequencyName,
+    DateTime? nextInstallmentDate,
   }) {
     return pw.Column(
       mainAxisSize: pw.MainAxisSize.min,
@@ -908,7 +996,12 @@ class PdfGeneratorService {
         ),
         pw.Divider(),
         pw.Text('${s.dateLabel} ${_dateFormat.format(loan.disbursementDate)}'),
+        if (nextInstallmentDate != null)
+          pw.Text(
+            '${s.nextInstallmentDateLabel}: ${_dateFormat.format(nextInstallmentDate)}',
+          ),
         pw.Text('${s.loanLabel} ${loan.loanNumber ?? "Sin Número"}'),
+        pw.Text('${s.labelCurrency} ${loan.currencyCode}'),
         pw.SizedBox(height: 10),
 
         // Client Info
@@ -1022,6 +1115,247 @@ class PdfGeneratorService {
     );
   }
 
+  pw.Widget _buildDisbursementWithPlanReceiptContent(
+    Loan loan,
+    Customer customer,
+    List<BillingCycle> cycles,
+    AppSettings settings,
+    S s,
+    NumberFormat currencyFormat, {
+    String? frequencyName,
+    DateTime? nextInstallmentDate,
+  }) {
+    final now = DateTime.now();
+    return pw.Column(
+      mainAxisSize: pw.MainAxisSize.min,
+      children: [
+        // Section 1: Company Data
+        if (settings.showCompanyName && settings.companyName != null)
+          pw.Text(
+            settings.companyName!,
+            style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 14),
+            textAlign: pw.TextAlign.center,
+          ),
+        if (settings.showCompanyRuc && settings.companyRuc != null)
+          pw.Text(
+            '${s.labelRuc} ${settings.companyRuc}',
+            style: const pw.TextStyle(fontSize: 8),
+          ),
+        if (settings.showCompanyPhone && settings.companyPhone != null)
+          pw.Text(
+            '${s.labelTel} ${settings.companyPhone}',
+            style: const pw.TextStyle(fontSize: 8),
+          ),
+        if (settings.showCompanyAddress && settings.companyAddress != null)
+          pw.Text(
+            '${s.labelDir} ${settings.companyAddress}',
+            style: const pw.TextStyle(fontSize: 8),
+            textAlign: pw.TextAlign.center,
+          ),
+
+        pw.SizedBox(height: 8),
+        pw.Text(
+          s.disbursementReceiptWithPlan.toUpperCase(),
+          style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10),
+          textAlign: pw.TextAlign.center,
+        ),
+        pw.Divider(),
+
+        // Section 2: Basic Info
+        pw.Column(
+          crossAxisAlignment: pw.CrossAxisAlignment.start,
+          children: [
+            pw.Text(
+              '${s.printDateTime}: ${_dateTimeFormat.format(now)}',
+              style: const pw.TextStyle(fontSize: 8),
+            ),
+            pw.Text(
+              '${s.disbursementDateTime}: ${_dateTimeFormat.format(loan.disbursementDate)}',
+              style: const pw.TextStyle(fontSize: 8),
+            ),
+            if (nextInstallmentDate != null)
+              pw.Text(
+                '${s.nextInstallmentDateLabel}: ${_dateFormat.format(nextInstallmentDate)}',
+                style: const pw.TextStyle(fontSize: 8),
+              ),
+            pw.Text(
+              '${s.labelCurrency} ${loan.currencyCode}',
+              style: const pw.TextStyle(fontSize: 8),
+            ),
+            if (cycles.isNotEmpty)
+              pw.Text(
+                '${s.maturityDateLabel}: ${_dateFormat.format(cycles.last.dueDate)}',
+                style: const pw.TextStyle(fontSize: 8),
+              )
+            else if (loan.endDate != null)
+              pw.Text(
+                '${s.maturityDateLabel}: ${_dateFormat.format(loan.endDate!)}',
+                style: const pw.TextStyle(fontSize: 8),
+              ),
+            pw.SizedBox(height: 4),
+            pw.Row(
+              children: [
+                pw.Text(
+                  '${s.clientLabel} ',
+                  style: const pw.TextStyle(fontSize: 8),
+                ),
+                pw.Expanded(
+                  child: pw.Text(
+                    customer.displayName,
+                    style: pw.TextStyle(
+                      fontWeight: pw.FontWeight.bold,
+                      fontSize: 8,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            if (customer.dni != null)
+              pw.Text(
+                '${s.dniLabel} ${customer.dni!}',
+                style: const pw.TextStyle(fontSize: 8),
+              ),
+            pw.SizedBox(height: 4),
+            pw.Row(
+              mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+              children: [
+                pw.Text(
+                  s.amountGranted,
+                  style: const pw.TextStyle(fontSize: 8),
+                ),
+                pw.Text(
+                  currencyFormat.format(loan.principalOriginal),
+                  style: pw.TextStyle(
+                    fontWeight: pw.FontWeight.bold,
+                    fontSize: 8,
+                  ),
+                ),
+              ],
+            ),
+            pw.Row(
+              mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+              children: [
+                pw.Text(
+                  s.interestRateLabel,
+                  style: const pw.TextStyle(fontSize: 8),
+                ),
+                pw.Text(
+                  '${loan.monthlyInterestRate}% ${s.freqMonthly}',
+                  style: const pw.TextStyle(fontSize: 8),
+                ),
+              ],
+            ),
+            pw.Row(
+              mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+              children: [
+                pw.Text(
+                  s.frequencyLabel,
+                  style: const pw.TextStyle(fontSize: 8),
+                ),
+                pw.Text(
+                  _translateFrequency(loan.billingFrequency, s, frequencyName),
+                  style: const pw.TextStyle(fontSize: 8),
+                ),
+              ],
+            ),
+          ],
+        ),
+
+        pw.SizedBox(height: 8),
+        pw.Divider(),
+
+        // Section 3: Cycles Table
+        pw.TableHelper.fromTextArray(
+          headers: [
+            s.tableHeaderStart,
+            s.tableHeaderEnd,
+            s.tableHeaderPrincipal,
+            s.tableHeaderInterest,
+            s.tableHeaderTotal,
+          ],
+          data: cycles.map((c) {
+            return [
+              _dateFormat.format(c.periodStartDate),
+              _dateFormat.format(c.periodEndDate),
+              currencyFormat.format(c.principalPortion ?? 0),
+              currencyFormat.format(c.interestExpected),
+              currencyFormat.format(c.installmentExpected ?? 0),
+            ];
+          }).toList(),
+          headerStyle: pw.TextStyle(
+            fontWeight: pw.FontWeight.bold,
+            fontSize: 6,
+          ),
+          cellStyle: const pw.TextStyle(fontSize: 6),
+          cellAlignment: pw.Alignment.centerRight,
+          cellAlignments: {
+            0: pw.Alignment.centerLeft,
+            1: pw.Alignment.centerLeft,
+          },
+          border: const pw.TableBorder(
+            horizontalInside: pw.BorderSide(
+              width: 0.5,
+              color: PdfColors.grey300,
+            ),
+          ),
+          columnWidths: {
+            0: const pw.FlexColumnWidth(1.2), // Dates need slightly more space
+            1: const pw.FlexColumnWidth(1.2),
+            4: const pw.FlexColumnWidth(1.2), // Totals can be longer
+          },
+        ),
+
+        pw.SizedBox(height: 8),
+        pw.Divider(),
+
+        // Section 4: Signatures and Legend
+        if (settings.showDisbursementSignatures) ...[
+          pw.SizedBox(height: 20),
+          pw.Row(
+            mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+            children: [
+              pw.Column(
+                children: [
+                  pw.Container(width: 70, height: 0.5, color: PdfColors.black),
+                  pw.SizedBox(height: 2),
+                  pw.Text(
+                    s.deliveredBy,
+                    style: const pw.TextStyle(fontSize: 7),
+                  ),
+                ],
+              ),
+              pw.Column(
+                children: [
+                  pw.Container(width: 70, height: 0.5, color: PdfColors.black),
+                  pw.SizedBox(height: 2),
+                  pw.Text(s.receivedBy, style: const pw.TextStyle(fontSize: 7)),
+                ],
+              ),
+            ],
+          ),
+        ],
+
+        if (settings.showDisbursementLegend &&
+            (settings.disbursementLegend?.isNotEmpty ?? false)) ...[
+          pw.SizedBox(height: 12),
+          pw.Text(
+            settings.disbursementLegend!,
+            style: pw.TextStyle(fontSize: 7, fontStyle: pw.FontStyle.italic),
+            textAlign: pw.TextAlign.center,
+          ),
+        ],
+
+        pw.SizedBox(height: 12),
+        pw.Center(
+          child: pw.Text(
+            s.thankYouPreference,
+            style: const pw.TextStyle(fontSize: 8),
+          ),
+        ),
+      ],
+    );
+  }
+
   String _translateFrequency(String frequency, S s, String? frequencyName) {
     // If a custom name is provided, use it (assumes it's already relevant/localized if possible)
     if (frequencyName != null && frequencyName.isNotEmpty) {
@@ -1052,8 +1386,9 @@ class PdfGeneratorService {
     List<PaymentAllocation> allocations,
     AppSettings settings,
     S s,
-    NumberFormat currencyFormat,
-  ) {
+    NumberFormat currencyFormat, {
+    DateTime? nextInstallmentDate,
+  }) {
     final interestPaid = allocations
         .where(
           (a) => a.allocationType == 'INTEREST' || a.allocationType == 'MORA',
@@ -1093,10 +1428,15 @@ class PdfGeneratorService {
         pw.Text(
           '${s.dateLabel} ${_dateTimeFormat.format(payment.paymentDate)}',
         ),
+        if (nextInstallmentDate != null)
+          pw.Text(
+            '${s.nextInstallmentDateLabel}: ${_dateFormat.format(nextInstallmentDate)}',
+          ),
         pw.Text('${s.receiptNumber}: ${payment.receiptNumber}'),
         pw.SizedBox(height: 10),
         pw.Text('${s.clientLabel} ${customer.displayName}'),
         pw.Text('${s.loanLabel} ${loan.loanNumber ?? "Sin Número"}'),
+        pw.Text('${s.labelCurrency} ${loan.currencyCode}'),
         pw.SizedBox(height: 10),
         pw.Row(
           mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,

@@ -468,7 +468,7 @@ class _CompanySettingsScreenState extends ConsumerState<CompanySettingsScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(S.of(context).errorSaving(e)),
+            content: Text(S.of(context).errorSaving(e.toString())),
             backgroundColor: AppColors.danger,
           ),
         );

@@ -97,1033 +97,1033 @@ abstract class S {
     Locale('es'),
   ];
 
-  /// No description provided for @appName.
+  /// The name of the application
   ///
   /// In es, this message translates to:
   /// **'Prestazo'**
   String get appName;
 
-  /// No description provided for @save.
+  /// Generic save action label
   ///
   /// In es, this message translates to:
   /// **'Guardar'**
   String get save;
 
-  /// No description provided for @cancel.
+  /// Generic cancel action label
   ///
   /// In es, this message translates to:
   /// **'Cancelar'**
   String get cancel;
 
-  /// No description provided for @confirm.
+  /// Generic confirm action label
   ///
   /// In es, this message translates to:
   /// **'Confirmar'**
   String get confirm;
 
-  /// No description provided for @delete.
+  /// Generic delete action label
   ///
   /// In es, this message translates to:
   /// **'Eliminar'**
   String get delete;
 
-  /// No description provided for @edit.
+  /// Generic edit action label
   ///
   /// In es, this message translates to:
   /// **'Editar'**
   String get edit;
 
-  /// No description provided for @close.
+  /// Generic close action label
   ///
   /// In es, this message translates to:
   /// **'Cerrar'**
   String get close;
 
-  /// No description provided for @search.
+  /// Generic search action label
   ///
   /// In es, this message translates to:
   /// **'Buscar'**
   String get search;
 
-  /// No description provided for @loading.
+  /// Generic loading indicator text
   ///
   /// In es, this message translates to:
   /// **'Cargando...'**
   String get loading;
 
-  /// No description provided for @error.
+  /// Generic error title or prefix
   ///
   /// In es, this message translates to:
   /// **'Error'**
   String get error;
 
-  /// No description provided for @success.
+  /// Generic success title or prefix
   ///
   /// In es, this message translates to:
   /// **'Éxito'**
   String get success;
 
-  /// No description provided for @warning.
+  /// Generic warning title or prefix
   ///
   /// In es, this message translates to:
   /// **'Advertencia'**
   String get warning;
 
-  /// No description provided for @info.
+  /// Generic information title or prefix
   ///
   /// In es, this message translates to:
   /// **'Información'**
   String get info;
 
-  /// No description provided for @understood.
+  /// Generic acknowledgment button label
   ///
   /// In es, this message translates to:
   /// **'Entendido'**
   String get understood;
 
-  /// No description provided for @continue_.
+  /// Generic continue action label
   ///
   /// In es, this message translates to:
   /// **'Continuar'**
   String get continue_;
 
-  /// No description provided for @today.
+  /// Label for current day
   ///
   /// In es, this message translates to:
   /// **'Hoy'**
   String get today;
 
-  /// No description provided for @yesterday.
+  /// Label for the previous day
   ///
   /// In es, this message translates to:
   /// **'Ayer'**
   String get yesterday;
 
-  /// No description provided for @tomorrow.
+  /// Label for the next day
   ///
   /// In es, this message translates to:
   /// **'Mañana'**
   String get tomorrow;
 
-  /// No description provided for @viewAll.
+  /// Action label to see all items in a list
   ///
   /// In es, this message translates to:
   /// **'Ver Todo'**
   String get viewAll;
 
-  /// No description provided for @navHome.
+  /// Navigation label for the home screen
   ///
   /// In es, this message translates to:
   /// **'Inicio'**
   String get navHome;
 
-  /// No description provided for @navCollect.
+  /// Navigation label for the collection/dues screen
   ///
   /// In es, this message translates to:
   /// **'A Cobrar'**
   String get navCollect;
 
-  /// No description provided for @navCustomers.
+  /// Navigation label for the customer directory
   ///
   /// In es, this message translates to:
   /// **'Clientes'**
   String get navCustomers;
 
-  /// No description provided for @navReports.
+  /// Navigation label for the reports and stats screen
   ///
   /// In es, this message translates to:
   /// **'Reportes'**
   String get navReports;
 
-  /// No description provided for @navSettings.
+  /// Navigation label for the configuration screen
   ///
   /// In es, this message translates to:
   /// **'Ajustes'**
   String get navSettings;
 
-  /// No description provided for @customer.
+  /// Singular label for a customer
   ///
   /// In es, this message translates to:
   /// **'Cliente'**
   String get customer;
 
-  /// No description provided for @customers.
+  /// Plural label for customers
   ///
   /// In es, this message translates to:
   /// **'Clientes'**
   String get customers;
 
-  /// No description provided for @newCustomer.
+  /// Action label to register a new client
   ///
   /// In es, this message translates to:
   /// **'Nuevo Cliente'**
   String get newCustomer;
 
-  /// No description provided for @editCustomer.
+  /// Action label to modify customer info
   ///
   /// In es, this message translates to:
   /// **'Editar Cliente'**
   String get editCustomer;
 
-  /// No description provided for @dniDuplicate.
+  /// Error message when entering an identity number already in the system
   ///
   /// In es, this message translates to:
   /// **'DNI Duplicado'**
   String get dniDuplicate;
 
-  /// No description provided for @customerUpdated.
+  /// Success message after saving customer changes
   ///
   /// In es, this message translates to:
   /// **'Cliente actualizado'**
   String get customerUpdated;
 
-  /// No description provided for @customerCreated.
+  /// Success message after registering a new client
   ///
   /// In es, this message translates to:
   /// **'Cliente creado exitosamente'**
   String get customerCreated;
 
-  /// No description provided for @customerName.
+  /// Label for customer full name field
   ///
   /// In es, this message translates to:
   /// **'Nombre'**
   String get customerName;
 
-  /// No description provided for @customerAlias.
+  /// Label for customer nickname or short name field
   ///
   /// In es, this message translates to:
   /// **'Alias'**
   String get customerAlias;
 
-  /// No description provided for @customerPhone.
+  /// Label for customer contact number field
   ///
   /// In es, this message translates to:
   /// **'Teléfono'**
   String get customerPhone;
 
-  /// No description provided for @customerAddress.
+  /// Label for customer physical address field
   ///
   /// In es, this message translates to:
   /// **'Dirección'**
   String get customerAddress;
 
-  /// No description provided for @billingFrequency.
+  /// Label for the payment cycle selection
   ///
   /// In es, this message translates to:
   /// **'Frecuencia de Cobro'**
   String get billingFrequency;
 
-  /// No description provided for @biweekly.
+  /// Option for payment every two weeks
   ///
   /// In es, this message translates to:
   /// **'Quincenal'**
   String get biweekly;
 
-  /// No description provided for @monthly.
+  /// Option for payment once a month
   ///
   /// In es, this message translates to:
   /// **'Mensual'**
   String get monthly;
 
-  /// No description provided for @weekly.
+  /// Option for payment once a week
   ///
   /// In es, this message translates to:
   /// **'Semanal'**
   String get weekly;
 
-  /// No description provided for @daily.
+  /// Option for payment every day
   ///
   /// In es, this message translates to:
   /// **'Diario'**
   String get daily;
 
-  /// No description provided for @searchHint.
+  /// Placeholder text for the search input field
   ///
   /// In es, this message translates to:
   /// **'Buscar por nombre, alias o teléfono...'**
   String get searchHint;
 
-  /// No description provided for @clearFilter.
+  /// Action label to reset search/filter criteria
   ///
   /// In es, this message translates to:
   /// **'Limpiar filtro'**
   String get clearFilter;
 
-  /// No description provided for @filterCustomers.
+  /// Action label to open filtering options
   ///
   /// In es, this message translates to:
   /// **'Filtrar clientes'**
   String get filterCustomers;
 
-  /// No description provided for @all.
+  /// Generic 'All' filter option
   ///
   /// In es, this message translates to:
   /// **'Todos'**
   String get all;
 
-  /// No description provided for @statusInactive.
+  /// Label for users or items that are no longer active
   ///
   /// In es, this message translates to:
   /// **'Inactivo'**
   String get statusInactive;
 
-  /// No description provided for @noCustomers.
+  /// Informational message when customer list is empty
   ///
   /// In es, this message translates to:
   /// **'No hay clientes'**
   String get noCustomers;
 
-  /// No description provided for @noResults.
+  /// Informational message when search/filter yields zero matches
   ///
   /// In es, this message translates to:
   /// **'No se encontraron resultados'**
   String get noResults;
 
-  /// No description provided for @addFirstCustomer.
+  /// Prompt for first-time users to start adding data
   ///
   /// In es, this message translates to:
   /// **'Agrega tu primer cliente presionando el botón +'**
   String get addFirstCustomer;
 
-  /// No description provided for @tryAnotherTerm.
+  /// Suggestion message when no search results are found
   ///
   /// In es, this message translates to:
   /// **'Intenta con otro término de búsqueda'**
   String get tryAnotherTerm;
 
-  /// No description provided for @loan.
+  /// Singular label for a loan record
   ///
   /// In es, this message translates to:
   /// **'Préstamo'**
   String get loan;
 
-  /// No description provided for @loans.
+  /// Plural label for loan records
   ///
   /// In es, this message translates to:
   /// **'Préstamos'**
   String get loans;
 
-  /// No description provided for @newLoan.
+  /// Action label to create a new credit record
   ///
   /// In es, this message translates to:
   /// **'Nuevo Préstamo'**
   String get newLoan;
 
-  /// No description provided for @editLoan.
+  /// Action label to modify an existing credit record
   ///
   /// In es, this message translates to:
   /// **'Editar Préstamo'**
   String get editLoan;
 
-  /// No description provided for @loanDetail.
+  /// Title for the individual loan viewing screen
   ///
   /// In es, this message translates to:
   /// **'Detalle del Préstamo'**
   String get loanDetail;
 
-  /// No description provided for @capital.
+  /// Label for the principal loan amount
   ///
   /// In es, this message translates to:
   /// **'Capital'**
   String get capital;
 
-  /// No description provided for @originalCapital.
+  /// Label for the starting amount of a loan before payments
   ///
   /// In es, this message translates to:
   /// **'Capital Original'**
   String get originalCapital;
 
-  /// No description provided for @capitalRecovered.
+  /// Label for the amount of principal already paid back
   ///
   /// In es, this message translates to:
   /// **'Capital Recuperado'**
   String get capitalRecovered;
 
-  /// No description provided for @currentBalance.
+  /// Label for the remaining amount the customer owes (Principal + Interest)
   ///
   /// In es, this message translates to:
   /// **'Saldo Actual'**
   String get currentBalance;
 
-  /// No description provided for @capitalBalance.
+  /// Label for the remaining principal amount owed
   ///
   /// In es, this message translates to:
   /// **'Saldo Capital'**
   String get capitalBalance;
 
-  /// No description provided for @interestRate.
+  /// Label for the cost of borrowing as a percentage
   ///
   /// In es, this message translates to:
   /// **'Tasa de Interés'**
   String get interestRate;
 
-  /// No description provided for @monthlyRate.
+  /// Description showing interest is calculated per month
   ///
   /// In es, this message translates to:
   /// **'Tasa Mensual'**
   String get monthlyRate;
 
-  /// No description provided for @otherRate.
+  /// Option for custom or non-standard interest frequencies
   ///
   /// In es, this message translates to:
   /// **'Otra Tasa'**
   String get otherRate;
 
-  /// No description provided for @rate.
+  /// Short label for interest rate
   ///
   /// In es, this message translates to:
   /// **'Tasa'**
   String get rate;
 
-  /// No description provided for @disbursement.
+  /// Label for the moment money is handed to the customer
   ///
   /// In es, this message translates to:
   /// **'Desembolso'**
   String get disbursement;
 
-  /// No description provided for @disbursementDate.
+  /// Label for the calendar date money was given
   ///
   /// In es, this message translates to:
   /// **'Fecha de Desembolso'**
   String get disbursementDate;
 
-  /// No description provided for @loanNumber.
+  /// Prefix for the numeric identifier of a specific loan
   ///
   /// In es, this message translates to:
   /// **'Préstamo #'**
   String get loanNumber;
 
-  /// No description provided for @pendingBalance.
+  /// Label for money that is still owed
   ///
   /// In es, this message translates to:
   /// **'Saldo Pendiente'**
   String get pendingBalance;
 
-  /// No description provided for @closeLoan.
+  /// Action label to mark a loan as finished
   ///
   /// In es, this message translates to:
   /// **'Cerrar Préstamo'**
   String get closeLoan;
 
-  /// No description provided for @deleteLoan.
+  /// Action label to remove a loan record from the system
   ///
   /// In es, this message translates to:
   /// **'Eliminar Préstamo'**
   String get deleteLoan;
 
-  /// No description provided for @selectLoan.
+  /// Instruction label to choose a credit record
   ///
   /// In es, this message translates to:
   /// **'Seleccione un préstamo'**
   String get selectLoan;
 
-  /// No description provided for @to.
+  /// Generic preposition indicating recipient or direction
   ///
   /// In es, this message translates to:
   /// **'a'**
   String get to;
 
-  /// No description provided for @totalEarningsInterestLateFees.
+  /// Detailed label for the sum of interest and penalties
   ///
   /// In es, this message translates to:
   /// **'Total Ganancias (Interés + Mora)'**
   String get totalEarningsInterestLateFees;
 
-  /// No description provided for @payment.
+  /// Singular label for a money transaction
   ///
   /// In es, this message translates to:
   /// **'Pago'**
   String get payment;
 
-  /// No description provided for @payments.
+  /// Plural label for money transactions
   ///
   /// In es, this message translates to:
   /// **'Pagos'**
   String get payments;
 
-  /// No description provided for @newPayment.
+  /// Action label to record a client's installment
   ///
   /// In es, this message translates to:
   /// **'Nuevo Pago'**
   String get newPayment;
 
-  /// No description provided for @registerPayment.
+  /// Action label to commit a payment to the database
   ///
   /// In es, this message translates to:
   /// **'Registrar Pago'**
   String get registerPayment;
 
-  /// No description provided for @paymentAmount.
+  /// Label for the sum being paid
   ///
   /// In es, this message translates to:
   /// **'Monto del Pago'**
   String get paymentAmount;
 
-  /// No description provided for @paymentDate.
+  /// Label for the calendar date a transction occurs
   ///
   /// In es, this message translates to:
   /// **'Fecha de Pago'**
   String get paymentDate;
 
-  /// No description provided for @paymentType.
+  /// Label to categorize how the money is applied (Interest/Principal/Mixed)
   ///
   /// In es, this message translates to:
   /// **'Tipo de Pago'**
   String get paymentType;
 
-  /// No description provided for @typeInterest.
+  /// Payment category that only covers the fee/interest
   ///
   /// In es, this message translates to:
   /// **'Solo Interés'**
   String get typeInterest;
 
-  /// No description provided for @typePrincipal.
+  /// Payment category that only reduces the original debt
   ///
   /// In es, this message translates to:
   /// **'Solo Capital'**
   String get typePrincipal;
 
-  /// No description provided for @typeCancel.
+  /// Payment category to fully pay off the remaining loan balance
   ///
   /// In es, this message translates to:
   /// **'Cancelar'**
   String get typeCancel;
 
-  /// No description provided for @planInstallmentMode.
+  /// Label for payment calculated based on a fixed plan
   ///
   /// In es, this message translates to:
   /// **'Cuota del Plan'**
   String get planInstallmentMode;
 
-  /// No description provided for @collectedToday.
+  /// Summary label for the daily collection total
   ///
   /// In es, this message translates to:
   /// **'Total Cobrado Hoy'**
   String get collectedToday;
 
-  /// No description provided for @paymentsToday.
+  /// Header for the list of transactions on current day
   ///
   /// In es, this message translates to:
   /// **'Pagos de Hoy'**
   String get paymentsToday;
 
-  /// No description provided for @paymentHistory.
+  /// Header for the list of all past transactions
   ///
   /// In es, this message translates to:
   /// **'Historial de Pagos'**
   String get paymentHistory;
 
-  /// No description provided for @viewAllPayments.
+  /// Action label to see the full transaction log
   ///
   /// In es, this message translates to:
   /// **'Ver todos los pagos'**
   String get viewAllPayments;
 
-  /// No description provided for @receiptNumber.
+  /// Prefix for individual payment receipt IDs
   ///
   /// In es, this message translates to:
   /// **'Comprobante #'**
   String get receiptNumber;
 
-  /// No description provided for @application.
+  /// Label describing how a payment was divided
   ///
   /// In es, this message translates to:
   /// **'Aplicación:'**
   String get application;
 
-  /// No description provided for @noDetailedAllocation.
+  /// Notice when a payment's breakdown is simple or not recorded
   ///
   /// In es, this message translates to:
   /// **'Sin asignación detallada'**
   String get noDetailedAllocation;
 
-  /// No description provided for @interest.
+  /// Label for the profit part of a payment
   ///
   /// In es, this message translates to:
   /// **'Interés'**
   String get interest;
 
-  /// No description provided for @mora.
+  /// Label for late fee or penalty amount
   ///
   /// In es, this message translates to:
   /// **'Mora'**
   String get mora;
 
-  /// No description provided for @cycle.
+  /// Singular label for a billing period
   ///
   /// In es, this message translates to:
   /// **'Ciclo'**
   String get cycle;
 
-  /// No description provided for @cycles.
+  /// Plural label for billing periods
   ///
   /// In es, this message translates to:
   /// **'Ciclos'**
   String get cycles;
 
-  /// No description provided for @billingCycles.
+  /// Header for the list of scheduled payment dates
   ///
   /// In es, this message translates to:
   /// **'Ciclos de Cobro'**
   String get billingCycles;
 
-  /// No description provided for @pendingCycles.
+  /// Counter/Header for payment dates that are coming up or unpaid
   ///
   /// In es, this message translates to:
   /// **'Ciclos Pendientes'**
   String get pendingCycles;
 
-  /// No description provided for @overdueCycles.
+  /// Counter/Header for payment dates that have passed without full pay
   ///
   /// In es, this message translates to:
   /// **'Ciclos Vencidos'**
   String get overdueCycles;
 
-  /// No description provided for @currentCycle.
+  /// Label for the active billing period
   ///
   /// In es, this message translates to:
   /// **'Ciclo Actual'**
   String get currentCycle;
 
-  /// No description provided for @pendingInterest.
+  /// Label for interest that has been charged but not paid
   ///
   /// In es, this message translates to:
   /// **'Interés Pendiente'**
   String get pendingInterest;
 
-  /// No description provided for @expected.
+  /// Label for the amount that should be collected
   ///
   /// In es, this message translates to:
   /// **'Esperado'**
   String get expected;
 
-  /// No description provided for @pending.
+  /// Status label for something not yet finished or paid
   ///
   /// In es, this message translates to:
   /// **'Pendiente'**
   String get pending;
 
-  /// No description provided for @dueDate.
+  /// Prefix for the expiration date of a payment
   ///
   /// In es, this message translates to:
   /// **'Vence:'**
   String get dueDate;
 
-  /// No description provided for @noBillingCycles.
+  /// Message when a loan has no generated bill periods
   ///
   /// In es, this message translates to:
   /// **'No hay ciclos de cobro'**
   String get noBillingCycles;
 
-  /// No description provided for @noPayments.
+  /// Message when a loan has no transaction history
   ///
   /// In es, this message translates to:
   /// **'No hay pagos'**
   String get noPayments;
 
-  /// No description provided for @reports.
+  /// General header for the analytics section
   ///
   /// In es, this message translates to:
   /// **'Reportes'**
   String get reports;
 
-  /// No description provided for @realizedEarnings.
+  /// Title for report on money already collected
   ///
   /// In es, this message translates to:
   /// **'Ganancias Reales'**
   String get realizedEarnings;
 
-  /// No description provided for @projectedEarnings.
+  /// Title for report on money expected to be collected
   ///
   /// In es, this message translates to:
   /// **'Proyección'**
   String get projectedEarnings;
 
-  /// No description provided for @totalEarnings.
+  /// Label for cumulative profit figure
   ///
   /// In es, this message translates to:
   /// **'Ganancias Totales'**
   String get totalEarnings;
 
-  /// No description provided for @dateRange.
+  /// Section header for filtering by time
   ///
   /// In es, this message translates to:
   /// **'Rango de Fechas'**
   String get dateRange;
 
-  /// No description provided for @startDate.
+  /// Label for the beginning date of a range
   ///
   /// In es, this message translates to:
   /// **'Fecha Inicio'**
   String get startDate;
 
-  /// No description provided for @endDate.
+  /// Label for the ending date of a range
   ///
   /// In es, this message translates to:
   /// **'Fecha Fin'**
   String get endDate;
 
-  /// No description provided for @settings.
+  /// General header for the app configuration screen
   ///
   /// In es, this message translates to:
   /// **'Configuraciones'**
   String get settings;
 
-  /// No description provided for @monetaryManagement.
+  /// Menu label for capital and currency settings
   ///
   /// In es, this message translates to:
   /// **'Gestión Monetaria'**
   String get monetaryManagement;
 
-  /// No description provided for @monetarySubtitle.
+  /// Detailed description of monetary settings
   ///
   /// In es, this message translates to:
   /// **'Monedas, Capital y Tasas de Cambio'**
   String get monetarySubtitle;
 
-  /// No description provided for @baseConfiguration.
+  /// Label for the primary app rules section
   ///
   /// In es, this message translates to:
   /// **'Configuración Base'**
   String get baseConfiguration;
 
-  /// No description provided for @currencyCenter.
+  /// Header for managing multiple currencies
   ///
   /// In es, this message translates to:
   /// **'Centro de Divisas'**
   String get currencyCenter;
 
-  /// No description provided for @currencyMaster.
+  /// Title for the exchange rate database
   ///
   /// In es, this message translates to:
   /// **'Maestro de tasas de compra y venta'**
   String get currencyMaster;
 
-  /// No description provided for @snapshotPolicy.
+  /// Label for saving current rate during disbursement
   ///
   /// In es, this message translates to:
   /// **'Registro de Tasa en Contrato'**
   String get snapshotPolicy;
 
-  /// No description provided for @allowManualRate.
+  /// Option to override automated currency rates
   ///
   /// In es, this message translates to:
   /// **'Permitir editar tasa al crear préstamo'**
   String get allowManualRate;
 
-  /// No description provided for @reportConsolidation.
+  /// Header for multi-currency report summing
   ///
   /// In es, this message translates to:
   /// **'Consolidación de Reportes'**
   String get reportConsolidation;
 
-  /// No description provided for @presentationCurrency.
+  /// Label for the UI's secondary display currency
   ///
   /// In es, this message translates to:
   /// **'Moneda de Visualización'**
   String get presentationCurrency;
 
-  /// No description provided for @appearance.
+  /// Menu label for theme and visual settings
   ///
   /// In es, this message translates to:
   /// **'Apariencia'**
   String get appearance;
 
-  /// No description provided for @themeMode.
+  /// Label for light/dark mode selection
   ///
   /// In es, this message translates to:
   /// **'Modo de Tema'**
   String get themeMode;
 
-  /// No description provided for @themeLight.
+  /// Option for bright application theme
   ///
   /// In es, this message translates to:
   /// **'Claro'**
   String get themeLight;
 
-  /// No description provided for @themeDark.
+  /// Option for night/dark application theme
   ///
   /// In es, this message translates to:
   /// **'Oscuro'**
   String get themeDark;
 
-  /// No description provided for @themeSystem.
+  /// Option to follow phone's dark mode setting
   ///
   /// In es, this message translates to:
   /// **'Sistema'**
   String get themeSystem;
 
-  /// No description provided for @language.
+  /// Label for app language selection
   ///
   /// In es, this message translates to:
   /// **'Idioma'**
   String get language;
 
-  /// No description provided for @businessCapital.
+  /// Label for total money pool for loans
   ///
   /// In es, this message translates to:
   /// **'Capital del Negocio'**
   String get businessCapital;
 
-  /// No description provided for @businessPolicies.
+  /// Menu label for company operational rules
   ///
   /// In es, this message translates to:
   /// **'Políticas del Negocio'**
   String get businessPolicies;
 
-  /// No description provided for @maintenance.
+  /// Menu label for database and legacy cleanup
   ///
   /// In es, this message translates to:
   /// **'Mantenimiento'**
   String get maintenance;
 
-  /// No description provided for @about.
+  /// Menu label for app info and versioning
   ///
   /// In es, this message translates to:
   /// **'Acerca de'**
   String get about;
 
-  /// No description provided for @backup.
+  /// Label for a single database copy
   ///
   /// In es, this message translates to:
   /// **'Respaldo'**
   String get backup;
 
-  /// No description provided for @backups.
+  /// Label for multiple database copies
   ///
   /// In es, this message translates to:
   /// **'Respaldos'**
   String get backups;
 
-  /// No description provided for @localBackups.
+  /// Header for device-stored copies
   ///
   /// In es, this message translates to:
   /// **'Respaldos Locales'**
   String get localBackups;
 
-  /// No description provided for @createBackup.
+  /// Action label to trigger a copy now
   ///
   /// In es, this message translates to:
   /// **'Crear Respaldo'**
   String get createBackup;
 
-  /// No description provided for @restoreBackup.
+  /// Action label to load data from a file
   ///
   /// In es, this message translates to:
   /// **'Restaurar Respaldo'**
   String get restoreBackup;
 
-  /// No description provided for @shareBackup.
+  /// Action label to send database to another device
   ///
   /// In es, this message translates to:
   /// **'Compartir Respaldo'**
   String get shareBackup;
 
-  /// No description provided for @exportBackup.
+  /// Action label to save database to a file
   ///
   /// In es, this message translates to:
   /// **'Exportar Backup'**
   String get exportBackup;
 
-  /// No description provided for @creatingBackup.
+  /// Progress message during copy generation
   ///
   /// In es, this message translates to:
   /// **'Creando respaldo...'**
   String get creatingBackup;
 
-  /// No description provided for @backupCreated.
+  /// Success notification after copy finishes
   ///
   /// In es, this message translates to:
   /// **'Respaldo creado exitosamente'**
   String get backupCreated;
 
-  /// No description provided for @backupRestored.
+  /// Success notification for data replacement
   ///
   /// In es, this message translates to:
   /// **'Respaldo restaurado. Por favor reinicie la app.'**
   String get backupRestored;
 
-  /// No description provided for @noBackups.
+  /// Message when the copy list is empty
   ///
   /// In es, this message translates to:
   /// **'No hay respaldos disponibles'**
   String get noBackups;
 
-  /// No description provided for @countryOfOperation.
+  /// Configuration label for regional settings
   ///
   /// In es, this message translates to:
   /// **'País de Operación'**
   String get countryOfOperation;
 
-  /// No description provided for @selectCountry.
+  /// Instruction to pick a nation
   ///
   /// In es, this message translates to:
   /// **'Seleccione un país'**
   String get selectCountry;
 
-  /// No description provided for @whatsAppDisbursementMsg.
+  /// Template for disbursement receipt sharing via WhatsApp
   ///
   /// In es, this message translates to:
   /// **'¡Hola {name}! 👋\n\nAquí tienes el comprobante de tu préstamo #{loanNumber} por {amount}.\n\n¡Gracias por tu preferencia! 🙏'**
-  String whatsAppDisbursementMsg(Object name, Object loanNumber, Object amount);
+  String whatsAppDisbursementMsg(String name, String loanNumber, String amount);
 
-  /// No description provided for @whatsAppPaymentMsg.
+  /// Template for payment receipt sharing via WhatsApp
   ///
   /// In es, this message translates to:
   /// **'¡Hola {name}! 👋\n\nAdjunto el recibo de tu pago #{receiptNumber} de {amount}.\n\n¡Gracias por tu pago! 🙏'**
-  String whatsAppPaymentMsg(Object name, Object receiptNumber, Object amount);
+  String whatsAppPaymentMsg(String name, String receiptNumber, String amount);
 
-  /// No description provided for @whatsAppStatementMsg.
+  /// Template for loan statement sharing via WhatsApp
   ///
   /// In es, this message translates to:
   /// **'¡Hola {name}! 👋\n\nAdjunto su estado de cuenta del préstamo #{loanNumber}.\n\nPara cualquier consulta, estamos a la orden. 🤝'**
-  String whatsAppStatementMsg(Object name, Object loanNumber);
+  String whatsAppStatementMsg(String name, String loanNumber);
 
-  /// No description provided for @whatsAppBalancePending.
+  /// Appended text showing remaining debt in WhatsApp messages
   ///
   /// In es, this message translates to:
   /// **'Tu saldo pendiente es: {amount}'**
-  String whatsAppBalancePending(Object amount);
+  String whatsAppBalancePending(String amount);
 
-  /// No description provided for @whatsAppLoanCompleted.
+  /// Appended text for fully paid loans in WhatsApp messages
   ///
   /// In es, this message translates to:
   /// **'¡Felicidades! Has completado tu préstamo. 🎉'**
   String get whatsAppLoanCompleted;
 
-  /// No description provided for @backupFileName.
+  /// Label for the backup file identifier
   ///
   /// In es, this message translates to:
   /// **'Nombre del archivo:'**
   String get backupFileName;
 
-  /// No description provided for @backupDestFolder.
+  /// Label for the backup storage path
   ///
   /// In es, this message translates to:
   /// **'Carpeta destino:'**
   String get backupDestFolder;
 
-  /// No description provided for @backupWhatToDo.
+  /// Question in the backup options dialog
   ///
   /// In es, this message translates to:
   /// **'¿Qué desea hacer?'**
   String get backupWhatToDo;
 
-  /// No description provided for @backupSaveAs.
+  /// Action label to choose a custom name/path for backup
   ///
   /// In es, this message translates to:
   /// **'Guardar Como...'**
   String get backupSaveAs;
 
-  /// No description provided for @backupProcessing.
+  /// Progress message during backup operations
   ///
   /// In es, this message translates to:
   /// **'Procesando respaldo...'**
   String get backupProcessing;
 
-  /// No description provided for @backupSaveDialogTitle.
+  /// Title for the backup file picker
   ///
   /// In es, this message translates to:
   /// **'Guardar respaldo como...'**
   String get backupSaveDialogTitle;
 
-  /// No description provided for @backupSaved.
+  /// Success message prefix after saving a copy
   ///
   /// In es, this message translates to:
   /// **'Respaldo guardado:'**
   String get backupSaved;
 
-  /// No description provided for @backupError.
+  /// Generic error message for backup failure
   ///
   /// In es, this message translates to:
   /// **'Error al crear respaldo'**
   String get backupError;
 
-  /// No description provided for @backupFolderNotExist.
+  /// Validation message for invalid storage paths
   ///
   /// In es, this message translates to:
   /// **'La carpeta seleccionada no existe'**
   String get backupFolderNotExist;
 
-  /// No description provided for @backupNoFolderConfigured.
+  /// Status message when no storage path is set
   ///
   /// In es, this message translates to:
   /// **'No hay carpeta configurada'**
   String get backupNoFolderConfigured;
 
-  /// No description provided for @fileExistsTitle.
+  /// Title for overwrite confirmation dialog
   ///
   /// In es, this message translates to:
   /// **'Archivo Existente'**
   String get fileExistsTitle;
 
-  /// No description provided for @fileExistsMsg.
+  /// Warning message when a backup file already exists
   ///
   /// In es, this message translates to:
   /// **'Ya existe un archivo llamado \"{fileName}\" en esta ubicación.\n\n¿Desea reemplazarlo con el nuevo respaldo?'**
-  String fileExistsMsg(Object fileName);
+  String fileExistsMsg(String fileName);
 
-  /// No description provided for @replace.
+  /// Action label to overwrite an existing file
   ///
   /// In es, this message translates to:
   /// **'Reemplazar'**
   String get replace;
 
-  /// No description provided for @backupFolder.
+  /// Label for the directory where backups are stored
   ///
   /// In es, this message translates to:
   /// **'Carpeta de Respaldo'**
   String get backupFolder;
 
-  /// No description provided for @viewBackups.
+  /// Action label to open the backup file list
   ///
   /// In es, this message translates to:
   /// **'Ver Respaldos'**
   String get viewBackups;
 
-  /// No description provided for @createNewBackup.
+  /// Action label to trigger a fresh database copy
   ///
   /// In es, this message translates to:
   /// **'Crear Nuevo Respaldo'**
   String get createNewBackup;
 
-  /// No description provided for @backupFileExistsRename.
+  /// Validation message suggesting a rename to avoid overwrite
   ///
   /// In es, this message translates to:
   /// **'Ya existe un archivo con este nombre. Por favor, cambie el nombre.'**
   String get backupFileExistsRename;
 
-  /// No description provided for @restoreSuccessRestart.
+  /// Important notice that app must restart after data load
   ///
   /// In es, this message translates to:
   /// **'Respaldo restaurado exitosamente.\n\nLa aplicación se cerrará para aplicar los cambios. Por favor, vuelva a abrirla.'**
   String get restoreSuccessRestart;
 
-  /// No description provided for @shareReceiptsWhatsApp.
+  /// Setting title for automated WhatsApp sharing
   ///
   /// In es, this message translates to:
   /// **'Enviar comprobantes por WhatsApp'**
   String get shareReceiptsWhatsApp;
 
-  /// No description provided for @shareReceiptsWhatsAppDesc.
+  /// Policy description for WhatsApp sharing
   ///
   /// In es, this message translates to:
   /// **'Enviar comprobante de desembolso y recibos de pago al cliente después de cada transacción'**
   String get shareReceiptsWhatsAppDesc;
 
-  /// No description provided for @noValidWhatsAppNumber.
+  /// Alert when customer phone is missing or malformed for WA
   ///
   /// In es, this message translates to:
   /// **'El cliente no tiene número de WhatsApp válido'**
   String get noValidWhatsAppNumber;
 
-  /// No description provided for @sendingToWhatsApp.
+  /// Progress message during WhatsApp app handoff
   ///
   /// In es, this message translates to:
   /// **'Abriendo WhatsApp...'**
   String get sendingToWhatsApp;
 
-  /// No description provided for @statusActive.
+  /// Label for an ongoing loan
   ///
   /// In es, this message translates to:
   /// **'Activo'**
@@ -1332,12 +1332,6 @@ abstract class S {
   /// In es, this message translates to:
   /// **'pagos más'**
   String get morePayments;
-
-  /// No description provided for @companyData.
-  ///
-  /// In es, this message translates to:
-  /// **'Datos de la Empresa'**
-  String get companyData;
 
   /// No description provided for @companySubtitle.
   ///
@@ -1807,6 +1801,60 @@ abstract class S {
   /// **'Comprobante de Desembolso'**
   String get disbursementReceipt;
 
+  /// No description provided for @disbursementReceiptWithPlan.
+  ///
+  /// In es, this message translates to:
+  /// **'Comprobante de Desembolso con Plan de Pago'**
+  String get disbursementReceiptWithPlan;
+
+  /// No description provided for @nextInstallmentDateLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Fecha de la próxima cuota'**
+  String get nextInstallmentDateLabel;
+
+  /// No description provided for @printDateTime.
+  ///
+  /// In es, this message translates to:
+  /// **'Fecha y Hora Impresión'**
+  String get printDateTime;
+
+  /// No description provided for @disbursementDateTime.
+  ///
+  /// In es, this message translates to:
+  /// **'Fecha y Hora Desembolso'**
+  String get disbursementDateTime;
+
+  /// No description provided for @tableHeaderStart.
+  ///
+  /// In es, this message translates to:
+  /// **'Fecha Inicio'**
+  String get tableHeaderStart;
+
+  /// No description provided for @tableHeaderEnd.
+  ///
+  /// In es, this message translates to:
+  /// **'Fecha Fin'**
+  String get tableHeaderEnd;
+
+  /// No description provided for @tableHeaderPrincipal.
+  ///
+  /// In es, this message translates to:
+  /// **'A Principal'**
+  String get tableHeaderPrincipal;
+
+  /// No description provided for @tableHeaderInterest.
+  ///
+  /// In es, this message translates to:
+  /// **'A Interés'**
+  String get tableHeaderInterest;
+
+  /// No description provided for @tableHeaderTotal.
+  ///
+  /// In es, this message translates to:
+  /// **'Total'**
+  String get tableHeaderTotal;
+
   /// No description provided for @paymentReceipt.
   ///
   /// In es, this message translates to:
@@ -1944,6 +1992,12 @@ abstract class S {
   /// In es, this message translates to:
   /// **'Frecuencia:'**
   String get frequencyLabel;
+
+  /// No description provided for @labelCurrency.
+  ///
+  /// In es, this message translates to:
+  /// **'Moneda:'**
+  String get labelCurrency;
 
   /// No description provided for @maturityDateLabel.
   ///
@@ -2137,23 +2191,59 @@ abstract class S {
   /// **'A Cobrar'**
   String get collectionTitle;
 
-  /// No description provided for @tabBiweekly.
-  ///
-  /// In es, this message translates to:
-  /// **'Quincena'**
-  String get tabBiweekly;
-
-  /// No description provided for @tabMonthly.
-  ///
-  /// In es, this message translates to:
-  /// **'Mes'**
-  String get tabMonthly;
-
   /// No description provided for @tabOverdue.
   ///
   /// In es, this message translates to:
   /// **'Atrasados'**
   String get tabOverdue;
+
+  /// No description provided for @collectionPlanDays.
+  ///
+  /// In es, this message translates to:
+  /// **'Planificar cobro'**
+  String get collectionPlanDays;
+
+  /// No description provided for @collectionPlanDaysTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Planificación de Cobros'**
+  String get collectionPlanDaysTitle;
+
+  /// No description provided for @collectionPlanDaysDesc.
+  ///
+  /// In es, this message translates to:
+  /// **'Días de antelación para mostrar préstamos a cobrar'**
+  String get collectionPlanDaysDesc;
+
+  /// No description provided for @collectionPlanDaysDescription.
+  ///
+  /// In es, this message translates to:
+  /// **'Este campo permite definir con cuántos días de antelación se mostrarán los préstamos pendientes en la pantalla \"A Cobrar\".\n\n**Ejemplo:**\nSi configuras 3 días, los préstamos que vencen en los próximos 3 días aparecerán en la lista de cobro.\n\n**Uso:**\nAumenta este valor si necesitas más tiempo para planificar tu ruta de cobro.'**
+  String get collectionPlanDaysDescription;
+
+  /// No description provided for @noCollectionUpcomingTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Sin cobros próximos'**
+  String get noCollectionUpcomingTitle;
+
+  /// No description provided for @noCollectionUpcomingMsg.
+  ///
+  /// In es, this message translates to:
+  /// **'No hay préstamos con vencimiento en los próximos días'**
+  String get noCollectionUpcomingMsg;
+
+  /// No description provided for @noCollectionOverdueTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Todo al día'**
+  String get noCollectionOverdueTitle;
+
+  /// No description provided for @noCollectionOverdueMsg.
+  ///
+  /// In es, this message translates to:
+  /// **'No hay clientes con saldos atrasados.'**
+  String get noCollectionOverdueMsg;
 
   /// No description provided for @accountSummary.
   ///
@@ -2185,7 +2275,7 @@ abstract class S {
   /// **'Préstamos activos'**
   String get activeLoansTitle;
 
-  /// No description provided for @noLoans.
+  /// Message when loan list is empty
   ///
   /// In es, this message translates to:
   /// **'Sin préstamos'**
@@ -2298,12 +2388,6 @@ abstract class S {
   /// In es, this message translates to:
   /// **'Branding'**
   String get branding;
-
-  /// No description provided for @companyName.
-  ///
-  /// In es, this message translates to:
-  /// **'Nombre de la Empresa'**
-  String get companyName;
 
   /// No description provided for @rucId.
   ///
@@ -2473,42 +2557,6 @@ abstract class S {
   /// **'para'**
   String get noResultsFor;
 
-  /// No description provided for @noCollectionBiweeklyTitle.
-  ///
-  /// In es, this message translates to:
-  /// **'No hay cobros pendientes esta quincena'**
-  String get noCollectionBiweeklyTitle;
-
-  /// No description provided for @noCollectionBiweeklyMsg.
-  ///
-  /// In es, this message translates to:
-  /// **'Los clientes quincenales aparecerán aquí cuando tengan pagos pendientes'**
-  String get noCollectionBiweeklyMsg;
-
-  /// No description provided for @noCollectionMonthlyTitle.
-  ///
-  /// In es, this message translates to:
-  /// **'No hay cobros pendientes este mes'**
-  String get noCollectionMonthlyTitle;
-
-  /// No description provided for @noCollectionMonthlyMsg.
-  ///
-  /// In es, this message translates to:
-  /// **'Los clientes con pagos pendientes aparecerán aquí'**
-  String get noCollectionMonthlyMsg;
-
-  /// No description provided for @noCollectionOverdueTitle.
-  ///
-  /// In es, this message translates to:
-  /// **'¡Sin clientes atrasados!'**
-  String get noCollectionOverdueTitle;
-
-  /// No description provided for @noCollectionOverdueMsg.
-  ///
-  /// In es, this message translates to:
-  /// **'Todos tus clientes están al día'**
-  String get noCollectionOverdueMsg;
-
   /// No description provided for @noData.
   ///
   /// In es, this message translates to:
@@ -2579,7 +2627,7 @@ abstract class S {
   ///
   /// In es, this message translates to:
   /// **'Hace {days} días'**
-  String dateDaysAgo(Object days);
+  String dateDaysAgo(int days);
 
   /// No description provided for @activeCustomersLabel.
   ///
@@ -3149,7 +3197,7 @@ abstract class S {
   ///
   /// In es, this message translates to:
   /// **'Error al verificar pagos: {error}'**
-  String errorCheckingPayments(Object error);
+  String errorCheckingPayments(String error);
 
   /// No description provided for @configNotLoaded.
   ///
@@ -3161,19 +3209,19 @@ abstract class S {
   ///
   /// In es, this message translates to:
   /// **'Error al generar PDF: {error}'**
-  String errorGeneratingPdf(Object error);
+  String errorGeneratingPdf(String error);
 
   /// No description provided for @errorGeneratingReceipt.
   ///
   /// In es, this message translates to:
   /// **'Error al generar comprobante: {error}'**
-  String errorGeneratingReceipt(Object error);
+  String errorGeneratingReceipt(String error);
 
   /// No description provided for @errorGeneratingVoucher.
   ///
   /// In es, this message translates to:
   /// **'Error al generar recibo: {error}'**
-  String errorGeneratingVoucher(Object error);
+  String errorGeneratingVoucher(String error);
 
   /// No description provided for @generatedBillingCycles.
   ///
@@ -3185,7 +3233,7 @@ abstract class S {
   ///
   /// In es, this message translates to:
   /// **'Error: {error}'**
-  String genericError(Object error);
+  String genericError(String error);
 
   /// No description provided for @loanNotFound.
   ///
@@ -3221,7 +3269,7 @@ abstract class S {
   ///
   /// In es, this message translates to:
   /// **'Error al generar reporte: {error}'**
-  String errorGeneratingReport(Object error);
+  String errorGeneratingReport(String error);
 
   /// No description provided for @recalculatingPortfolio.
   ///
@@ -3239,7 +3287,7 @@ abstract class S {
   ///
   /// In es, this message translates to:
   /// **'Error al seleccionar archivo: {error}'**
-  String errorSelectingFile(Object error);
+  String errorSelectingFile(String error);
 
   /// No description provided for @invalidAmountTitle.
   ///
@@ -3311,7 +3359,7 @@ abstract class S {
   /// **'Intereses Pendientes'**
   String get pendingInterestTitle;
 
-  /// No description provided for @pendingInterestMessage.
+  /// Business rule notification regarding payment order
   ///
   /// In es, this message translates to:
   /// **'No puede abonar solo al capital porque tiene intereses pendientes ({symbol} {pending}).\n\nDebe pagar los intereses primero.'**
@@ -3323,17 +3371,17 @@ abstract class S {
   /// **'Monto Excede Capital'**
   String get amountExceedsPrincipalTitle;
 
-  /// No description provided for @amountExceedsPrincipalMessage.
+  /// Validation for 'Principal Only' payments
   ///
   /// In es, this message translates to:
-  /// **'El monto ({symbol} {paid}) excede el capital pendiente ({symbol} {pending}).'**
+  /// **'El abono al capital ({symbol} {paid}) no puede ser mayor al saldo de capital ({symbol} {pending}).'**
   String amountExceedsPrincipalMessage(
     String symbol,
     String paid,
     String pending,
   );
 
-  /// No description provided for @calculating.
+  /// Progress message during complex interest math
   ///
   /// In es, this message translates to:
   /// **'Calculando...'**
@@ -3343,13 +3391,13 @@ abstract class S {
   ///
   /// In es, this message translates to:
   /// **'Error al cargar ciclos: {error}'**
-  String errorLoadingCycles(Object error);
+  String errorLoadingCycles(String error);
 
   /// No description provided for @errorLoadingPayments.
   ///
   /// In es, this message translates to:
   /// **'Error al cargar pagos: {error}'**
-  String errorLoadingPayments(Object error);
+  String errorLoadingPayments(String error);
 
   /// No description provided for @noPaymentsRegistered.
   ///
@@ -3357,7 +3405,7 @@ abstract class S {
   /// **'No hay pagos registrados'**
   String get noPaymentsRegistered;
 
-  /// No description provided for @loadingDetails.
+  /// Progress message for individual record fetch
   ///
   /// In es, this message translates to:
   /// **'Cargando detalles...'**
@@ -3375,7 +3423,31 @@ abstract class S {
   /// **'Sin asignación detallada'**
   String get noAllocationDetails;
 
-  /// No description provided for @companyDataUpdated.
+  /// Header for branding and business entity info
+  ///
+  /// In es, this message translates to:
+  /// **'Datos de la Empresa'**
+  String get companyData;
+
+  /// Label for the lender business name
+  ///
+  /// In es, this message translates to:
+  /// **'Nombre de la Empresa'**
+  String get companyName;
+
+  /// Label for the lender's primary phone number
+  ///
+  /// In es, this message translates to:
+  /// **'Teléfono de Contacto'**
+  String get companyPhone;
+
+  /// Label for the lender's physical office
+  ///
+  /// In es, this message translates to:
+  /// **'Dirección'**
+  String get companyAddress;
+
+  /// Success notification for branding changes
   ///
   /// In es, this message translates to:
   /// **'Datos de la empresa actualizados'**
@@ -3385,7 +3457,7 @@ abstract class S {
   ///
   /// In es, this message translates to:
   /// **'Error al guardar: {error}'**
-  String errorSaving(Object error);
+  String errorSaving(String error);
 
   /// No description provided for @selectALoan.
   ///
@@ -3399,25 +3471,37 @@ abstract class S {
   /// **'Préstamo actualizado y recalculado'**
   String get loanUpdatedRecalculated;
 
-  /// No description provided for @exchangeRates.
+  /// Positive summary message for collection lists
+  ///
+  /// In es, this message translates to:
+  /// **'¡Todos los préstamos están pagados!'**
+  String get allLoansPaid;
+
+  /// Header for active debt list
+  ///
+  /// In es, this message translates to:
+  /// **'Préstamos Pendientes'**
+  String get loansPendingTitle;
+
+  /// Header for currency conversion database
   ///
   /// In es, this message translates to:
   /// **'Tasas de Cambio'**
   String get exchangeRates;
 
-  /// No description provided for @addExchangeRate.
+  /// Action label to define a new currency pair
   ///
   /// In es, this message translates to:
-  /// **'Agregar Tasa'**
+  /// **'Agregar Tasa de Cambio'**
   String get addExchangeRate;
 
-  /// No description provided for @editExchangeRate.
+  /// Action label to update a currency pair
   ///
   /// In es, this message translates to:
-  /// **'Editar Tasa'**
+  /// **'Editar Tasa de Cambio'**
   String get editExchangeRate;
 
-  /// No description provided for @sourceCurrency.
+  /// The currency being converted from
   ///
   /// In es, this message translates to:
   /// **'Moneda Origen'**
@@ -3429,17 +3513,23 @@ abstract class S {
   /// **'Moneda Destino'**
   String get targetCurrency;
 
-  /// No description provided for @buyRate.
+  /// The rate used when lender buys foreign money
   ///
   /// In es, this message translates to:
   /// **'Tasa Compra'**
   String get buyRate;
 
-  /// No description provided for @sellRate.
+  /// The rate used when lender sells foreign money
   ///
   /// In es, this message translates to:
   /// **'Tasa Venta'**
   String get sellRate;
+
+  /// The central bank or standard rate
+  ///
+  /// In es, this message translates to:
+  /// **'Tasa Oficial'**
+  String get officialRate;
 
   /// No description provided for @rateDate.
   ///
@@ -3465,10 +3555,10 @@ abstract class S {
   /// **'Tasa actualizada exitosamente'**
   String get rateUpdatedSuccessfully;
 
-  /// No description provided for @rateDeletedSuccessfully.
+  /// Success message for cleanup
   ///
   /// In es, this message translates to:
-  /// **'Tasa eliminada'**
+  /// **'Tasa de cambio eliminada'**
   String get rateDeletedSuccessfully;
 
   /// No description provided for @averageRate.
@@ -3483,17 +3573,35 @@ abstract class S {
   /// **'¿Está seguro de eliminar esta tasa?'**
   String get deleteRateConfirmation;
 
-  /// No description provided for @rateAlreadyExists.
+  /// Duplicate error for currency pairs
   ///
   /// In es, this message translates to:
   /// **'Ya existe una tasa para esta fecha y par de monedas'**
   String get rateAlreadyExists;
 
-  /// No description provided for @workingCapitalIn.
+  /// Permission error for primary currency
   ///
   /// In es, this message translates to:
-  /// **'Capital de Trabajo en {currency}'**
-  String workingCapitalIn(String currency);
+  /// **'No se puede eliminar la moneda base'**
+  String get cannotDeleteBaseCurrencyRate;
+
+  /// Timestamp label for data refreshes
+  ///
+  /// In es, this message translates to:
+  /// **'Última actualización: {date}'**
+  String lastUpdated(String date);
+
+  /// Label for recommended currency conversion factor
+  ///
+  /// In es, this message translates to:
+  /// **'Tasa sugerida'**
+  String get suggestedRate;
+
+  /// Check option to override manual input
+  ///
+  /// In es, this message translates to:
+  /// **'Usar Tasa Oficial'**
+  String get useOfficialRate;
 
   /// No description provided for @recalculateCapitalQuestion.
   ///

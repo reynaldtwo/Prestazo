@@ -91,7 +91,7 @@ class _DniFormatScreenState extends ConsumerState<DniFormatScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(S.of(context).genericError(e)),
+            content: Text(S.of(context).genericError(e.toString())),
             backgroundColor: AppColors.danger,
           ),
         );

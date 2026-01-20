@@ -2607,6 +2607,69 @@ Repara ambos fix y hay nomas hacete una busqueda en todo el proyecto incluyendo 
 
 
 
+**nuevas mejroas**
+
+Tómate un tiempo para analizar la siguiente mejora y haz el desarrollo considerando las reglas descritas en el archivo code-rules.md y apóyate del MCP de Dart para resolver los errores que aparezcan, así como para investigar sobre las buenas prácticas a la hora de escribir código.
+
+En pantalla Ajuste → apartado políticas del negocio → crear un nuevo campo para que el prestamista pueda definir un número entero, el campo debe llamarse "planificar cobro". Dejar el número 3 por defecto con opciones de incrementar o disminuir.
+
+agrega el icono de informacion y da una explicacion al usuario de que es el campo y que hace, que basicamente este campo sera para que el prestamista pueda definir cuantos dias de antelacion quiere que se le muestre los prestamos que le tocan cobrar en la pantalla "A cobrar".
+
+Agregar multi idioma a esta nueva pantalla.
+
+
+
+**nuevas mejroas**
+
+Tómate un tiempo para analizar la siguiente mejora y haz el desarrollo considerando las reglas descritas en el archivo code-rules.md y apóyate del MCP de Dart para resolver los errores que aparezcan, así como para investigar sobre las buenas prácticas a la hora de escribir código.
+
+Crear una consulta SQL que haga lo siguiente: leer todos los préstamos activos y cargar todos aquellos donde la fecha de la próxima cuota esté dentro de los días de antelacion definidos en el campo "planificar cobro".
+Ejemplo: si un préstamo A le toca pago los 15 de cada mes y el campo tiene 3, y si pongamos que hoy es 12 entonces no mostrar, pero si hoy fuera 13 o 14 o 15 entonces sí debe mostrarse.
+
+
+
+En pantalla "A cobrar" quitar las pestañas Quincena, Mes, y reemplazarlas por una nueva pestaña que se llame "A cobrar" posteriormente se debe cambiar la lógica de carga en esta nueva pestaña, deberá de funcionar de la siguiente forma: cargar todos los préstamos de la consulta SQL creada.
+
+Mantener la pestaña Atrasados y toda su logica.
+
+Quitar el botón de recargar ya que esta pantalla se debe actualizar cada vez que se aga un cambio, y debe ser automático.
+
+Mantener el campo para buscar.
+**LISTO**
+
+
+
+
+
+
+**nuevas mejroas**
+
+Tómate un tiempo para analizar la siguiente mejora y haz el desarrollo considerando las reglas descritas en el archivo code-rules.md y apóyate del MCP de Dart para resolver los errores que aparezcan, así como para investigar sobre las buenas prácticas a la hora de escribir código.
+
+
+Diseñar los siguientes reportes:
+
+1. Nuevo reporte nombrado "Comprobante de Desembolso Con Plan de Pago"(o puedes usar un nommbre mas corto), exclusivamente para todos aquellos prestamos que contegan un plan de pago. 
+
+**Diseño**
+1. primer seccion con los datos de la empresa siempre y cuando en Ajustes datos de la empresa esten configurados para mostrarse.
+2. Segunda seccion mostrar campos: fecha y hora de impresion, fecha y hora del desembolso,fecha de vencimiento, cliente, dni, monto otorgado, tasa de interes, frecuencia, 
+3. Tercera seccion mostrar un detalle de los ciclos de pagos con los siguientes campos: Fecha inicio, fecha fin, a principal, a interes, total.
+4. Cuarta seccion, mostrar los datos de las firmas entregado por y recibido por , mas la leyenda configurada y guardada en Ajustes.
+
+**FLUJO**
+si el prestamo no tiene plan de pago no mostrar el reporte Comprobante de desembolso que ya existe, si el prestamo tiene plan de pago mostrar el reporte Comprobante de desembolso con plan de pago(que es el nuevo que crearas)
+
+**Mantener flujo del reporte Comprobante de desembolso que ya existe**
+ejemplo: Si en ajustes esta configurado para enviar por WharsApp el sistema debe permitir enviar el pdf por whatsApp tal y a como esta el reprote comprobante de desembolso actual.
+
+**Agregar multi idiomas**
+1. agregar multi idiomas al reporte Comprobante de desembolso con plan de pago
+
+**NOTA**
+1. el reporte nuevo debe tener el mismo tipo de formato que tiene el reporte Comprobante de desembolso  actual.
+
+**LISTO**
 
 
 
@@ -2617,6 +2680,124 @@ Repara ambos fix y hay nomas hacete una busqueda en todo el proyecto incluyendo 
 
 
 
+
+
+
+
+
+
+
+
+
+**nuevas mejroas**
+
+Tómate un tiempo para analizar la siguiente mejora y haz el desarrollo considerando las reglas descritas en el archivo code-rules.md y apóyate del MCP de Dart para resolver los errores que aparezcan, así como para investigar sobre las buenas prácticas a la hora de escribir código.
+
+
+**MEJORA EN REPORTE DE: "COMPROBANTE DE DESEMBOLSO"**
+1. Agregar un nuevo campo debajo del campo Fecha, el nuevo campo debe llamarse "Fecha de la proxima cuota" y debe mostrar la fecha de la proxima cuota del prestamo.
+
+**MEJORA EN REPORTE DE "recibo de pago"**
+1. Agregar un nuevo campo llamado "Fecha de la proxima cuota" y debe mostrar la fecha de la proxima cuota del prestamo.
+
+**NOTA:**
+Este cambio debe ser aplicado a los recibos sin importar si el prestamo tiene plan de pago o no. y al COMPROBANTE DE DESEMBOLSO que ya existe.
+
+**Agregar multi idiomas**
+1. agregar multi idiomas al reporte Comprobante de desembolso con plan de pago
+
+**LISTO**
+
+
+
+
+
+
+
+**Mejora en REPORTE COMPROBANTE DE DESEMBOLSO CON PLAN DE PAGO**
+1. El campo Vencimiento no coincide con la fecha de la ultima cuota del plan de pago.
+
+ejemplo: se creao un prestamo con fecha de desembolo el 19-01-26 y en el plan de pago que se le asigno la frecuencia es "Semanal" y plazo a 1 mes, el sistema creo 5 cuotas :
+
+cuota 1 vence el 25-01-26
+cuota 2 vence el 01-02-26
+cuota 3 vence el 08-02-26
+cuota 4 vence el 15-02-26
+cuota 5 vence el 22-02-26
+
+Pero en el campo Vencimiento refleja 17-02-26
+
+**NOTA**
+1. el campo Vencimiento debe CONCORDAR con la fecha de la ultima cuota del plan de pago.
+
+**ADICIONAL**
+1. Quitar back color a la cabezeras de la tabla de los cliclos de pagos.
+2. Los textos de la tabla de los cliclos de pagos deben auto ajustarse para que no se desborde el texto, actualmente se esta desbordando el texto.
+3. Agrega el campo de la moneda del prestamo.
+**LISTO**
+
+
+
+
+
+
+
+
+
+**nuevas mejroas**
+
+Tómate un tiempo para analizar la siguiente mejora y haz el desarrollo considerando las reglas descritas en el archivo code-rules.md y apóyate del MCP de Dart para resolver los errores que aparezcan, así como para investigar sobre las buenas prácticas a la hora de escribir código.
+
+**RESOLVER EL SIGUIENTE FIX, en prestamos sin plan de pago**
+
+
+EN LA PANTALLA DE "Detalle de Préstamo" , en los ciclos de cobros CUANDO SE hace un pago el campo fecha proxima cuota que aparece en el recibo de pago, no coincide con las fechas de los ciclos de cobros en la pantalla de detalle de prestamo.
+
+ejemplo: se creo un prestamo hoy 19-01-26, con frecuencia "Quincenal" y sin plan de pago, la fecha de desembolso fue el 01-12-25 y el sistema genero 4 cuotas a la fecha de hoy 19-01-26:
+
+cuota 1 vence el 15-12-25
+cuota 2 vence el 30-12-25
+cuota 3 vence el 14-01-26
+cuota 4 vence el 29-01-26
+
+cuando se cancela la cuota 1, en el recibo de pago aparece como fecha de la proxima cuota 29-12-25, pero en la pantalla de detalle de prestamo aparece como fecha de la proxima cuota la fecha de la cuota 3 que es 14-01-26
+
+
+**parece estar bien**
+
+
+
+
+
+
+
+
+
+**nuevas mejroas**
+
+Tómate un tiempo para analizar la siguiente mejora y haz el desarrollo considerando las reglas descritas en el archivo code-rules.md y apóyate del MCP de Dart para resolver los errores que aparezcan, así como para investigar sobre las buenas prácticas a la hora de escribir código.
+
+**MEJORA EN PANTALLA A COBRAR**
+1. En la pantalla a cobrar, pestaña A cobrar cada tarjeta que contiene los prestamos a cobrar, deben tener el numero de prestamo, de igual manera en la pestaña Atrasados.
+
+al finalizar reconstruye el apk, para probar.
+
+**LISTO**
+
+
+
+
+**nuevas mejroas**
+
+Tómate un tiempo para analizar la siguiente mejora y haz el desarrollo considerando las reglas descritas en el archivo code-rules.md y apóyate del MCP de Dart para resolver los errores que aparezcan, así como para investigar sobre las buenas prácticas a la hora de escribir código.
+
+**APLICAR MEJORA ESTETICA EN PANTALLA DE INICIO**
+
+1.  Pantalla de inicio, reorganizar las tarjetas de la siguiente menera: capital colocado, Ganancias del mes, proyeccion de mes, prestamos vencidos, prestamos activos, clientes activos
+2. Actualmente cada tarjeta es demasiado grande, hazla mas comprimida y organiza los textos de cada tarjeta de forma logica 
+3. Aplica una especia de efecto moderno a cada tarjeta, que parezca que estan flotando (investiga muy bien en el MCP de dart, para hacer esto de forma que no recargues el sistema, hazlo nativo y dale un toque original y moderno)
+4. Toda las tarjetas deben tener un estilo glasmorphism
+5. Todo esto que hagas debes contemplarlo para cuando se use el thema Oscuro desde ajustes.
 
 
 

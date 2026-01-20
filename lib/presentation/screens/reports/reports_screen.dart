@@ -757,7 +757,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(S.of(context).errorGeneratingReport(e)),
+            content: Text(S.of(context).errorGeneratingReport(e.toString())),
             backgroundColor: AppColors.danger,
           ),
         );

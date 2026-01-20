@@ -53,7 +53,9 @@ Future<void> _handleEditLoan(
   } on Exception catch (e) {
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(S.of(context).errorCheckingPayments(e))),
+        SnackBar(
+          content: Text(S.of(context).errorCheckingPayments(e.toString())),
+        ),
       );
     }
   }
@@ -233,7 +235,7 @@ Future<void> _shareStatement(
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(S.of(context).errorGeneratingPdf(e)),
+          content: Text(S.of(context).errorGeneratingPdf(e.toString())),
           backgroundColor: AppColors.danger,
         ),
       );
@@ -269,25 +271,47 @@ Future<void> _shareDisbursementReceipt(
     // Use LOAN currency for client-facing documents, not global settings
     final currencySymbol = CurrencyUtils.getCurrencySymbol(loan.currencyCode);
 
+    // Fetch next installment date
+    final nextCycle = await ref
+        .read(billingCycleRepositoryProvider)
+        .getCurrentCycle(loanId);
+    final nextInstallmentDate = nextCycle?.dueDate;
+
     // Get frequency name
     final frequencies = await ref.read(paymentFrequenciesProvider.future);
     final frequency = frequencies
         .where((f) => f.id == loan.billingFrequency)
         .firstOrNull;
 
-    await pdfService.generateDisbursementReceipt(
-      loan: loan,
-      customer: customer,
-      settings: settings,
-      locale: locale,
-      currencySymbol: currencySymbol,
-      frequencyName: frequency?.name,
-    );
+    if (loan.planId != null) {
+      // Fetch cycles for the plan report
+      final cycles = await ref.read(billingCyclesByLoanProvider(loanId).future);
+      await pdfService.generateDisbursementWithPlanReceipt(
+        loan: loan,
+        customer: customer,
+        cycles: cycles,
+        settings: settings,
+        locale: locale,
+        currencySymbol: currencySymbol,
+        frequencyName: frequency?.name,
+        nextInstallmentDate: nextInstallmentDate,
+      );
+    } else {
+      await pdfService.generateDisbursementReceipt(
+        loan: loan,
+        customer: customer,
+        settings: settings,
+        locale: locale,
+        currencySymbol: currencySymbol,
+        frequencyName: frequency?.name,
+        nextInstallmentDate: nextInstallmentDate,
+      );
+    }
   } on Exception catch (e) {
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(S.of(context).errorGeneratingReceipt(e)),
+          content: Text(S.of(context).errorGeneratingReceipt(e.toString())),
           backgroundColor: AppColors.danger,
         ),
       );
@@ -327,6 +351,12 @@ Future<void> _shareReceipt(
     // Use LOAN currency for client-facing documents, not global settings
     final currencySymbol = CurrencyUtils.getCurrencySymbol(loan.currencyCode);
 
+    // Fetch next installment date
+    final nextCycle = await ref
+        .read(billingCycleRepositoryProvider)
+        .getCurrentCycle(loan.loanId);
+    final nextInstallmentDate = nextCycle?.dueDate;
+
     await ref
         .read(pdfGeneratorServiceProvider)
         .generatePaymentReceipt(
@@ -337,12 +367,13 @@ Future<void> _shareReceipt(
           settings: settings,
           locale: locale,
           currencySymbol: currencySymbol,
+          nextInstallmentDate: nextInstallmentDate,
         );
   } on Exception catch (e) {
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(S.of(context).errorGeneratingVoucher(e)),
+          content: Text(S.of(context).errorGeneratingVoucher(e.toString())),
           backgroundColor: AppColors.danger,
         ),
       );
@@ -430,7 +461,8 @@ class _LoanDetailScreenState extends ConsumerState<LoanDetailScreen> {
       ),
       body: loanAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, st) => Center(child: Text(S.of(context).genericError(e))),
+        error: (e, st) =>
+            Center(child: Text(S.of(context).genericError(e.toString()))),
         data: (loan) {
           if (loan == null) {
             return Center(child: Text(S.of(context).loanNotFound));
@@ -726,7 +758,7 @@ class _BillingCyclesList extends ConsumerWidget {
 
     return cyclesAsync.when(
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (e, _) => Text(S.of(context).errorLoadingCycles(e)),
+      error: (e, _) => Text(S.of(context).errorLoadingCycles(e.toString())),
       data: (cycles) {
         if (cycles.isEmpty) {
           return Center(
@@ -766,7 +798,7 @@ class _PaymentsList extends ConsumerWidget {
 
     return paymentsAsync.when(
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (e, _) => Text(S.of(context).errorLoadingPayments(e)),
+      error: (e, _) => Text(S.of(context).errorLoadingPayments(e.toString())),
       data: (payments) {
         if (payments.isEmpty) {
           return Center(

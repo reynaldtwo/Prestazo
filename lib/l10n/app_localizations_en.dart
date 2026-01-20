@@ -443,25 +443,25 @@ class SEn extends S {
 
   @override
   String whatsAppDisbursementMsg(
-    Object name,
-    Object loanNumber,
-    Object amount,
+    String name,
+    String loanNumber,
+    String amount,
   ) {
     return 'Hello $name! 👋\n\nHere is the receipt for your loan #$loanNumber for $amount.\n\nThank you for your business! 🙏';
   }
 
   @override
-  String whatsAppPaymentMsg(Object name, Object receiptNumber, Object amount) {
+  String whatsAppPaymentMsg(String name, String receiptNumber, String amount) {
     return 'Hello $name! 👋\n\nAttached is your payment receipt #$receiptNumber for $amount.\n\nThank you for your payment! 🙏';
   }
 
   @override
-  String whatsAppStatementMsg(Object name, Object loanNumber) {
+  String whatsAppStatementMsg(String name, String loanNumber) {
     return 'Hello $name! 👋\n\nAttached is your account statement for loan #$loanNumber.\n\nLet us know if you have any questions. 🤝';
   }
 
   @override
-  String whatsAppBalancePending(Object amount) {
+  String whatsAppBalancePending(String amount) {
     return 'Your pending balance is: $amount';
   }
 
@@ -503,7 +503,7 @@ class SEn extends S {
   String get fileExistsTitle => 'File Exists';
 
   @override
-  String fileExistsMsg(Object fileName) {
+  String fileExistsMsg(String fileName) {
     return 'A file named \"$fileName\" already exists in this location.\n\nDo you want to replace it with the new backup?';
   }
 
@@ -645,9 +645,6 @@ class SEn extends S {
 
   @override
   String get morePayments => 'more payments';
-
-  @override
-  String get companyData => 'Company Data';
 
   @override
   String get companySubtitle => 'Name, TAX ID, logo, address and contact';
@@ -898,6 +895,34 @@ class SEn extends S {
   String get disbursementReceipt => 'Disbursement Receipt';
 
   @override
+  String get disbursementReceiptWithPlan =>
+      'Disbursement Receipt with Payment Plan';
+
+  @override
+  String get nextInstallmentDateLabel => 'Next installment date';
+
+  @override
+  String get printDateTime => 'Print Date and Time';
+
+  @override
+  String get disbursementDateTime => 'Disbursement Date and Time';
+
+  @override
+  String get tableHeaderStart => 'Start Date';
+
+  @override
+  String get tableHeaderEnd => 'End Date';
+
+  @override
+  String get tableHeaderPrincipal => 'Principal';
+
+  @override
+  String get tableHeaderInterest => 'Interest';
+
+  @override
+  String get tableHeaderTotal => 'Total';
+
+  @override
   String get paymentReceipt => 'Payment Receipt';
 
   @override
@@ -967,6 +992,9 @@ class SEn extends S {
   String get frequencyLabel => 'Frequency:';
 
   @override
+  String get labelCurrency => 'Currency:';
+
+  @override
   String get maturityDateLabel => 'Maturity Date:';
 
   @override
@@ -979,7 +1007,7 @@ class SEn extends S {
   String get capitalLabel => 'Principal:';
 
   @override
-  String get loanLabelPrefix => 'Préstamo #:';
+  String get loanLabelPrefix => 'Loan #:';
 
   @override
   String get clientLabel => 'Customer:';
@@ -1033,7 +1061,7 @@ class SEn extends S {
   String get generatingReceipt => 'Generating receipt...';
 
   @override
-  String get errorGeneratingReceiptTitle => 'Error al generar recibo';
+  String get errorGeneratingReceiptTitle => 'Error generating receipt';
 
   @override
   String get generatingDisbursement => 'Generating disbursement receipt...';
@@ -1066,13 +1094,33 @@ class SEn extends S {
   String get collectionTitle => 'To Collect';
 
   @override
-  String get tabBiweekly => 'Biweekly';
-
-  @override
-  String get tabMonthly => 'Month';
-
-  @override
   String get tabOverdue => 'Overdue';
+
+  @override
+  String get collectionPlanDays => 'Collection Planning';
+
+  @override
+  String get collectionPlanDaysTitle => 'Collection Planning';
+
+  @override
+  String get collectionPlanDaysDesc =>
+      'Anticipation days for collection planning';
+
+  @override
+  String get collectionPlanDaysDescription =>
+      'This field allows you to define how many days in advance pending loans will be shown on the \"To Collect\" screen.\n\n**Example:**\nIf you set 3 days, loans due within the next 3 days will appear in the collection list.\n\n**Usage:**\nIncrease this value if you need more time to plan your collection route.';
+
+  @override
+  String get noCollectionUpcomingTitle => 'No upcoming collections';
+
+  @override
+  String get noCollectionUpcomingMsg => 'No loans due within the next few days';
+
+  @override
+  String get noCollectionOverdueTitle => 'All up to date!';
+
+  @override
+  String get noCollectionOverdueMsg => 'All your customers are up to date';
 
   @override
   String get accountSummary => 'Account Summary';
@@ -1131,7 +1179,7 @@ class SEn extends S {
   String get createCustomer => 'Create Customer';
 
   @override
-  String get paymentAmountLabelRequired => 'Monto del Pago *';
+  String get paymentAmountLabelRequired => 'Payment Amount *';
 
   @override
   String get invalidAmountMsg => 'Enter a valid amount';
@@ -1147,9 +1195,6 @@ class SEn extends S {
 
   @override
   String get branding => 'Branding';
-
-  @override
-  String get companyName => 'Company Name';
 
   @override
   String get rucId => 'TAX ID / Identification';
@@ -1237,27 +1282,6 @@ class SEn extends S {
   String get noResultsFor => 'for';
 
   @override
-  String get noCollectionBiweeklyTitle =>
-      'No pending collections this fortnight';
-
-  @override
-  String get noCollectionBiweeklyMsg =>
-      'Biweekly customers will appear here when they have pending payments';
-
-  @override
-  String get noCollectionMonthlyTitle => 'No pending collections this month';
-
-  @override
-  String get noCollectionMonthlyMsg =>
-      'Customers with pending payments will appear here';
-
-  @override
-  String get noCollectionOverdueTitle => 'No overdue customers!';
-
-  @override
-  String get noCollectionOverdueMsg => 'All your customers are up to date';
-
-  @override
   String get noData => 'No data';
 
   @override
@@ -1291,7 +1315,7 @@ class SEn extends S {
   String get dateYesterday => 'Yesterday';
 
   @override
-  String dateDaysAgo(Object days) {
+  String dateDaysAgo(int days) {
     return '$days days ago';
   }
 
@@ -1609,7 +1633,7 @@ class SEn extends S {
       'Automatic backups are checked when you open the app. Make sure to open the app regularly.';
 
   @override
-  String errorCheckingPayments(Object error) {
+  String errorCheckingPayments(String error) {
     return 'Error verifying payments: $error';
   }
 
@@ -1617,17 +1641,17 @@ class SEn extends S {
   String get configNotLoaded => 'Configuration not loaded';
 
   @override
-  String errorGeneratingPdf(Object error) {
+  String errorGeneratingPdf(String error) {
     return 'Error generating PDF: $error';
   }
 
   @override
-  String errorGeneratingReceipt(Object error) {
+  String errorGeneratingReceipt(String error) {
     return 'Error generating receipt: $error';
   }
 
   @override
-  String errorGeneratingVoucher(Object error) {
+  String errorGeneratingVoucher(String error) {
     return 'Error generating voucher: $error';
   }
 
@@ -1637,7 +1661,7 @@ class SEn extends S {
   }
 
   @override
-  String genericError(Object error) {
+  String genericError(String error) {
     return 'Error: $error';
   }
 
@@ -1658,7 +1682,7 @@ class SEn extends S {
   String get noActiveLoansForReport => 'No active loans to report';
 
   @override
-  String errorGeneratingReport(Object error) {
+  String errorGeneratingReport(String error) {
     return 'Error generating report: $error';
   }
 
@@ -1669,7 +1693,7 @@ class SEn extends S {
   String get errorRestoringBackup => 'Error restoring backup';
 
   @override
-  String errorSelectingFile(Object error) {
+  String errorSelectingFile(String error) {
     return 'Error selecting file: $error';
   }
 
@@ -1737,12 +1761,12 @@ class SEn extends S {
   String get calculating => 'Calculating...';
 
   @override
-  String errorLoadingCycles(Object error) {
+  String errorLoadingCycles(String error) {
     return 'Error loading cycles: $error';
   }
 
   @override
-  String errorLoadingPayments(Object error) {
+  String errorLoadingPayments(String error) {
     return 'Error loading payments: $error';
   }
 
@@ -1759,10 +1783,22 @@ class SEn extends S {
   String get noAllocationDetails => 'No allocation details';
 
   @override
+  String get companyData => 'Company Data';
+
+  @override
+  String get companyName => 'Company Name';
+
+  @override
+  String get companyPhone => 'Contact Phone';
+
+  @override
+  String get companyAddress => 'Address';
+
+  @override
   String get companyDataUpdated => 'Company data updated';
 
   @override
-  String errorSaving(Object error) {
+  String errorSaving(String error) {
     return 'Error saving: $error';
   }
 
@@ -1771,6 +1807,12 @@ class SEn extends S {
 
   @override
   String get loanUpdatedRecalculated => 'Loan updated and recalculated';
+
+  @override
+  String get allLoansPaid => 'All loans are paid!';
+
+  @override
+  String get loansPendingTitle => 'Pending Loans';
 
   @override
   String get exchangeRates => 'Exchange Rates';
@@ -1792,6 +1834,9 @@ class SEn extends S {
 
   @override
   String get sellRate => 'Sell Rate';
+
+  @override
+  String get officialRate => 'Official Rate';
 
   @override
   String get rateDate => 'Date';
@@ -1820,9 +1865,18 @@ class SEn extends S {
       'A rate already exists for this date and currency pair';
 
   @override
-  String workingCapitalIn(String currency) {
-    return 'Working Capital in $currency';
+  String get cannotDeleteBaseCurrencyRate => 'Cannot delete base currency';
+
+  @override
+  String lastUpdated(String date) {
+    return 'Last updated: $date';
   }
+
+  @override
+  String get suggestedRate => 'Suggested rate';
+
+  @override
+  String get useOfficialRate => 'Use Official Rate';
 
   @override
   String get recalculateCapitalQuestion =>
@@ -2082,7 +2136,7 @@ class SEn extends S {
   String get client => 'Client';
 
   @override
-  String get loanLabel => 'Loan';
+  String get loanLabel => 'Loan #:';
 
   @override
   String get receiptNo => 'Receipt No.';
@@ -2091,7 +2145,7 @@ class SEn extends S {
   String get paymentCurrency => 'Payment Currency';
 
   @override
-  String get paymentAmountLabel => 'Payment Amount';
+  String get paymentAmountLabel => 'Payment Amount *';
 
   @override
   String get appliedRate => 'Applied Rate';
@@ -2469,63 +2523,62 @@ class SEn extends S {
       'Are you sure you want to delete this payment plan?';
 
   @override
-  String get scheduledBackupTitle => 'Respaldo Programado';
+  String get scheduledBackupTitle => 'Scheduled Backup';
 
   @override
-  String get frequency => 'Frecuencia';
+  String get frequency => 'Frequency';
 
   @override
-  String get disabled => 'Desactivado';
+  String get disabled => 'Disabled';
 
   @override
-  String get preferredTime => 'Hora Preferida';
+  String get preferredTime => 'Preferred Time';
 
   @override
-  String get automaticTriggers => 'Disparadores Automáticos';
+  String get automaticTriggers => 'Automatic Triggers';
 
   @override
-  String get backupSettingsSaved => 'Configuración de respaldo guardada';
+  String get backupSettingsSaved => 'Backup settings saved';
 
   @override
-  String get reportCurrencyDialogDesc =>
-      'Moneda utilizada para reportes financieros';
+  String get reportCurrencyDialogDesc => 'Currency used for financial reports';
 
   @override
   String get reportCurrencyInfoBanner =>
-      'Los reportes se mostrarán en esta moneda';
+      'Reports will be shown in this currency';
 
   @override
-  String get tapToChange => 'Toca para cambiar';
+  String get tapToChange => 'Tap to change';
 
   @override
-  String get exchangeRateTitle => 'Tasa de Cambio';
+  String get exchangeRateTitle => 'Exchange Rate';
 
   @override
-  String get invalidRateError => 'Tasa inválida';
+  String get invalidRateError => 'Invalid rate';
 
   @override
-  String get saveButton => 'Guardar';
+  String get saveButton => 'Save';
 
   @override
-  String get requiredField => 'Requerido';
+  String get requiredField => 'Required';
 
   @override
-  String get scheduledBackupDesc => 'Configura copias de seguridad automáticas';
+  String get scheduledBackupDesc => 'Configure automatic backups';
 
   @override
-  String get interestFirst => 'Interés Primero';
+  String get interestFirst => 'Interest First';
 
   @override
-  String get principalFirst => 'Capital Primero';
+  String get principalFirst => 'Principal First';
 
   @override
-  String get noBackupsAvailable => 'No hay respaldos disponibles';
+  String get noBackupsAvailable => 'No backups available';
 
   @override
-  String get settingsSaved => 'Configuración guardada';
+  String get settingsSaved => 'Settings saved';
 
   @override
-  String get invalidExchangeRate => 'Tasa de cambio inválida';
+  String get invalidExchangeRate => 'Invalid exchange rate';
 
   @override
   String get selectPlan => 'Select Plan';

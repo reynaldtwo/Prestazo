@@ -25,18 +25,14 @@ class _CobrarScreenState extends ConsumerState<CobrarScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 2, vsync: this);
     _tabController.addListener(_onTabChanged);
   }
 
   void _onTabChanged() {
     if (_tabController.indexIsChanging) return;
-    // logic remains same mapping index to filter
-    final filters = [
-      CobrarFilter.biweekly,
-      CobrarFilter.monthly,
-      CobrarFilter.overdue,
-    ];
+    // Map tab index to filter
+    final filters = [CobrarFilter.upcoming, CobrarFilter.overdue];
     if (_tabController.index < filters.length) {
       ref
           .read(cobrarProvider.notifier)
@@ -60,21 +56,11 @@ class _CobrarScreenState extends ConsumerState<CobrarScreen>
     final colorScheme = Theme.of(context).colorScheme;
 
     // Localized tabs
-    final tabLabels = [
-      S.of(context).tabBiweekly,
-      S.of(context).tabMonthly,
-      S.of(context).tabOverdue,
-    ];
+    final tabLabels = [S.of(context).collectionTitle, S.of(context).tabOverdue];
 
     return Scaffold(
       appBar: AppBar(
         title: Text(S.of(context).collectionTitle),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: () => ref.read(cobrarProvider.notifier).refresh(),
-          ),
-        ],
         bottom: TabBar(
           controller: _tabController,
           labelColor: Colors.white,
@@ -218,18 +204,12 @@ class _CobrarScreenState extends ConsumerState<CobrarScreen>
     String? message;
 
     switch (filter) {
-      case CobrarFilter.biweekly:
-        title = S.of(context).noCollectionBiweeklyTitle;
-        message = S.of(context).noCollectionBiweeklyMsg;
-      case CobrarFilter.monthly:
-        title = S.of(context).noCollectionMonthlyTitle;
-        message = S.of(context).noCollectionMonthlyMsg;
+      case CobrarFilter.upcoming:
+        title = S.of(context).noCollectionUpcomingTitle;
+        message = S.of(context).noCollectionUpcomingMsg;
       case CobrarFilter.overdue:
         title = S.of(context).noCollectionOverdueTitle;
         message = S.of(context).noCollectionOverdueMsg;
-      case CobrarFilter.next7Days:
-        title = S.of(context).noData;
-        message = null;
     }
 
     return AppEmptyState(
@@ -316,6 +296,15 @@ class _CustomerDueCard extends StatelessWidget {
                         customer.customerName,
                         style: AppTypography.bodySmall,
                       ),
+                    Text(
+                      customer.loans.length > 1
+                          ? '${S.of(context).loanLabelPrefix} ${customer.loans.map((l) => l.loanNumber ?? "S/N").join(", ")}'
+                          : '${S.of(context).loanLabelPrefix} ${customer.loans.firstOrNull?.loanNumber ?? "S/N"}',
+                      style: AppTypography.labelSmall.copyWith(
+                        color: Theme.of(context).colorScheme.primary,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -437,7 +426,7 @@ class _CustomerDueCard extends StatelessWidget {
     if (diff == 0) return S.of(context).dateToday;
     if (diff == 1) return S.of(context).dateYesterday;
     if (diff < 7) {
-      return S.of(context).dateDaysAgo(diff.toString());
+      return S.of(context).dateDaysAgo(diff);
     }
 
     return '${date.day}/${date.month}/${date.year}';

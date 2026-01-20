@@ -1,207 +1,733 @@
 {
   "@@locale": "es",
   "appName": "Prestazo",
+  "@appName": {
+    "description": "The name of the application"
+  },
   "save": "Guardar",
+  "@save": {
+    "description": "Generic save action label"
+  },
   "cancel": "Cancelar",
+  "@cancel": {
+    "description": "Generic cancel action label"
+  },
   "confirm": "Confirmar",
+  "@confirm": {
+    "description": "Generic confirm action label"
+  },
   "delete": "Eliminar",
+  "@delete": {
+    "description": "Generic delete action label"
+  },
   "edit": "Editar",
+  "@edit": {
+    "description": "Generic edit action label"
+  },
   "close": "Cerrar",
+  "@close": {
+    "description": "Generic close action label"
+  },
   "search": "Buscar",
+  "@search": {
+    "description": "Generic search action label"
+  },
   "loading": "Cargando...",
+  "@loading": {
+    "description": "Generic loading indicator text"
+  },
   "error": "Error",
+  "@error": {
+    "description": "Generic error title or prefix"
+  },
   "success": "Éxito",
+  "@success": {
+    "description": "Generic success title or prefix"
+  },
   "warning": "Advertencia",
+  "@warning": {
+    "description": "Generic warning title or prefix"
+  },
   "info": "Información",
+  "@info": {
+    "description": "Generic information title or prefix"
+  },
   "understood": "Entendido",
+  "@understood": {
+    "description": "Generic acknowledgment button label"
+  },
   "continue_": "Continuar",
+  "@continue_": {
+    "description": "Generic continue action label"
+  },
   "today": "Hoy",
+  "@today": {
+    "description": "Label for current day"
+  },
   "yesterday": "Ayer",
+  "@yesterday": {
+    "description": "Label for the previous day"
+  },
   "tomorrow": "Mañana",
+  "@tomorrow": {
+    "description": "Label for the next day"
+  },
   "viewAll": "Ver Todo",
+  "@viewAll": {
+    "description": "Action label to see all items in a list"
+  },
   "navHome": "Inicio",
+  "@navHome": {
+    "description": "Navigation label for the home screen"
+  },
   "navCollect": "A Cobrar",
+  "@navCollect": {
+    "description": "Navigation label for the collection/dues screen"
+  },
   "navCustomers": "Clientes",
+  "@navCustomers": {
+    "description": "Navigation label for the customer directory"
+  },
   "navReports": "Reportes",
+  "@navReports": {
+    "description": "Navigation label for the reports and stats screen"
+  },
   "navSettings": "Ajustes",
+  "@navSettings": {
+    "description": "Navigation label for the configuration screen"
+  },
   "customer": "Cliente",
+  "@customer": {
+    "description": "Singular label for a customer"
+  },
   "customers": "Clientes",
+  "@customers": {
+    "description": "Plural label for customers"
+  },
   "newCustomer": "Nuevo Cliente",
+  "@newCustomer": {
+    "description": "Action label to register a new client"
+  },
   "editCustomer": "Editar Cliente",
+  "@editCustomer": {
+    "description": "Action label to modify customer info"
+  },
   "dniDuplicate": "DNI Duplicado",
+  "@dniDuplicate": {
+    "description": "Error message when entering an identity number already in the system"
+  },
   "customerUpdated": "Cliente actualizado",
+  "@customerUpdated": {
+    "description": "Success message after saving customer changes"
+  },
   "customerCreated": "Cliente creado exitosamente",
+  "@customerCreated": {
+    "description": "Success message after registering a new client"
+  },
   "customerName": "Nombre",
+  "@customerName": {
+    "description": "Label for customer full name field"
+  },
   "customerAlias": "Alias",
+  "@customerAlias": {
+    "description": "Label for customer nickname or short name field"
+  },
   "customerPhone": "Teléfono",
+  "@customerPhone": {
+    "description": "Label for customer contact number field"
+  },
   "customerAddress": "Dirección",
+  "@customerAddress": {
+    "description": "Label for customer physical address field"
+  },
   "billingFrequency": "Frecuencia de Cobro",
+  "@billingFrequency": {
+    "description": "Label for the payment cycle selection"
+  },
   "biweekly": "Quincenal",
+  "@biweekly": {
+    "description": "Option for payment every two weeks"
+  },
   "monthly": "Mensual",
+  "@monthly": {
+    "description": "Option for payment once a month"
+  },
   "weekly": "Semanal",
+  "@weekly": {
+    "description": "Option for payment once a week"
+  },
   "daily": "Diario",
+  "@daily": {
+    "description": "Option for payment every day"
+  },
   "searchHint": "Buscar por nombre, alias o teléfono...",
+  "@searchHint": {
+    "description": "Placeholder text for the search input field"
+  },
   "clearFilter": "Limpiar filtro",
+  "@clearFilter": {
+    "description": "Action label to reset search/filter criteria"
+  },
   "filterCustomers": "Filtrar clientes",
+  "@filterCustomers": {
+    "description": "Action label to open filtering options"
+  },
   "all": "Todos",
+  "@all": {
+    "description": "Generic 'All' filter option"
+  },
   "statusInactive": "Inactivo",
+  "@statusInactive": {
+    "description": "Label for users or items that are no longer active"
+  },
   "noCustomers": "No hay clientes",
+  "@noCustomers": {
+    "description": "Informational message when customer list is empty"
+  },
   "noResults": "No se encontraron resultados",
+  "@noResults": {
+    "description": "Informational message when search/filter yields zero matches"
+  },
   "addFirstCustomer": "Agrega tu primer cliente presionando el botón +",
+  "@addFirstCustomer": {
+    "description": "Prompt for first-time users to start adding data"
+  },
   "tryAnotherTerm": "Intenta con otro término de búsqueda",
+  "@tryAnotherTerm": {
+    "description": "Suggestion message when no search results are found"
+  },
   "loan": "Préstamo",
+  "@loan": {
+    "description": "Singular label for a loan record"
+  },
   "loans": "Préstamos",
+  "@loans": {
+    "description": "Plural label for loan records"
+  },
   "newLoan": "Nuevo Préstamo",
+  "@newLoan": {
+    "description": "Action label to create a new credit record"
+  },
   "editLoan": "Editar Préstamo",
+  "@editLoan": {
+    "description": "Action label to modify an existing credit record"
+  },
   "loanDetail": "Detalle del Préstamo",
+  "@loanDetail": {
+    "description": "Title for the individual loan viewing screen"
+  },
   "capital": "Capital",
+  "@capital": {
+    "description": "Label for the principal loan amount"
+  },
   "originalCapital": "Capital Original",
+  "@originalCapital": {
+    "description": "Label for the starting amount of a loan before payments"
+  },
   "capitalRecovered": "Capital Recuperado",
+  "@capitalRecovered": {
+    "description": "Label for the amount of principal already paid back"
+  },
   "currentBalance": "Saldo Actual",
+  "@currentBalance": {
+    "description": "Label for the remaining amount the customer owes (Principal + Interest)"
+  },
   "capitalBalance": "Saldo Capital",
+  "@capitalBalance": {
+    "description": "Label for the remaining principal amount owed"
+  },
   "interestRate": "Tasa de Interés",
+  "@interestRate": {
+    "description": "Label for the cost of borrowing as a percentage"
+  },
   "monthlyRate": "Tasa Mensual",
+  "@monthlyRate": {
+    "description": "Description showing interest is calculated per month"
+  },
   "otherRate": "Otra Tasa",
+  "@otherRate": {
+    "description": "Option for custom or non-standard interest frequencies"
+  },
   "rate": "Tasa",
+  "@rate": {
+    "description": "Short label for interest rate"
+  },
   "disbursement": "Desembolso",
+  "@disbursement": {
+    "description": "Label for the moment money is handed to the customer"
+  },
   "disbursementDate": "Fecha de Desembolso",
+  "@disbursementDate": {
+    "description": "Label for the calendar date money was given"
+  },
   "loanNumber": "Préstamo #",
+  "@loanNumber": {
+    "description": "Prefix for the numeric identifier of a specific loan"
+  },
   "pendingBalance": "Saldo Pendiente",
+  "@pendingBalance": {
+    "description": "Label for money that is still owed"
+  },
   "closeLoan": "Cerrar Préstamo",
+  "@closeLoan": {
+    "description": "Action label to mark a loan as finished"
+  },
   "deleteLoan": "Eliminar Préstamo",
+  "@deleteLoan": {
+    "description": "Action label to remove a loan record from the system"
+  },
   "selectLoan": "Seleccione un préstamo",
+  "@selectLoan": {
+    "description": "Instruction label to choose a credit record"
+  },
   "to": "a",
+  "@to": {
+    "description": "Generic preposition indicating recipient or direction"
+  },
   "totalEarningsInterestLateFees": "Total Ganancias (Interés + Mora)",
+  "@totalEarningsInterestLateFees": {
+    "description": "Detailed label for the sum of interest and penalties"
+  },
   "payment": "Pago",
+  "@payment": {
+    "description": "Singular label for a money transaction"
+  },
   "payments": "Pagos",
+  "@payments": {
+    "description": "Plural label for money transactions"
+  },
   "newPayment": "Nuevo Pago",
+  "@newPayment": {
+    "description": "Action label to record a client's installment"
+  },
   "registerPayment": "Registrar Pago",
+  "@registerPayment": {
+    "description": "Action label to commit a payment to the database"
+  },
   "paymentAmount": "Monto del Pago",
+  "@paymentAmount": {
+    "description": "Label for the sum being paid"
+  },
   "paymentDate": "Fecha de Pago",
+  "@paymentDate": {
+    "description": "Label for the calendar date a transction occurs"
+  },
   "paymentType": "Tipo de Pago",
+  "@paymentType": {
+    "description": "Label to categorize how the money is applied (Interest/Principal/Mixed)"
+  },
   "typeInterest": "Solo Interés",
+  "@typeInterest": {
+    "description": "Payment category that only covers the fee/interest"
+  },
   "typePrincipal": "Solo Capital",
+  "@typePrincipal": {
+    "description": "Payment category that only reduces the original debt"
+  },
   "typeCancel": "Cancelar",
+  "@typeCancel": {
+    "description": "Payment category to fully pay off the remaining loan balance"
+  },
   "planInstallmentMode": "Cuota del Plan",
+  "@planInstallmentMode": {
+    "description": "Label for payment calculated based on a fixed plan"
+  },
   "collectedToday": "Total Cobrado Hoy",
+  "@collectedToday": {
+    "description": "Summary label for the daily collection total"
+  },
   "paymentsToday": "Pagos de Hoy",
+  "@paymentsToday": {
+    "description": "Header for the list of transactions on current day"
+  },
   "paymentHistory": "Historial de Pagos",
+  "@paymentHistory": {
+    "description": "Header for the list of all past transactions"
+  },
   "viewAllPayments": "Ver todos los pagos",
+  "@viewAllPayments": {
+    "description": "Action label to see the full transaction log"
+  },
   "receiptNumber": "Comprobante #",
+  "@receiptNumber": {
+    "description": "Prefix for individual payment receipt IDs"
+  },
   "application": "Aplicación:",
+  "@application": {
+    "description": "Label describing how a payment was divided"
+  },
   "noDetailedAllocation": "Sin asignación detallada",
+  "@noDetailedAllocation": {
+    "description": "Notice when a payment's breakdown is simple or not recorded"
+  },
   "interest": "Interés",
+  "@interest": {
+    "description": "Label for the profit part of a payment"
+  },
   "mora": "Mora",
+  "@mora": {
+    "description": "Label for late fee or penalty amount"
+  },
   "cycle": "Ciclo",
+  "@cycle": {
+    "description": "Singular label for a billing period"
+  },
   "cycles": "Ciclos",
+  "@cycles": {
+    "description": "Plural label for billing periods"
+  },
   "billingCycles": "Ciclos de Cobro",
+  "@billingCycles": {
+    "description": "Header for the list of scheduled payment dates"
+  },
   "pendingCycles": "Ciclos Pendientes",
+  "@pendingCycles": {
+    "description": "Counter/Header for payment dates that are coming up or unpaid"
+  },
   "overdueCycles": "Ciclos Vencidos",
+  "@overdueCycles": {
+    "description": "Counter/Header for payment dates that have passed without full pay"
+  },
   "currentCycle": "Ciclo Actual",
+  "@currentCycle": {
+    "description": "Label for the active billing period"
+  },
   "pendingInterest": "Interés Pendiente",
+  "@pendingInterest": {
+    "description": "Label for interest that has been charged but not paid"
+  },
   "expected": "Esperado",
+  "@expected": {
+    "description": "Label for the amount that should be collected"
+  },
   "pending": "Pendiente",
+  "@pending": {
+    "description": "Status label for something not yet finished or paid"
+  },
   "dueDate": "Vence:",
+  "@dueDate": {
+    "description": "Prefix for the expiration date of a payment"
+  },
   "noBillingCycles": "No hay ciclos de cobro",
+  "@noBillingCycles": {
+    "description": "Message when a loan has no generated bill periods"
+  },
   "noPayments": "No hay pagos",
+  "@noPayments": {
+    "description": "Message when a loan has no transaction history"
+  },
   "reports": "Reportes",
+  "@reports": {
+    "description": "General header for the analytics section"
+  },
   "realizedEarnings": "Ganancias Reales",
+  "@realizedEarnings": {
+    "description": "Title for report on money already collected"
+  },
   "projectedEarnings": "Proyección",
+  "@projectedEarnings": {
+    "description": "Title for report on money expected to be collected"
+  },
   "totalEarnings": "Ganancias Totales",
+  "@totalEarnings": {
+    "description": "Label for cumulative profit figure"
+  },
   "dateRange": "Rango de Fechas",
+  "@dateRange": {
+    "description": "Section header for filtering by time"
+  },
   "startDate": "Fecha Inicio",
+  "@startDate": {
+    "description": "Label for the beginning date of a range"
+  },
   "endDate": "Fecha Fin",
+  "@endDate": {
+    "description": "Label for the ending date of a range"
+  },
   "settings": "Configuraciones",
+  "@settings": {
+    "description": "General header for the app configuration screen"
+  },
   "monetaryManagement": "Gestión Monetaria",
+  "@monetaryManagement": {
+    "description": "Menu label for capital and currency settings"
+  },
   "monetarySubtitle": "Monedas, Capital y Tasas de Cambio",
+  "@monetarySubtitle": {
+    "description": "Detailed description of monetary settings"
+  },
   "baseConfiguration": "Configuración Base",
+  "@baseConfiguration": {
+    "description": "Label for the primary app rules section"
+  },
   "currencyCenter": "Centro de Divisas",
+  "@currencyCenter": {
+    "description": "Header for managing multiple currencies"
+  },
   "currencyMaster": "Maestro de tasas de compra y venta",
+  "@currencyMaster": {
+    "description": "Title for the exchange rate database"
+  },
   "snapshotPolicy": "Registro de Tasa en Contrato",
+  "@snapshotPolicy": {
+    "description": "Label for saving current rate during disbursement"
+  },
   "allowManualRate": "Permitir editar tasa al crear préstamo",
+  "@allowManualRate": {
+    "description": "Option to override automated currency rates"
+  },
   "reportConsolidation": "Consolidación de Reportes",
+  "@reportConsolidation": {
+    "description": "Header for multi-currency report summing"
+  },
   "presentationCurrency": "Moneda de Visualización",
+  "@presentationCurrency": {
+    "description": "Label for the UI's secondary display currency"
+  },
   "appearance": "Apariencia",
+  "@appearance": {
+    "description": "Menu label for theme and visual settings"
+  },
   "themeMode": "Modo de Tema",
+  "@themeMode": {
+    "description": "Label for light/dark mode selection"
+  },
   "themeLight": "Claro",
+  "@themeLight": {
+    "description": "Option for bright application theme"
+  },
   "themeDark": "Oscuro",
+  "@themeDark": {
+    "description": "Option for night/dark application theme"
+  },
   "themeSystem": "Sistema",
+  "@themeSystem": {
+    "description": "Option to follow phone's dark mode setting"
+  },
   "language": "Idioma",
+  "@language": {
+    "description": "Label for app language selection"
+  },
   "businessCapital": "Capital del Negocio",
+  "@businessCapital": {
+    "description": "Label for total money pool for loans"
+  },
   "businessPolicies": "Políticas del Negocio",
+  "@businessPolicies": {
+    "description": "Menu label for company operational rules"
+  },
   "maintenance": "Mantenimiento",
+  "@maintenance": {
+    "description": "Menu label for database and legacy cleanup"
+  },
   "about": "Acerca de",
+  "@about": {
+    "description": "Menu label for app info and versioning"
+  },
   "backup": "Respaldo",
+  "@backup": {
+    "description": "Label for a single database copy"
+  },
   "backups": "Respaldos",
+  "@backups": {
+    "description": "Label for multiple database copies"
+  },
   "localBackups": "Respaldos Locales",
+  "@localBackups": {
+    "description": "Header for device-stored copies"
+  },
   "createBackup": "Crear Respaldo",
+  "@createBackup": {
+    "description": "Action label to trigger a copy now"
+  },
   "restoreBackup": "Restaurar Respaldo",
+  "@restoreBackup": {
+    "description": "Action label to load data from a file"
+  },
   "shareBackup": "Compartir Respaldo",
+  "@shareBackup": {
+    "description": "Action label to send database to another device"
+  },
   "exportBackup": "Exportar Backup",
+  "@exportBackup": {
+    "description": "Action label to save database to a file"
+  },
   "creatingBackup": "Creando respaldo...",
+  "@creatingBackup": {
+    "description": "Progress message during copy generation"
+  },
   "backupCreated": "Respaldo creado exitosamente",
+  "@backupCreated": {
+    "description": "Success notification after copy finishes"
+  },
   "backupRestored": "Respaldo restaurado. Por favor reinicie la app.",
+  "@backupRestored": {
+    "description": "Success notification for data replacement"
+  },
   "noBackups": "No hay respaldos disponibles",
+  "@noBackups": {
+    "description": "Message when the copy list is empty"
+  },
   "countryOfOperation": "País de Operación",
+  "@countryOfOperation": {
+    "description": "Configuration label for regional settings"
+  },
   "selectCountry": "Seleccione un país",
+  "@selectCountry": {
+    "description": "Instruction to pick a nation"
+  },
   "whatsAppDisbursementMsg": "¡Hola {name}! 👋\n\nAquí tienes el comprobante de tu préstamo #{loanNumber} por {amount}.\n\n¡Gracias por tu preferencia! 🙏",
   "@whatsAppDisbursementMsg": {
+    "description": "Template for disbursement receipt sharing via WhatsApp",
     "placeholders": {
-      "name": {},
-      "loanNumber": {},
-      "amount": {}
+      "name": {
+        "type": "String"
+      },
+      "loanNumber": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      }
     }
   },
   "whatsAppPaymentMsg": "¡Hola {name}! 👋\n\nAdjunto el recibo de tu pago #{receiptNumber} de {amount}.\n\n¡Gracias por tu pago! 🙏",
   "@whatsAppPaymentMsg": {
+    "description": "Template for payment receipt sharing via WhatsApp",
     "placeholders": {
-      "name": {},
-      "receiptNumber": {},
-      "amount": {}
+      "name": {
+        "type": "String"
+      },
+      "receiptNumber": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      }
     }
   },
   "whatsAppStatementMsg": "¡Hola {name}! 👋\n\nAdjunto su estado de cuenta del préstamo #{loanNumber}.\n\nPara cualquier consulta, estamos a la orden. 🤝",
   "@whatsAppStatementMsg": {
+    "description": "Template for loan statement sharing via WhatsApp",
     "placeholders": {
-      "name": {},
-      "loanNumber": {}
+      "name": {
+        "type": "String"
+      },
+      "loanNumber": {
+        "type": "String"
+      }
     }
   },
   "whatsAppBalancePending": "Tu saldo pendiente es: {amount}",
   "@whatsAppBalancePending": {
+    "description": "Appended text showing remaining debt in WhatsApp messages",
     "placeholders": {
-      "amount": {}
+      "amount": {
+        "type": "String"
+      }
     }
   },
   "whatsAppLoanCompleted": "¡Felicidades! Has completado tu préstamo. 🎉",
+  "@whatsAppLoanCompleted": {
+    "description": "Appended text for fully paid loans in WhatsApp messages"
+  },
   "backupFileName": "Nombre del archivo:",
+  "@backupFileName": {
+    "description": "Label for the backup file identifier"
+  },
   "backupDestFolder": "Carpeta destino:",
+  "@backupDestFolder": {
+    "description": "Label for the backup storage path"
+  },
   "backupWhatToDo": "¿Qué desea hacer?",
+  "@backupWhatToDo": {
+    "description": "Question in the backup options dialog"
+  },
   "backupSaveAs": "Guardar Como...",
+  "@backupSaveAs": {
+    "description": "Action label to choose a custom name/path for backup"
+  },
   "backupProcessing": "Procesando respaldo...",
+  "@backupProcessing": {
+    "description": "Progress message during backup operations"
+  },
   "backupSaveDialogTitle": "Guardar respaldo como...",
+  "@backupSaveDialogTitle": {
+    "description": "Title for the backup file picker"
+  },
   "backupSaved": "Respaldo guardado:",
+  "@backupSaved": {
+    "description": "Success message prefix after saving a copy"
+  },
   "backupError": "Error al crear respaldo",
+  "@backupError": {
+    "description": "Generic error message for backup failure"
+  },
   "backupFolderNotExist": "La carpeta seleccionada no existe",
+  "@backupFolderNotExist": {
+    "description": "Validation message for invalid storage paths"
+  },
   "backupNoFolderConfigured": "No hay carpeta configurada",
+  "@backupNoFolderConfigured": {
+    "description": "Status message when no storage path is set"
+  },
   "fileExistsTitle": "Archivo Existente",
+  "@fileExistsTitle": {
+    "description": "Title for overwrite confirmation dialog"
+  },
   "fileExistsMsg": "Ya existe un archivo llamado \"{fileName}\" en esta ubicación.\n\n¿Desea reemplazarlo con el nuevo respaldo?",
   "@fileExistsMsg": {
+    "description": "Warning message when a backup file already exists",
     "placeholders": {
-      "fileName": {}
+      "fileName": {
+        "type": "String"
+      }
     }
   },
   "replace": "Reemplazar",
+  "@replace": {
+    "description": "Action label to overwrite an existing file"
+  },
   "backupFolder": "Carpeta de Respaldo",
+  "@backupFolder": {
+    "description": "Label for the directory where backups are stored"
+  },
   "viewBackups": "Ver Respaldos",
+  "@viewBackups": {
+    "description": "Action label to open the backup file list"
+  },
   "createNewBackup": "Crear Nuevo Respaldo",
+  "@createNewBackup": {
+    "description": "Action label to trigger a fresh database copy"
+  },
   "backupFileExistsRename": "Ya existe un archivo con este nombre. Por favor, cambie el nombre.",
+  "@backupFileExistsRename": {
+    "description": "Validation message suggesting a rename to avoid overwrite"
+  },
   "restoreSuccessRestart": "Respaldo restaurado exitosamente.\n\nLa aplicación se cerrará para aplicar los cambios. Por favor, vuelva a abrirla.",
+  "@restoreSuccessRestart": {
+    "description": "Important notice that app must restart after data load"
+  },
   "shareReceiptsWhatsApp": "Enviar comprobantes por WhatsApp",
+  "@shareReceiptsWhatsApp": {
+    "description": "Setting title for automated WhatsApp sharing"
+  },
   "shareReceiptsWhatsAppDesc": "Enviar comprobante de desembolso y recibos de pago al cliente después de cada transacción",
+  "@shareReceiptsWhatsAppDesc": {
+    "description": "Policy description for WhatsApp sharing"
+  },
   "noValidWhatsAppNumber": "El cliente no tiene número de WhatsApp válido",
+  "@noValidWhatsAppNumber": {
+    "description": "Alert when customer phone is missing or malformed for WA"
+  },
   "sendingToWhatsApp": "Abriendo WhatsApp...",
+  "@sendingToWhatsApp": {
+    "description": "Progress message during WhatsApp app handoff"
+  },
   "statusActive": "Activo",
+  "@statusActive": {
+    "description": "Label for an ongoing loan"
+  },
   "statusClosed": "Cerrado",
   "statusPending": "Pendiente",
   "statusOverdue": "Vencido",
@@ -236,7 +762,6 @@
   "returnPerMonth": "Retorno/Mes",
   "and": "y",
   "morePayments": "pagos más",
-  "companyData": "Datos de la Empresa",
   "companySubtitle": "Nombre, RUC, logo, dirección y contacto",
   "availableCapital": "Capital disponible para prestar",
   "availableCapitalDesc": "Monto máximo que tienes disponible para préstamos",
@@ -315,6 +840,15 @@
   "goodEvening": "Buenas noches",
   "loanStatement": "Estado de Cuenta",
   "disbursementReceipt": "Comprobante de Desembolso",
+  "disbursementReceiptWithPlan": "Comprobante de Desembolso con Plan de Pago",
+  "nextInstallmentDateLabel": "Fecha de la próxima cuota",
+  "printDateTime": "Fecha y Hora Impresión",
+  "disbursementDateTime": "Fecha y Hora Desembolso",
+  "tableHeaderStart": "Fecha Inicio",
+  "tableHeaderEnd": "Fecha Fin",
+  "tableHeaderPrincipal": "A Principal",
+  "tableHeaderInterest": "A Interés",
+  "tableHeaderTotal": "Total",
   "paymentReceipt": "Recibo de Pago",
   "thankYouPreference": "¡Gracias por su preferencia!",
   "thankYouPayment": "¡Gracias por su pago!",
@@ -338,6 +872,7 @@
   "labelWa": "WA:",
   "interestRateLabel": "Tasa Interés:",
   "frequencyLabel": "Frecuencia:",
+  "labelCurrency": "Moneda:",
   "maturityDateLabel": "Vencimiento:",
   "totalPaidLabel": "Total Pagado:",
   "interestMoraLabel": "Interés/Mora:",
@@ -370,9 +905,15 @@
   "freqWeekly": "Semanal",
   "freqBiweekly": "Quincenal",
   "collectionTitle": "A Cobrar",
-  "tabBiweekly": "Quincena",
-  "tabMonthly": "Mes",
   "tabOverdue": "Atrasados",
+  "collectionPlanDays": "Planificar cobro",
+  "collectionPlanDaysTitle": "Planificación de Cobros",
+  "collectionPlanDaysDesc": "Días de antelación para mostrar préstamos a cobrar",
+  "collectionPlanDaysDescription": "Este campo permite definir con cuántos días de antelación se mostrarán los préstamos pendientes en la pantalla \"A Cobrar\".\n\n**Ejemplo:**\nSi configuras 3 días, los préstamos que vencen en los próximos 3 días aparecerán en la lista de cobro.\n\n**Uso:**\nAumenta este valor si necesitas más tiempo para planificar tu ruta de cobro.",
+  "noCollectionUpcomingTitle": "Sin cobros próximos",
+  "noCollectionUpcomingMsg": "No hay préstamos con vencimiento en los próximos días",
+  "noCollectionOverdueTitle": "Todo al día",
+  "noCollectionOverdueMsg": "No hay clientes con saldos atrasados.",
   "accountSummary": "Resumen de Cuenta",
   "totalCapital": "Capital Total",
   "monthlyInterest": "Interés Mensual",
@@ -397,7 +938,6 @@
   "contact": "Contacto",
   "location": "Ubicación",
   "branding": "Branding",
-  "companyName": "Nombre de la Empresa",
   "rucId": "RUC / Identificación",
   "phoneFixed": "Teléfono Fijo",
   "cellPhone": "Celular",
@@ -426,12 +966,6 @@
   "projectedMonthlyEarnings": "Ganancias Mensuales Proyectadas",
   "paymentsInRange": "pagos en el rango",
   "noResultsFor": "para",
-  "noCollectionBiweeklyTitle": "No hay cobros pendientes esta quincena",
-  "noCollectionBiweeklyMsg": "Los clientes quincenales aparecerán aquí cuando tengan pagos pendientes",
-  "noCollectionMonthlyTitle": "No hay cobros pendientes este mes",
-  "noCollectionMonthlyMsg": "Los clientes con pagos pendientes aparecerán aquí",
-  "noCollectionOverdueTitle": "¡Sin clientes atrasados!",
-  "noCollectionOverdueMsg": "Todos tus clientes están al día",
   "noData": "Sin datos",
   "interestExpected": "Interés esperado",
   "capitalPending": "Capital Pendiente",
@@ -446,7 +980,9 @@
   "dateDaysAgo": "Hace {days} días",
   "@dateDaysAgo": {
     "placeholders": {
-      "days": {}
+      "days": {
+        "type": "int"
+      }
     }
   },
   "activeCustomersLabel": "Clientes Activos",
@@ -571,7 +1107,7 @@
   "@errorCheckingPayments": {
     "placeholders": {
       "error": {
-        "type": "Object"
+        "type": "String"
       }
     }
   },
@@ -580,7 +1116,7 @@
   "@errorGeneratingPdf": {
     "placeholders": {
       "error": {
-        "type": "Object"
+        "type": "String"
       }
     }
   },
@@ -588,7 +1124,7 @@
   "@errorGeneratingReceipt": {
     "placeholders": {
       "error": {
-        "type": "Object"
+        "type": "String"
       }
     }
   },
@@ -596,7 +1132,7 @@
   "@errorGeneratingVoucher": {
     "placeholders": {
       "error": {
-        "type": "Object"
+        "type": "String"
       }
     }
   },
@@ -612,7 +1148,7 @@
   "@genericError": {
     "placeholders": {
       "error": {
-        "type": "Object"
+        "type": "String"
       }
     }
   },
@@ -625,7 +1161,7 @@
   "@errorGeneratingReport": {
     "placeholders": {
       "error": {
-        "type": "Object"
+        "type": "String"
       }
     }
   },
@@ -635,7 +1171,7 @@
   "@errorSelectingFile": {
     "placeholders": {
       "error": {
-        "type": "Object"
+        "type": "String"
       }
     }
   },
@@ -685,6 +1221,7 @@
   "pendingInterestTitle": "Intereses Pendientes",
   "pendingInterestMessage": "No puede abonar solo al capital porque tiene intereses pendientes ({symbol} {pending}).\n\nDebe pagar los intereses primero.",
   "@pendingInterestMessage": {
+    "description": "Business rule notification regarding payment order",
     "placeholders": {
       "symbol": {
         "type": "String"
@@ -695,8 +1232,9 @@
     }
   },
   "amountExceedsPrincipalTitle": "Monto Excede Capital",
-  "amountExceedsPrincipalMessage": "El monto ({symbol} {paid}) excede el capital pendiente ({symbol} {pending}).",
+  "amountExceedsPrincipalMessage": "El abono al capital ({symbol} {paid}) no puede ser mayor al saldo de capital ({symbol} {pending}).",
   "@amountExceedsPrincipalMessage": {
+    "description": "Validation for 'Principal Only' payments",
     "placeholders": {
       "symbol": {
         "type": "String"
@@ -710,11 +1248,14 @@
     }
   },
   "calculating": "Calculando...",
+  "@calculating": {
+    "description": "Progress message during complex interest math"
+  },
   "errorLoadingCycles": "Error al cargar ciclos: {error}",
   "@errorLoadingCycles": {
     "placeholders": {
       "error": {
-        "type": "Object"
+        "type": "String"
       }
     }
   },
@@ -722,47 +1263,121 @@
   "@errorLoadingPayments": {
     "placeholders": {
       "error": {
-        "type": "Object"
+        "type": "String"
       }
     }
   },
   "noPaymentsRegistered": "No hay pagos registrados",
   "loadingDetails": "Cargando detalles...",
+  "@loadingDetails": {
+    "description": "Progress message for individual record fetch"
+  },
   "errorLoadingDetails": "Error al cargar detalles",
   "noAllocationDetails": "Sin asignación detallada",
+  "companyData": "Datos de la Empresa",
+  "@companyData": {
+    "description": "Header for branding and business entity info"
+  },
+  "companyName": "Nombre de la Empresa",
+  "@companyName": {
+    "description": "Label for the lender business name"
+  },
+  "companyPhone": "Teléfono de Contacto",
+  "@companyPhone": {
+    "description": "Label for the lender's primary phone number"
+  },
+  "companyAddress": "Dirección",
+  "@companyAddress": {
+    "description": "Label for the lender's physical office"
+  },
   "companyDataUpdated": "Datos de la empresa actualizados",
+  "@companyDataUpdated": {
+    "description": "Success notification for branding changes"
+  },
   "errorSaving": "Error al guardar: {error}",
   "@errorSaving": {
     "placeholders": {
       "error": {
-        "type": "Object"
+        "type": "String"
       }
     }
   },
   "selectALoan": "Seleccione un préstamo",
   "loanUpdatedRecalculated": "Préstamo actualizado y recalculado",
+  "@noLoans": {
+    "description": "Message when loan list is empty"
+  },
+  "allLoansPaid": "¡Todos los préstamos están pagados!",
+  "@allLoansPaid": {
+    "description": "Positive summary message for collection lists"
+  },
+  "loansPendingTitle": "Préstamos Pendientes",
+  "@loansPendingTitle": {
+    "description": "Header for active debt list"
+  },
   "exchangeRates": "Tasas de Cambio",
-  "addExchangeRate": "Agregar Tasa",
-  "editExchangeRate": "Editar Tasa",
+  "@exchangeRates": {
+    "description": "Header for currency conversion database"
+  },
+  "addExchangeRate": "Agregar Tasa de Cambio",
+  "@addExchangeRate": {
+    "description": "Action label to define a new currency pair"
+  },
+  "editExchangeRate": "Editar Tasa de Cambio",
+  "@editExchangeRate": {
+    "description": "Action label to update a currency pair"
+  },
   "sourceCurrency": "Moneda Origen",
+  "@sourceCurrency": {
+    "description": "The currency being converted from"
+  },
   "targetCurrency": "Moneda Destino",
   "buyRate": "Tasa Compra",
+  "@buyRate": {
+    "description": "The rate used when lender buys foreign money"
+  },
   "sellRate": "Tasa Venta",
+  "@sellRate": {
+    "description": "The rate used when lender sells foreign money"
+  },
+  "officialRate": "Tasa Oficial",
+  "@officialRate": {
+    "description": "The central bank or standard rate"
+  },
   "rateDate": "Fecha",
   "noRatesAvailable": "No hay tasas registradas",
   "rateAddedSuccessfully": "Tasa agregada exitosamente",
   "rateUpdatedSuccessfully": "Tasa actualizada exitosamente",
-  "rateDeletedSuccessfully": "Tasa eliminada",
+  "rateDeletedSuccessfully": "Tasa de cambio eliminada",
+  "@rateDeletedSuccessfully": {
+    "description": "Success message for cleanup"
+  },
   "averageRate": "Tasa Promedio",
   "deleteRateConfirmation": "¿Está seguro de eliminar esta tasa?",
   "rateAlreadyExists": "Ya existe una tasa para esta fecha y par de monedas",
-  "workingCapitalIn": "Capital de Trabajo en {currency}",
-  "@workingCapitalIn": {
+  "@rateAlreadyExists": {
+    "description": "Duplicate error for currency pairs"
+  },
+  "cannotDeleteBaseCurrencyRate": "No se puede eliminar la moneda base",
+  "@cannotDeleteBaseCurrencyRate": {
+    "description": "Permission error for primary currency"
+  },
+  "lastUpdated": "Última actualización: {date}",
+  "@lastUpdated": {
+    "description": "Timestamp label for data refreshes",
     "placeholders": {
-      "currency": {
+      "date": {
         "type": "String"
       }
     }
+  },
+  "suggestedRate": "Tasa sugerida",
+  "@suggestedRate": {
+    "description": "Label for recommended currency conversion factor"
+  },
+  "useOfficialRate": "Usar Tasa Oficial",
+  "@useOfficialRate": {
+    "description": "Check option to override manual input"
   },
   "recalculateCapitalQuestion": "¿Desea recalcular el capital de trabajo a la nueva moneda base?",
   "baseCurrencyChanged": "Moneda base cambiada",

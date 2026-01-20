@@ -59,6 +59,7 @@ class AppSettings extends Equatable {
     this.disbursementRateType = 'SELL',
     this.paymentRateType = 'BUY',
     this.recoveryPriority = 'CAPITAL_FIRST',
+    this.collectionPlanDays = 3,
   });
 
   /// Create default settings
@@ -129,6 +130,7 @@ class AppSettings extends Equatable {
       disbursementRateType: map['disbursement_rate_type'] as String? ?? 'SELL',
       paymentRateType: map['payment_rate_type'] as String? ?? 'BUY',
       recoveryPriority: map['recovery_priority'] as String? ?? 'CAPITAL_FIRST',
+      collectionPlanDays: map['collection_plan_days'] as int? ?? 3,
       createdAt: DateTime.parse(map['created_at'] as String),
       updatedAt: DateTime.parse(map['updated_at'] as String),
     );
@@ -299,6 +301,9 @@ class AppSettings extends Equatable {
   /// Prioridad de recuperación de saldo ('CAPITAL_FIRST' o 'INTEREST_FIRST').
   final String recoveryPriority;
 
+  /// Días de antelación para planificar cobros en pantalla 'A Cobrar'.
+  final int collectionPlanDays;
+
   /// Fecha de creación de la configuración.
   final DateTime createdAt;
 
@@ -361,6 +366,7 @@ class AppSettings extends Equatable {
       'disbursement_rate_type': disbursementRateType,
       'payment_rate_type': paymentRateType,
       'recovery_priority': recoveryPriority,
+      'collection_plan_days': collectionPlanDays,
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
     };
@@ -420,6 +426,7 @@ class AppSettings extends Equatable {
     String? disbursementRateType,
     String? paymentRateType,
     String? recoveryPriority,
+    int? collectionPlanDays,
     DateTime? updatedAt,
   }) {
     return AppSettings(
@@ -484,6 +491,7 @@ class AppSettings extends Equatable {
       disbursementRateType: disbursementRateType ?? this.disbursementRateType,
       paymentRateType: paymentRateType ?? this.paymentRateType,
       recoveryPriority: recoveryPriority ?? this.recoveryPriority,
+      collectionPlanDays: collectionPlanDays ?? this.collectionPlanDays,
       createdAt: createdAt,
       updatedAt: updatedAt ?? DateTime.now(),
     );
@@ -551,6 +559,7 @@ class AppSettings extends Equatable {
     disbursementRateType,
     paymentRateType,
     recoveryPriority,
+    collectionPlanDays,
     createdAt,
     updatedAt,
   ];

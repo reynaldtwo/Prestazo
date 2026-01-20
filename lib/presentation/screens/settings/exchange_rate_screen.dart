@@ -41,7 +41,8 @@ class _ExchangeRateScreenState extends ConsumerState<ExchangeRateScreen> {
       ),
       body: ratesAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text(S.of(context).genericError(e))),
+        error: (e, _) =>
+            Center(child: Text(S.of(context).genericError(e.toString()))),
         data: (rates) {
           if (rates.isEmpty) {
             return Center(
@@ -221,7 +222,7 @@ class _ExchangeRateScreenState extends ConsumerState<ExchangeRateScreen> {
           final l10n = S.of(context);
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(l10n.genericError(e)),
+              content: Text(l10n.genericError(e.toString())),
               backgroundColor: AppColors.danger,
             ),
           );

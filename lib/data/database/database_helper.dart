@@ -490,6 +490,23 @@ class DatabaseHelper {
     } on Exception catch (_) {
       // Ignore payment_plans schema fix error
     }
+
+    // Check and add collection_plan_days column (planificar cobro)
+    try {
+      final result = await db.rawQuery(
+        "SELECT COUNT(*) as cnt FROM pragma_table_info('app_settings') "
+        "WHERE name='collection_plan_days'",
+      );
+      final hasColumn = (result.first['cnt']! as int) > 0;
+      if (!hasColumn) {
+        await db.execute(
+          'ALTER TABLE app_settings ADD COLUMN collection_plan_days '
+          'INTEGER DEFAULT 3',
+        );
+      }
+    } on Exception catch (_) {
+      // Ignore collection_plan_days check error
+    }
   }
 
   /// Configure database (enable foreign keys, WAL mode, busy timeout)

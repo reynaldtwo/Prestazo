@@ -10,6 +10,7 @@ import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:prestamos_app/core/localization/locale_provider.dart';
 import 'package:prestamos_app/data/models/app_settings.dart';
+import 'package:prestamos_app/data/models/billing_cycle.dart';
 import 'package:prestamos_app/data/models/customer.dart';
 import 'package:prestamos_app/data/models/loan.dart';
 import 'package:prestamos_app/data/models/payment.dart';
@@ -23,6 +24,9 @@ void _log(String message) {
     debugPrint(message);
   }
 }
+
+/// Helper for date formatting
+// final _dateFormat = DateFormat('dd/MM/yyyy'); // Actually not needed if we follow the same pattern as others
 
 /// Servicio de integración con WhatsApp para compartir recibos y documentos en formato PDF.
 class WhatsAppService {
@@ -48,6 +52,7 @@ class WhatsAppService {
     required AppSettings settings,
     required Locale locale,
     required String currencySymbol,
+    DateTime? nextInstallmentDate,
   }) async {
     try {
       final s = lookupS(locale);
@@ -60,6 +65,7 @@ class WhatsAppService {
         settings: settings,
         locale: locale,
         currencySymbol: currencySymbol,
+        nextInstallmentDate: nextInstallmentDate,
       );
 
       // Save to temp file
@@ -93,6 +99,63 @@ class WhatsAppService {
     }
   }
 
+  /// Generate disbursement receipt with plan PDF and share to WhatsApp
+  /// Returns true if shared successfully
+  static Future<bool> shareDisbursementWithPlanReceipt({
+    required Loan loan,
+    required Customer customer,
+    required List<BillingCycle> cycles,
+    required AppSettings settings,
+    required Locale locale,
+    required String currencySymbol,
+    DateTime? nextInstallmentDate,
+  }) async {
+    try {
+      final s = lookupS(locale);
+
+      // Generate PDF bytes
+      final pdfGenerator = PdfGeneratorService();
+      final pdfBytes = await pdfGenerator.getDisbursementWithPlanReceiptBytes(
+        loan: loan,
+        customer: customer,
+        cycles: cycles,
+        settings: settings,
+        locale: locale,
+        currencySymbol: currencySymbol,
+        nextInstallmentDate: nextInstallmentDate,
+      );
+
+      // Save to temp file
+      final tempDir = await getTemporaryDirectory();
+      final fileName =
+          '${s.disbursementReceiptWithPlan.replaceAll(" ", "_")}_${loan.loanNumber ?? loan.loanId}.pdf';
+      final tempFile = File('${tempDir.path}/$fileName');
+      await tempFile.writeAsBytes(pdfBytes);
+
+      _log('WhatsApp: PDF saved to ${tempFile.path}');
+
+      // Share via WhatsApp with PDF attached
+      final currencyFormat =
+          '$currencySymbol ${loan.principalOriginal.toStringAsFixed(2)}';
+      final message = s.whatsAppDisbursementMsg(
+        customer.fullName,
+        loan.loanNumber ?? '',
+        currencyFormat,
+      );
+
+      await Share.shareXFiles(
+        [XFile(tempFile.path)],
+        text: message,
+        subject: '${s.disbursementReceiptWithPlan} - ${loan.loanNumber ?? ''}',
+      );
+
+      return true;
+    } on Exception catch (e) {
+      _log('WhatsApp: Error sharing disbursement with plan receipt - $e');
+      return false;
+    }
+  }
+
   /// Generate payment receipt PDF and share to WhatsApp
   /// Returns true if shared successfully
   static Future<bool> sharePaymentReceipt({
@@ -103,6 +166,7 @@ class WhatsAppService {
     required AppSettings settings,
     required Locale locale,
     required String currencySymbol,
+    DateTime? nextInstallmentDate,
   }) async {
     try {
       final s = lookupS(locale);
@@ -117,6 +181,7 @@ class WhatsAppService {
         settings: settings,
         locale: locale,
         currencySymbol: currencySymbol,
+        nextInstallmentDate: nextInstallmentDate,
       );
 
       // Save to temp file
