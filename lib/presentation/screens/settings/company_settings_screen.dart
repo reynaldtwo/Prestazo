@@ -238,9 +238,11 @@ class _CompanySettingsScreenState extends ConsumerState<CompanySettingsScreen> {
               Switch(
                 value: value,
                 onChanged: onChanged,
-                activeTrackColor: AppColors.primary.withValues(alpha: 0.5),
+                activeTrackColor: Theme.of(
+                  context,
+                ).colorScheme.primary.withValues(alpha: 0.5),
                 thumbColor: WidgetStatePropertyAll(
-                  value ? AppColors.primary : null,
+                  value ? Theme.of(context).colorScheme.primary : null,
                 ),
               ),
               Text(
@@ -315,9 +317,11 @@ class _CompanySettingsScreenState extends ConsumerState<CompanySettingsScreen> {
               Switch(
                 value: _showLogo,
                 onChanged: (v) => setState(() => _showLogo = v),
-                activeTrackColor: AppColors.primary.withValues(alpha: 0.5),
+                activeTrackColor: Theme.of(
+                  context,
+                ).colorScheme.primary.withValues(alpha: 0.5),
                 thumbColor: WidgetStatePropertyAll(
-                  _showLogo ? AppColors.primary : null,
+                  _showLogo ? Theme.of(context).colorScheme.primary : null,
                 ),
               ),
               Text(

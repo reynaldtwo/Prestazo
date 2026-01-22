@@ -56,16 +56,16 @@ class _CobrarScreenState extends ConsumerState<CobrarScreen>
     final colorScheme = Theme.of(context).colorScheme;
 
     // Localized tabs
-    final tabLabels = [S.of(context).collectionTitle, S.of(context).tabOverdue];
+    final tabLabels = [S.of(context).tabUpcoming, S.of(context).tabOverdue];
 
     return Scaffold(
       appBar: AppBar(
         title: Text(S.of(context).collectionTitle),
         bottom: TabBar(
           controller: _tabController,
-          labelColor: Colors.white,
-          unselectedLabelColor: Colors.white70,
-          indicatorColor: Colors.white,
+          labelColor: colorScheme.onPrimary,
+          unselectedLabelColor: colorScheme.onPrimary.withValues(alpha: 0.7),
+          indicatorColor: colorScheme.onPrimary,
           indicatorSize: TabBarIndicatorSize.label,
           labelStyle: const TextStyle(fontWeight: FontWeight.bold),
           tabs: tabLabels.map((l) => Tab(text: l)).toList(),
@@ -186,6 +186,7 @@ class _CobrarScreenState extends ConsumerState<CobrarScreen>
             padding: const EdgeInsets.only(bottom: 12),
             child: _CustomerDueCard(
               customer: customer,
+              filter: state.activeFilter,
               onTap: () => context.push('/customer/${customer.customerId}'),
               onPayment: () => context.push(
                 '/payment/new',
@@ -227,15 +228,20 @@ class _CobrarScreenState extends ConsumerState<CobrarScreen>
 class _CustomerDueCard extends StatelessWidget {
   const _CustomerDueCard({
     required this.customer,
+    required this.filter,
     required this.onTap,
     required this.onPayment,
   });
   final CustomerDueInfo customer;
+  final CobrarFilter filter;
   final VoidCallback onTap;
   final VoidCallback onPayment;
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return AppCard(
       onTap: onTap,
       child: Column(
@@ -249,10 +255,8 @@ class _CustomerDueCard extends StatelessWidget {
                 height: 40,
                 decoration: BoxDecoration(
                   color: customer.isInMora
-                      ? AppColors.danger.withValues(alpha: 0.1)
-                      : (Theme.of(context).brightness == Brightness.dark
-                                ? AppColors.info
-                                : AppColors.primary)
+                      ? theme.colorScheme.error.withValues(alpha: 0.1)
+                      : (isDark ? AppColors.infoDark : AppColors.primary)
                             .withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(10),
                 ),
@@ -261,10 +265,8 @@ class _CustomerDueCard extends StatelessWidget {
                     customer.displayName[0].toUpperCase(),
                     style: AppTypography.titleLarge.copyWith(
                       color: customer.isInMora
-                          ? AppColors.danger
-                          : (Theme.of(context).brightness == Brightness.dark
-                                ? AppColors.info
-                                : AppColors.primary),
+                          ? theme.colorScheme.error
+                          : (isDark ? AppColors.infoDark : AppColors.primary),
                     ),
                   ),
                 ),
@@ -311,6 +313,64 @@ class _CustomerDueCard extends StatelessWidget {
             ],
           ),
 
+          // Due Date Display
+          if (customer.loans.isNotEmpty) ...[
+            Builder(
+              builder: (context) {
+                // Find relevant date based on filter
+                DateTime? displayDate;
+                var label = '';
+
+                // Get all valid dates from loans
+                final dates = customer.loans
+                    .map((l) => l.nextDueDate)
+                    .where((d) => d != null)
+                    .cast<DateTime>()
+                    .toList();
+
+                if (dates.isNotEmpty) {
+                  // Sort dates ascending
+                  dates.sort();
+
+                  if (filter == CobrarFilter.upcoming) {
+                    displayDate = dates.first;
+                    label = 'Vence el:';
+                  } else {
+                    displayDate = dates.first; // Oldest overdue
+                    label = 'Vencido desde:';
+                  }
+                }
+
+                if (displayDate == null) return const SizedBox.shrink();
+
+                return Padding(
+                  padding: const EdgeInsets.only(top: 8, bottom: 4),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.calendar_today,
+                        size: 14,
+                        color: filter == CobrarFilter.overdue
+                            ? Theme.of(context).colorScheme.error
+                            : Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        '$label ${_formatDate(context, displayDate)}',
+                        style: AppTypography.labelSmall.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: filter == CobrarFilter.overdue
+                              ? Theme.of(context).colorScheme.error
+                              : Theme.of(context).colorScheme.onSurface,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+          ],
+
           const SizedBox(height: 16),
 
           // Info wrap
@@ -318,17 +378,29 @@ class _CustomerDueCard extends StatelessWidget {
             spacing: 16,
             runSpacing: 8,
             children: [
-              MoneyLabel(
-                label: S.of(context).interestExpected,
-                amount: customer.totalInterestExpected,
-              ),
-              MoneyLabel(
-                label: S.of(context).pending,
-                amount: customer.totalInterestPending,
-                amountColor: customer.totalInterestPending > 0
-                    ? AppColors.danger
-                    : null,
-              ),
+              if (customer.hasPlanLoans)
+                MoneyLabel(
+                  label: S.of(context).installmentAmount,
+                  amount: customer.totalInstallmentAmount,
+                  // If overdue, show in red, otherwise standard color
+                  amountColor: customer.isInMora
+                      ? theme.colorScheme.error
+                      : null,
+                ),
+
+              if (customer.hasSimpleLoans) ...[
+                MoneyLabel(
+                  label: S.of(context).interestExpected,
+                  amount: customer.totalInterestExpected,
+                ),
+                MoneyLabel(
+                  label: S.of(context).pending,
+                  amount: customer.totalInterestPending,
+                  amountColor: customer.totalInterestPending > 0
+                      ? theme.colorScheme.error
+                      : null,
+                ),
+              ],
             ],
           ),
 
@@ -365,13 +437,13 @@ class _CustomerDueCard extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
-                color: AppColors.danger.withValues(alpha: 0.1),
+                color: theme.colorScheme.error.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(4),
               ),
               child: Text(
                 '${customer.daysOverdue} ${S.of(context).daysOverdue}',
                 style: AppTypography.labelSmall.copyWith(
-                  color: AppColors.danger,
+                  color: theme.colorScheme.error,
                 ),
               ),
             ),
@@ -385,7 +457,7 @@ class _CustomerDueCard extends StatelessWidget {
               decoration: BoxDecoration(
                 color:
                     (Theme.of(context).brightness == Brightness.dark
-                            ? AppColors.info
+                            ? AppColors.infoDark
                             : AppColors.primary)
                         .withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(4),
@@ -394,7 +466,7 @@ class _CustomerDueCard extends StatelessWidget {
                 '${customer.loans.length} ${S.of(context).activeLoansCount}',
                 style: AppTypography.labelSmall.copyWith(
                   color: Theme.of(context).brightness == Brightness.dark
-                      ? AppColors.info
+                      ? AppColors.infoDark
                       : AppColors.primary,
                 ),
               ),
@@ -419,16 +491,10 @@ class _CustomerDueCard extends StatelessWidget {
     );
   }
 
+  /// Formatea una fecha siempre como dd/mm/yyyy.
   String _formatDate(BuildContext context, DateTime date) {
-    final now = DateTime.now();
-    final diff = now.difference(date).inDays;
-
-    if (diff == 0) return S.of(context).dateToday;
-    if (diff == 1) return S.of(context).dateYesterday;
-    if (diff < 7) {
-      return S.of(context).dateDaysAgo(diff);
-    }
-
-    return '${date.day}/${date.month}/${date.year}';
+    return '${date.day.toString().padLeft(2, '0')}/'
+        '${date.month.toString().padLeft(2, '0')}/'
+        '${date.year}';
   }
 }

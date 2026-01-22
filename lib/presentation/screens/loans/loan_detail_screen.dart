@@ -32,7 +32,12 @@ Future<void> _handleEditLoan(
         builder: (ctx) => AlertDialog(
           title: Row(
             children: [
-              const Icon(Icons.lock_clock, color: AppColors.warning),
+              Icon(
+                Icons.lock_clock,
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? AppColors.warningDark
+                    : AppColors.warning,
+              ),
               const SizedBox(width: 8),
               Text(S.of(context).restrictedEditTitle),
             ],
@@ -81,7 +86,12 @@ Future<void> _showDeleteConfirmation(
         builder: (ctx) => AlertDialog(
           title: Row(
             children: [
-              const Icon(Icons.warning_amber, color: AppColors.warning),
+              Icon(
+                Icons.warning_amber,
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? AppColors.warningDark
+                    : AppColors.warning,
+              ),
               const SizedBox(width: 8),
               Text(S.of(context).cannotDeleteTitle),
             ],
@@ -104,7 +114,12 @@ Future<void> _showDeleteConfirmation(
       builder: (ctx) => AlertDialog(
         title: Row(
           children: [
-            const Icon(Icons.delete_forever, color: AppColors.danger),
+            Icon(
+              Icons.delete_forever,
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? AppColors.errorDark
+                  : AppColors.danger,
+            ),
             const SizedBox(width: 8),
             Text(S.of(context).deleteLoanTitle),
           ],
@@ -116,7 +131,9 @@ Future<void> _showDeleteConfirmation(
             child: Text(S.of(context).cancel),
           ),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.danger),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.error,
+            ),
             onPressed: () => Navigator.pop(ctx, true),
             child: Text(S.of(context).delete),
           ),
@@ -153,7 +170,9 @@ Future<void> _showDeleteConfirmation(
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(S.of(context).loanDeletedSuccess),
-              backgroundColor: AppColors.success,
+              backgroundColor: Theme.of(context).brightness == Brightness.dark
+                  ? AppColors.successDark
+                  : AppColors.success,
             ),
           );
           context.pop(); // Go back
@@ -161,7 +180,7 @@ Future<void> _showDeleteConfirmation(
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(S.of(context).errorDeletingLoan),
-              backgroundColor: AppColors.danger,
+              backgroundColor: Theme.of(context).colorScheme.error,
             ),
           );
         }
@@ -170,7 +189,7 @@ Future<void> _showDeleteConfirmation(
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('${S.of(context).errorProcessingRequest}: $e'),
-              backgroundColor: AppColors.danger,
+              backgroundColor: Theme.of(context).colorScheme.error,
             ),
           );
         }
@@ -181,7 +200,7 @@ Future<void> _showDeleteConfirmation(
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('${S.of(context).errorProcessingRequest}: $e'),
-          backgroundColor: AppColors.danger,
+          backgroundColor: Theme.of(context).colorScheme.error,
         ),
       );
     }
@@ -219,9 +238,6 @@ Future<void> _shareStatement(
     final settings = ref.read(appSettingsProvider).value;
     if (settings == null) throw Exception(s.configNotLoaded);
 
-    // Use LOAN currency for client-facing documents, not global settings
-    final currencySymbol = CurrencyUtils.getCurrencySymbol(loan.currencyCode);
-
     await WhatsAppService.shareLoanStatement(
       loan: loan,
       customer: customer,
@@ -229,14 +245,14 @@ Future<void> _shareStatement(
       allocations: allocations,
       settings: settings,
       locale: locale,
-      currencySymbol: currencySymbol,
+      currencySymbol: CurrencyUtils.getCurrencySymbol(loan.currencyCode),
     );
   } on Exception catch (e) {
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(S.of(context).errorGeneratingPdf(e.toString())),
-          backgroundColor: AppColors.danger,
+          backgroundColor: Theme.of(context).colorScheme.error,
         ),
       );
     }
@@ -312,7 +328,7 @@ Future<void> _shareDisbursementReceipt(
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(S.of(context).errorGeneratingReceipt(e.toString())),
-          backgroundColor: AppColors.danger,
+          backgroundColor: Theme.of(context).colorScheme.error,
         ),
       );
     }
@@ -326,7 +342,6 @@ Future<void> _shareReceipt(
 ) async {
   try {
     final s = S.of(context);
-    final locale = Localizations.localeOf(context);
 
     ScaffoldMessenger.of(
       context,
@@ -348,33 +363,79 @@ Future<void> _shareReceipt(
     final settings = ref.read(appSettingsProvider).value;
     if (settings == null) throw Exception(s.configNotLoaded);
 
-    // Use LOAN currency for client-facing documents, not global settings
-    final currencySymbol = CurrencyUtils.getCurrencySymbol(loan.currencyCode);
-
-    // Fetch next installment date
-    final nextCycle = await ref
-        .read(billingCycleRepositoryProvider)
-        .getCurrentCycle(loan.loanId);
+    // Fetch next installment date and relevant cycles
+    final billingRepo = ref.read(billingCycleRepositoryProvider);
+    final nextCycle = await billingRepo.getCurrentCycle(loan.loanId);
     final nextInstallmentDate = nextCycle?.dueDate;
+
+    // Calculate Payment Period and Installment Number
+    String? paymentPeriod;
+    String? installmentNumber;
+    String? paymentStatus;
+
+    final allCycles = await billingRepo.getBillingCyclesByLoan(loan.loanId);
+    final paidCycleIds = allocations
+        .map((a) => a.billingCycleId)
+        .where((id) => id != null)
+        .toSet();
+
+    final paidCycles = allCycles
+        .where((c) => paidCycleIds.contains(c.billingCycleId))
+        .toList();
+
+    if (paidCycles.isNotEmpty) {
+      paidCycles.sort((a, b) => a.periodStartDate.compareTo(b.periodStartDate));
+      final fmt = DateFormat('dd/MM/yyyy');
+      final start = fmt.format(paidCycles.first.periodStartDate);
+      final end = fmt.format(paidCycles.last.periodEndDate);
+      paymentPeriod = '$start - $end';
+
+      final numbers = paidCycles.map((c) => c.cycleNumber).toList()..sort();
+      if (numbers.isNotEmpty) {
+        installmentNumber = numbers.length == 1
+            ? numbers.first.toString()
+            : '${numbers.first} - ${numbers.last}';
+      }
+
+      // Calculate Payment Status (Completo vs Parcial)
+      var allCompleted = true;
+      for (final cycle in paidCycles) {
+        final cycleAllocations = allocations.where(
+          (a) => a.billingCycleId == cycle.billingCycleId,
+        );
+        final totalAllocated = cycleAllocations.fold<double>(
+          0,
+          (sum, a) => sum + a.amount,
+        );
+
+        final pending = cycle.installmentPending ?? cycle.interestPending;
+        if (totalAllocated < pending - 0.01) {
+          allCompleted = false;
+          break;
+        }
+      }
+      paymentStatus = allCompleted ? 'Pago Completo' : 'Pago Parcial';
+    }
 
     await ref
         .read(pdfGeneratorServiceProvider)
         .generatePaymentReceipt(
-          payment: payment,
-          loan: loan,
-          customer: customer,
-          allocations: allocations,
-          settings: settings,
-          locale: locale,
-          currencySymbol: currencySymbol,
+          payment,
+          loan,
+          customer,
+          allocations,
+          settings,
           nextInstallmentDate: nextInstallmentDate,
+          paymentPeriod: paymentPeriod,
+          installmentNumber: installmentNumber,
+          paymentStatus: paymentStatus,
         );
   } on Exception catch (e) {
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(S.of(context).errorGeneratingVoucher(e.toString())),
-          backgroundColor: AppColors.danger,
+          backgroundColor: Theme.of(context).colorScheme.error,
         ),
       );
     }
@@ -418,7 +479,9 @@ class _LoanDetailScreenState extends ConsumerState<LoanDetailScreen> {
               content: Text(
                 S.of(context).generatedBillingCycles(newCycles.length),
               ),
-              backgroundColor: AppColors.info,
+              backgroundColor: Theme.of(context).brightness == Brightness.dark
+                  ? AppColors.infoDark
+                  : AppColors.info,
             ),
           );
           // Invalidate ALL cycle-related providers to ensure fresh data
@@ -542,7 +605,7 @@ class _LoanDetailScreenState extends ConsumerState<LoanDetailScreen> {
                   child: Text(
                     '${S.of(context).loanNumber}${loan.loanNumber}',
                     style: AppTypography.titleMedium.copyWith(
-                      color: AppColors.primary,
+                      color: Theme.of(context).colorScheme.primary,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -583,28 +646,32 @@ class _LoanDetailScreenState extends ConsumerState<LoanDetailScreen> {
               children: [
                 // Share Statement
                 IconButton(
-                  icon: const Icon(
+                  icon: Icon(
                     Icons.ios_share_rounded,
                     size: 20,
-                    color: Colors.indigoAccent,
+                    color: Theme.of(context).colorScheme.tertiary,
                   ),
                   tooltip: 'Estado de Cuenta',
                   style: IconButton.styleFrom(
-                    backgroundColor: Colors.indigoAccent.withValues(alpha: 0.1),
+                    backgroundColor: Theme.of(
+                      context,
+                    ).colorScheme.tertiary.withValues(alpha: 0.1),
                     padding: const EdgeInsets.all(8),
                   ),
                   onPressed: () => _shareStatement(context, ref, loan.loanId),
                 ),
                 // Disbursement Receipt
                 IconButton(
-                  icon: const Icon(
+                  icon: Icon(
                     Icons.receipt_long,
                     size: 20,
-                    color: AppColors.primary,
+                    color: Theme.of(context).colorScheme.primary,
                   ),
                   tooltip: S.of(context).disbursementReceiptTooltip,
                   style: IconButton.styleFrom(
-                    backgroundColor: AppColors.primary.withValues(alpha: 0.1),
+                    backgroundColor: Theme.of(
+                      context,
+                    ).colorScheme.primary.withValues(alpha: 0.1),
                     padding: const EdgeInsets.all(8),
                   ),
                   onPressed: () =>
@@ -612,30 +679,32 @@ class _LoanDetailScreenState extends ConsumerState<LoanDetailScreen> {
                 ),
                 // Edit
                 IconButton(
-                  icon: const Icon(
+                  icon: Icon(
                     Icons.edit,
                     size: 20,
-                    color: AppColors.textPrimary,
+                    color: Theme.of(context).colorScheme.onSurface,
                   ),
                   tooltip: S.of(context).editTooltip,
                   style: IconButton.styleFrom(
-                    backgroundColor: AppColors.textPrimary.withValues(
-                      alpha: 0.1,
-                    ),
+                    backgroundColor: Theme.of(
+                      context,
+                    ).colorScheme.onSurface.withValues(alpha: 0.1),
                     padding: const EdgeInsets.all(8),
                   ),
                   onPressed: () => _handleEditLoan(context, ref, loan.loanId),
                 ),
                 // Delete
                 IconButton(
-                  icon: const Icon(
+                  icon: Icon(
                     Icons.delete_outline,
                     size: 20,
-                    color: AppColors.danger,
+                    color: Theme.of(context).colorScheme.error,
                   ),
                   tooltip: S.of(context).deleteTooltip,
                   style: IconButton.styleFrom(
-                    backgroundColor: AppColors.danger.withValues(alpha: 0.1),
+                    backgroundColor: Theme.of(
+                      context,
+                    ).colorScheme.error.withValues(alpha: 0.1),
                     padding: const EdgeInsets.all(8),
                   ),
                   onPressed: () =>
@@ -739,8 +808,12 @@ class _PendingInterestLabel extends ConsumerWidget {
           label: S.of(context).pendingInterest,
           amount: calc.overdueInterest,
           amountColor: calc.overdueInterest > 0
-              ? AppColors.warning
-              : AppColors.success,
+              ? (Theme.of(context).brightness == Brightness.dark
+                    ? AppColors.warningDark
+                    : AppColors.warning)
+              : (Theme.of(context).brightness == Brightness.dark
+                    ? AppColors.successDark
+                    : AppColors.success),
           currencySymbol: currencySymbol,
         );
       },
@@ -888,8 +961,10 @@ class _CycleCard extends StatelessWidget {
                                 (cycle.installmentPending ??
                                         cycle.interestPending) >
                                     0)
-                            ? AppColors.danger
-                            : AppColors.success,
+                            ? Theme.of(context).colorScheme.error
+                            : (Theme.of(context).brightness == Brightness.dark
+                                  ? AppColors.successDark
+                                  : AppColors.success),
                         isCompact: true,
                       ),
                     ),
@@ -930,13 +1005,14 @@ class _PaymentCard extends ConsumerWidget {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: AppColors.accent.withValues(alpha: 0.1),
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.secondary.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.receipt,
-                  color: AppColors.accent,
-                  size: 20,
+                  color: Theme.of(context).colorScheme.secondary,
                 ),
               ),
               const SizedBox(width: 12),
@@ -957,7 +1033,7 @@ class _PaymentCard extends ConsumerWidget {
               ),
               MoneyDisplay(
                 amount: payment.amount,
-                color: AppColors.accent,
+                color: Theme.of(context).colorScheme.secondary,
                 currencySymbol: CurrencyUtils.getCurrencySymbol(
                   payment.paymentCurrency,
                 ),

@@ -35,6 +35,7 @@ class _ExchangeRateFormScreenState
 
   bool _isLoading = true;
   bool _isSaving = false;
+  bool _applyToWholeMonth = false;
   ExchangeRate? _existingRate;
 
   @override
@@ -148,25 +149,35 @@ class _ExchangeRateFormScreenState
         );
       } else {
         // Create
-        // Check duplication
-        final exists = await repo.rateExistsForDate(
-          _sourceCurrency,
-          _targetCurrency,
-          _selectedDate,
-        );
+        if (_applyToWholeMonth) {
+          await repo.createMonthlyRates(
+            sourceCurrency: _sourceCurrency,
+            targetCurrency: _targetCurrency,
+            date: _selectedDate,
+            buyRate: buyRate,
+            sellRate: sellRate,
+          );
+        } else {
+          // Check duplication for single day
+          final exists = await repo.rateExistsForDate(
+            _sourceCurrency,
+            _targetCurrency,
+            _selectedDate,
+          );
 
-        if (exists) {
-          if (!mounted) return;
-          throw Exception(S.of(context).rateAlreadyExists);
+          if (exists) {
+            if (!mounted) return;
+            throw Exception(S.of(context).rateAlreadyExists);
+          }
+
+          await repo.createRate(
+            sourceCurrency: _sourceCurrency,
+            targetCurrency: _targetCurrency,
+            date: _selectedDate,
+            buyRate: buyRate,
+            sellRate: sellRate,
+          );
         }
-
-        await repo.createRate(
-          sourceCurrency: _sourceCurrency,
-          targetCurrency: _targetCurrency,
-          date: _selectedDate,
-          buyRate: buyRate,
-          sellRate: sellRate,
-        );
       }
 
       if (mounted) {
@@ -247,6 +258,16 @@ class _ExchangeRateFormScreenState
                 ),
               ),
               const SizedBox(height: 16),
+
+              if (!isEdit) ...[
+                SwitchListTile(
+                  value: _applyToWholeMonth,
+                  onChanged: (val) => setState(() => _applyToWholeMonth = val),
+                  title: Text(S.of(context).applyToWholeMonth),
+                  contentPadding: EdgeInsets.zero,
+                ),
+                const SizedBox(height: 16),
+              ],
 
               // Rates Input
               Row(

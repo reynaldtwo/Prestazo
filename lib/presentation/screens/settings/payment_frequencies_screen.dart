@@ -39,8 +39,15 @@ class PaymentFrequenciesScreen extends ConsumerWidget {
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _showFrequencyDialog(context),
-        label: Text(S.of(context).newFrequency),
-        icon: const Icon(Icons.add),
+        label: Text(
+          S.of(context).newFrequency,
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
+        icon: const Icon(Icons.add_rounded),
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        foregroundColor: Theme.of(context).colorScheme.onPrimary,
+        elevation: 4,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       ),
     );
   }

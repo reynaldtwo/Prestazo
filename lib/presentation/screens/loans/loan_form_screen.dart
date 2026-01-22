@@ -200,7 +200,7 @@ class _LoanFormScreenState extends ConsumerState<LoanFormScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('${S.of(context).errorLoadCustomer}: $e'),
-            backgroundColor: AppColors.danger,
+            backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
       }
@@ -214,12 +214,12 @@ class _LoanFormScreenState extends ConsumerState<LoanFormScreen> {
       builder: (ctx) => AlertDialog(
         title: Row(
           children: [
-            const Icon(Icons.block, color: AppColors.danger),
+            Icon(Icons.block, color: Theme.of(context).colorScheme.error),
             const SizedBox(width: 8),
             Expanded(
               child: Text(
                 S.of(context).restrictedCustomerTitle,
-                style: const TextStyle(color: AppColors.danger),
+                style: TextStyle(color: Theme.of(context).colorScheme.error),
               ),
             ),
           ],
@@ -240,10 +240,14 @@ class _LoanFormScreenState extends ConsumerState<LoanFormScreen> {
               width: double.infinity,
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: AppColors.danger.withValues(alpha: 0.1),
+                color: Theme.of(
+                  context,
+                ).colorScheme.error.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(4),
                 border: Border.all(
-                  color: AppColors.danger.withValues(alpha: 0.3),
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.error.withValues(alpha: 0.3),
                 ),
               ),
               child: Text(
@@ -265,7 +269,9 @@ class _LoanFormScreenState extends ConsumerState<LoanFormScreen> {
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(ctx),
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.danger),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.error,
+            ),
             child: Text(S.of(context).ignoreAndContinue),
           ),
         ],
@@ -425,8 +431,8 @@ class _LoanFormScreenState extends ConsumerState<LoanFormScreen> {
                                 style: AppTypography.bodyLarge.copyWith(
                                   fontWeight: FontWeight.bold,
                                   color: canEdit
-                                      ? AppColors.primary
-                                      : AppColors.textPrimary,
+                                      ? Theme.of(context).colorScheme.primary
+                                      : Theme.of(context).colorScheme.onSurface,
                                 ),
                                 decoration: InputDecoration(
                                   suffixText: baseCurrency,
@@ -457,21 +463,28 @@ class _LoanFormScreenState extends ConsumerState<LoanFormScreen> {
                         Text(
                           'Cargando tasa...',
                           style: AppTypography.bodySmall.copyWith(
-                            color: AppColors.textSecondary,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSurfaceVariant,
                           ),
                         )
                       else if (canEdit)
                         Text(
                           'Puede editar la tasa manualmente',
                           style: AppTypography.bodySmall.copyWith(
-                            color: AppColors.info,
+                            color:
+                                Theme.of(context).brightness == Brightness.dark
+                                ? AppColors.infoDark
+                                : AppColors.info,
                           ),
                         )
                       else
                         Text(
                           'Tasa del día aplicada al préstamo',
                           style: AppTypography.bodySmall.copyWith(
-                            color: AppColors.textSecondary,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSurfaceVariant,
                           ),
                         ),
                     ],
@@ -642,8 +655,6 @@ class _LoanFormScreenState extends ConsumerState<LoanFormScreen> {
 
     final displayName = _customer!.alias ?? _customer!.fullName;
 
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
     return AppCard(
       child: Row(
         children: [
@@ -651,16 +662,20 @@ class _LoanFormScreenState extends ConsumerState<LoanFormScreen> {
             width: 48,
             height: 48,
             decoration: BoxDecoration(
-              color: (isDark ? AppColors.info : AppColors.primary).withValues(
-                alpha: 0.1,
-              ),
+              color:
+                  (Theme.of(context).brightness == Brightness.dark
+                          ? AppColors.infoDark
+                          : Theme.of(context).colorScheme.primary)
+                      .withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Center(
               child: Text(
                 displayName[0].toUpperCase(),
                 style: AppTypography.headlineSmall.copyWith(
-                  color: isDark ? AppColors.info : AppColors.primary,
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? AppColors.infoDark
+                      : Theme.of(context).colorScheme.primary,
                 ),
               ),
             ),
@@ -726,8 +741,8 @@ class _LoanFormScreenState extends ConsumerState<LoanFormScreen> {
                 DefaultTextStyle(
                   style: AppTypography.titleSmall.copyWith(
                     color: Theme.of(context).brightness == Brightness.dark
-                        ? AppColors.info
-                        : AppColors.primary,
+                        ? AppColors.infoDark
+                        : Theme.of(context).colorScheme.primary,
                   ),
                   child: MoneyDisplay(amount: periodInterest),
                 ),
@@ -1046,9 +1061,11 @@ class _LoanFormScreenState extends ConsumerState<LoanFormScreen> {
     if (!_formKey.currentState!.validate()) return;
     if (_customer == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Esperando datos del cliente...'),
-          backgroundColor: AppColors.warning,
+        SnackBar(
+          content: const Text('Esperando datos del cliente...'),
+          backgroundColor: Theme.of(context).brightness == Brightness.dark
+              ? AppColors.warningDark
+              : AppColors.warning,
         ),
       );
       return;
@@ -1056,9 +1073,11 @@ class _LoanFormScreenState extends ConsumerState<LoanFormScreen> {
 
     if (_selectedFrequency == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Por favor seleccione una frecuencia de pago'),
-          backgroundColor: AppColors.warning,
+        SnackBar(
+          content: const Text('Por favor seleccione una frecuencia de pago'),
+          backgroundColor: Theme.of(context).brightness == Brightness.dark
+              ? AppColors.warningDark
+              : AppColors.warning,
         ),
       );
       return;
@@ -1085,7 +1104,7 @@ class _LoanFormScreenState extends ConsumerState<LoanFormScreen> {
                 content: Text(
                   'El monto C\$ ${principal.toStringAsFixed(2)} sobrepasa el saldo disponible de C\$ ${saldoDisponible.toStringAsFixed(2)}',
                 ),
-                backgroundColor: AppColors.danger,
+                backgroundColor: Theme.of(context).colorScheme.error,
               ),
             );
           }
@@ -1098,11 +1117,11 @@ class _LoanFormScreenState extends ConsumerState<LoanFormScreen> {
       if (_disbursementDate.isBefore(oneYearAgo)) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text(
+            SnackBar(
+              content: const Text(
                 'La fecha de desembolso no puede ser mayor a un año de antigüedad.',
               ),
-              backgroundColor: AppColors.danger,
+              backgroundColor: Theme.of(context).colorScheme.error,
             ),
           );
         }
@@ -1113,11 +1132,11 @@ class _LoanFormScreenState extends ConsumerState<LoanFormScreen> {
       if (_endDate != null && _endDate!.isBefore(_disbursementDate)) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text(
+            SnackBar(
+              content: const Text(
                 'La fecha fin no puede ser anterior a la fecha de desembolso.',
               ),
-              backgroundColor: AppColors.danger,
+              backgroundColor: Theme.of(context).colorScheme.error,
             ),
           );
         }
@@ -1139,11 +1158,16 @@ class _LoanFormScreenState extends ConsumerState<LoanFormScreen> {
             await showDialog<void>(
               context: context,
               builder: (ctx) => AlertDialog(
-                title: const Row(
+                title: Row(
                   children: [
-                    Icon(Icons.warning_amber, color: AppColors.warning),
-                    SizedBox(width: 8),
-                    Expanded(child: Text('Préstamo Activo')),
+                    Icon(
+                      Icons.warning_amber,
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? AppColors.warningDark
+                          : AppColors.warning,
+                    ),
+                    const SizedBox(width: 8),
+                    const Expanded(child: Text('Préstamo Activo')),
                   ],
                 ),
                 content: const Text(
@@ -1187,11 +1211,14 @@ class _LoanFormScreenState extends ConsumerState<LoanFormScreen> {
             await showDialog<void>(
               context: context,
               builder: (ctx) => AlertDialog(
-                title: const Row(
+                title: Row(
                   children: [
-                    Icon(Icons.error_outline, color: AppColors.danger),
-                    SizedBox(width: 8),
-                    Text('Monto Inválido'),
+                    Icon(
+                      Icons.error_outline,
+                      color: Theme.of(context).colorScheme.error,
+                    ),
+                    const SizedBox(width: 8),
+                    const Text('Monto Inválido'),
                   ],
                 ),
                 content: Text(errorMessage),
@@ -1258,9 +1285,11 @@ class _LoanFormScreenState extends ConsumerState<LoanFormScreen> {
 
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Préstamo creado exitosamente'),
-                backgroundColor: AppColors.success,
+              SnackBar(
+                content: const Text('Préstamo creado exitosamente'),
+                backgroundColor: Theme.of(context).brightness == Brightness.dark
+                    ? AppColors.successDark
+                    : AppColors.success,
               ),
             );
           }
@@ -1331,7 +1360,10 @@ class _LoanFormScreenState extends ConsumerState<LoanFormScreen> {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text(S.of(context).noValidWhatsAppNumber),
-                  backgroundColor: AppColors.warning,
+                  backgroundColor:
+                      Theme.of(context).brightness == Brightness.dark
+                      ? AppColors.warningDark
+                      : AppColors.warning,
                 ),
               );
             }
@@ -1344,7 +1376,7 @@ class _LoanFormScreenState extends ConsumerState<LoanFormScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('Error: ${error ?? "Desconocido"}'),
-              backgroundColor: AppColors.danger,
+              backgroundColor: Theme.of(context).colorScheme.error,
             ),
           );
         }
@@ -1354,7 +1386,7 @@ class _LoanFormScreenState extends ConsumerState<LoanFormScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error: $e'),
-            backgroundColor: AppColors.danger,
+            backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
       }

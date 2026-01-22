@@ -18,6 +18,9 @@ class SEs extends S {
   String get cancel => 'Cancelar';
 
   @override
+  String get applyToWholeMonth => 'Aplicar esta tasa a todo el mes';
+
+  @override
   String get confirm => 'Confirmar';
 
   @override
@@ -258,6 +261,9 @@ class SEs extends S {
 
   @override
   String get planInstallmentMode => 'Cuota del Plan';
+
+  @override
+  String get installmentAmount => 'Cuota';
 
   @override
   String get collectedToday => 'Total Cobrado Hoy';
@@ -1100,6 +1106,9 @@ class SEs extends S {
   String get collectionTitle => 'A Cobrar';
 
   @override
+  String get tabUpcoming => 'Al Día';
+
+  @override
   String get tabOverdue => 'Atrasados';
 
   @override
@@ -1114,7 +1123,7 @@ class SEs extends S {
 
   @override
   String get collectionPlanDaysDescription =>
-      'Este campo permite definir con cuántos días de antelación se mostrarán los préstamos pendientes en la pantalla \"A Cobrar\".\n\n**Ejemplo:**\nSi configuras 3 días, los préstamos que vencen en los próximos 3 días aparecerán en la lista de cobro.\n\n**Uso:**\nAumenta este valor si necesitas más tiempo para planificar tu ruta de cobro.';
+      'Este campo permite definir con cuántos días de antelación se mostrarán los préstamos pendientes en la pantalla \"Al Día\".\n\n**Ejemplo:**\nSi configuras 3 días, los préstamos que vencen en los próximos 3 días aparecerán en la lista de cobro.\n\n**Uso:**\nAumenta este valor si necesitas más tiempo para planificar tu ruta de cobro.';
 
   @override
   String get noCollectionUpcomingTitle => 'Sin cobros próximos';
@@ -2595,4 +2604,7 @@ class SEs extends S {
 
   @override
   String get selectPlan => 'Seleccionar Plan';
+
+  @override
+  String get ofAmount => 'De';
 }

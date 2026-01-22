@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:prestamos_app/core/theme/app_colors.dart';
+
 import 'package:prestamos_app/core/theme/app_typography.dart';
 import 'package:prestamos_app/core/widgets/widgets.dart';
 import 'package:prestamos_app/data/providers/providers.dart';
@@ -162,7 +162,9 @@ class _CurrencyCalculatorModalState
           ),
 
           const SizedBox(height: 16),
-          const Center(child: Icon(Icons.arrow_downward, color: Colors.grey)),
+          Center(
+            child: Icon(Icons.arrow_downward, color: theme.colorScheme.outline),
+          ),
           const SizedBox(height: 16),
 
           // Target Currency Row
@@ -207,10 +209,10 @@ class _CurrencyCalculatorModalState
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: AppColors.primary.withValues(alpha: 0.1),
+              color: theme.colorScheme.primary.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: AppColors.primary.withValues(alpha: 0.3),
+                color: theme.colorScheme.primary.withValues(alpha: 0.3),
               ),
             ),
             child: Column(
@@ -220,7 +222,7 @@ class _CurrencyCalculatorModalState
                 Text(
                   _calculatedResult.toStringAsFixed(2),
                   style: AppTypography.headlineMedium.copyWith(
-                    color: AppColors.primary,
+                    color: theme.colorScheme.primary,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -244,8 +246,8 @@ class _CurrencyCalculatorModalState
             label: const Text('Usar este Monto'),
             style: ElevatedButton.styleFrom(
               padding: const EdgeInsets.symmetric(vertical: 16),
-              backgroundColor: AppColors.primary,
-              foregroundColor: Colors.white,
+              backgroundColor: theme.colorScheme.primary,
+              foregroundColor: theme.colorScheme.onPrimary,
             ),
           ),
         ],

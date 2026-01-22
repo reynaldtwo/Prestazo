@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:typed_data';
 import 'dart:ui';
 
 import 'package:flutter/widgets.dart' show FileImage; // For loading image
@@ -130,43 +131,44 @@ class PdfGeneratorService {
   }
 
   /// Genera un recibo de pago y lo envía a la cola de impresión.
-  Future<void> generatePaymentReceipt({
-    required Payment payment,
-    required Loan loan,
-    required Customer customer,
-    required List<PaymentAllocation> allocations,
-    required AppSettings settings,
-    required Locale locale,
-    required String currencySymbol,
+  Future<void> generatePaymentReceipt(
+    Payment payment,
+    Loan loan,
+    Customer customer,
+    List<PaymentAllocation> allocations,
+    AppSettings settings, {
     DateTime? nextInstallmentDate,
+    String? paymentPeriod,
+    String? installmentNumber,
+    String? paymentStatus,
   }) async {
-    final s = lookupS(locale);
-    final pdf = pw.Document();
-    final currencyFormat = NumberFormat.currency(
-      symbol: '$currencySymbol ',
-      decimalDigits: 2,
-    );
+    final s = await S.delegate.load(const Locale('es'));
+    final currencyFormat = _getCurrencyFormat(loan.currencyCode);
 
-    pdf.addPage(
-      pw.Page(
-        pageFormat: PdfPageFormat.roll80, // Receipt roll format often used
-        margin: const pw.EdgeInsets.all(10),
-        build: (context) => _buildReceiptContent(
-          payment,
-          loan,
-          customer,
-          allocations,
-          settings,
-          s,
-          currencyFormat,
-          nextInstallmentDate: nextInstallmentDate,
+    final doc = pw.Document()
+      ..addPage(
+        pw.Page(
+          pageFormat: PdfPageFormat.roll80,
+          margin: const pw.EdgeInsets.all(10), // Kept original margin
+          build: (pw.Context context) => _buildReceiptContent(
+            payment,
+            loan,
+            customer,
+            allocations,
+            settings,
+            s,
+            currencyFormat,
+            nextInstallmentDate: nextInstallmentDate,
+            paymentPeriod: paymentPeriod,
+            installmentNumber: installmentNumber,
+            paymentStatus: paymentStatus,
+          ),
         ),
-      ),
-    );
+      );
 
     await Printing.layoutPdf(
-      onLayout: (format) async => pdf.save(),
-      name: '${s.paymentReceipt.replaceAll(" ", "_")}_${payment.receiptNumber}',
+      onLayout: (PdfPageFormat format) async => doc.save(),
+      name: '${s.paymentReceipt}_${payment.receiptNumber}.pdf',
     );
   }
 
@@ -323,43 +325,43 @@ class PdfGeneratorService {
     return pdf.save();
   }
 
-  /// Get payment receipt as PDF bytes (for sharing via WhatsApp/email)
-  /// Uses the same format as generatePaymentReceipt
-  Future<List<int>> getPaymentReceiptBytes({
-    required Payment payment,
-    required Loan loan,
-    required Customer customer,
-    required List<PaymentAllocation> allocations,
-    required AppSettings settings,
-    required Locale locale,
-    required String currencySymbol,
+  /// Obtiene los bytes de un recibo de pago en formato PDF.
+  Future<Uint8List> getPaymentReceiptBytes(
+    Payment payment,
+    Loan loan,
+    Customer customer,
+    List<PaymentAllocation> allocations,
+    AppSettings settings, {
     DateTime? nextInstallmentDate,
+    String? paymentPeriod,
+    String? installmentNumber,
+    String? paymentStatus,
   }) async {
-    final s = lookupS(locale);
-    final pdf = pw.Document();
-    final currencyFormat = NumberFormat.currency(
-      symbol: '$currencySymbol ',
-      decimalDigits: 2,
-    );
+    final s = await S.delegate.load(const Locale('es'));
+    final currencyFormat = _getCurrencyFormat(loan.currencyCode);
 
-    pdf.addPage(
-      pw.Page(
-        pageFormat: PdfPageFormat.roll80,
-        margin: const pw.EdgeInsets.all(10),
-        build: (context) => _buildReceiptContent(
-          payment,
-          loan,
-          customer,
-          allocations,
-          settings,
-          s,
-          currencyFormat,
-          nextInstallmentDate: nextInstallmentDate,
+    final doc = pw.Document()
+      ..addPage(
+        pw.Page(
+          pageFormat: PdfPageFormat.roll80,
+          margin: const pw.EdgeInsets.all(10),
+          build: (pw.Context context) => _buildReceiptContent(
+            payment,
+            loan,
+            customer,
+            allocations,
+            settings,
+            s,
+            currencyFormat,
+            nextInstallmentDate: nextInstallmentDate,
+            paymentPeriod: paymentPeriod,
+            installmentNumber: installmentNumber,
+            paymentStatus: paymentStatus,
+          ),
         ),
-      ),
-    );
+      );
 
-    return pdf.save();
+    return doc.save();
   }
 
   /// Genera un PDF del reporte consolidado de todos los préstamos activos.
@@ -584,6 +586,12 @@ class PdfGeneratorService {
   /// Helper to format numbers with commas
   String _formatNumber(double value) {
     return NumberFormat('#,##0.00').format(value);
+  }
+
+  /// Helper to get currency format
+  NumberFormat _getCurrencyFormat(String code) {
+    final symbol = _getCurrencySymbol(code);
+    return NumberFormat.currency(symbol: '$symbol ', decimalDigits: 2);
   }
 
   /// Genera un PDF del reporte de utilidades (ganancias por intereses) entre dos fechas.
@@ -1388,6 +1396,9 @@ class PdfGeneratorService {
     S s,
     NumberFormat currencyFormat, {
     DateTime? nextInstallmentDate,
+    String? paymentPeriod,
+    String? installmentNumber,
+    String? paymentStatus,
   }) {
     final interestPaid = allocations
         .where(
@@ -1431,6 +1442,19 @@ class PdfGeneratorService {
         if (nextInstallmentDate != null)
           pw.Text(
             '${s.nextInstallmentDateLabel}: ${_dateFormat.format(nextInstallmentDate)}',
+          ),
+        if (paymentPeriod != null)
+          pw.Text(
+            'Periodo de Pago: $paymentPeriod',
+            softWrap: false,
+            style: const pw.TextStyle(fontSize: 9),
+          ),
+        if (installmentNumber != null)
+          pw.Text('Cuota: $installmentNumber', softWrap: false),
+        if (paymentStatus != null)
+          pw.Text(
+            paymentStatus,
+            style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10),
           ),
         pw.Text('${s.receiptNumber}: ${payment.receiptNumber}'),
         pw.SizedBox(height: 10),

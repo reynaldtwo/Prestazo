@@ -248,7 +248,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   Widget _buildCompanyCard() {
     return AppCard(
       child: ListTile(
-        leading: const Icon(Icons.business, color: AppColors.primary),
+        leading: Icon(
+          Icons.business,
+          color: Theme.of(context).colorScheme.primary,
+        ),
         title: Text(S.of(context).companyData),
         subtitle: Text(S.of(context).companySubtitle),
         trailing: const Icon(Icons.chevron_right),
@@ -260,7 +263,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   Widget _buildMonetaryCard() {
     return AppCard(
       child: ListTile(
-        leading: const Icon(Icons.monetization_on, color: AppColors.primary),
+        leading: Icon(
+          Icons.monetization_on,
+          color: Theme.of(context).colorScheme.primary,
+        ),
         title: Text(S.of(context).monetaryManagement),
         subtitle: Text(S.of(context).monetarySubtitle),
         trailing: const Icon(Icons.chevron_right),
@@ -274,7 +280,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       child: Column(
         children: [
           ListTile(
-            leading: const Icon(Icons.verified_user, color: AppColors.primary),
+            leading: Icon(
+              Icons.verified_user,
+              color: Theme.of(context).colorScheme.primary,
+            ),
             title: Text(S.of(context).dniFormatTitle),
             subtitle: Text(S.of(context).dniFormatSubtitle),
             trailing: const Icon(Icons.chevron_right),
@@ -324,7 +333,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       child: Column(
         children: [
           ListTile(
-            leading: const Icon(Icons.category, color: AppColors.primary),
+            leading: Icon(
+              Icons.category,
+              color: Theme.of(context).colorScheme.primary,
+            ),
             title: Text(S.of(context).categorizeCustomerAs),
             subtitle: Text(S.of(context).categorizeCustomerAsDesc),
             trailing: Row(
@@ -354,7 +366,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           ),
           const Divider(height: 1),
           ListTile(
-            leading: const Icon(Icons.calendar_today, color: AppColors.primary),
+            leading: Icon(
+              Icons.calendar_today,
+              color: Theme.of(context).colorScheme.primary,
+            ),
             title: Text(S.of(context).paymentFrequencies),
             subtitle: Text(S.of(context).paymentFrequenciesSubtitle),
             trailing: Row(
@@ -400,9 +415,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         children: [
           // V32: Financial Policy Configuration
           ListTile(
-            leading: const Icon(
+            leading: Icon(
               Icons.calculate_outlined,
-              color: AppColors.primary,
+              color: Theme.of(context).colorScheme.primary,
             ),
             title: const Text('Convención Financiera'),
             subtitle: const Text('Días/mes, redondeo, fórmulas de interés'),
@@ -612,7 +627,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                                   ? (Theme.of(context).brightness ==
                                                 Brightness.dark
                                             ? AppColors.info
-                                            : AppColors.primary)
+                                            : Theme.of(
+                                                context,
+                                              ).colorScheme.primary)
                                         .withValues(alpha: 0.1)
                                   : Theme.of(
                                       context,
@@ -628,7 +645,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                                   ? (Theme.of(context).brightness ==
                                             Brightness.dark
                                         ? AppColors.info
-                                        : AppColors.primary)
+                                        : Theme.of(context).colorScheme.primary)
                                   : Theme.of(context).colorScheme.outline,
                               size: 20,
                             ),
@@ -664,7 +681,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                                   ? (Theme.of(context).brightness ==
                                                 Brightness.dark
                                             ? AppColors.info
-                                            : AppColors.primary)
+                                            : Theme.of(
+                                                context,
+                                              ).colorScheme.primary)
                                         .withValues(alpha: 0.1)
                                   : Theme.of(
                                       context,
@@ -680,7 +699,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                                   ? (Theme.of(context).brightness ==
                                             Brightness.dark
                                         ? AppColors.info
-                                        : AppColors.primary)
+                                        : Theme.of(context).colorScheme.primary)
                                   : Theme.of(context).colorScheme.outline,
                               size: 20,
                             ),
@@ -762,7 +781,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       color: _moratoriumDays > 0
                           ? (Theme.of(context).brightness == Brightness.dark
                                     ? AppColors.info
-                                    : AppColors.primary)
+                                    : Theme.of(context).colorScheme.primary)
                                 .withValues(alpha: 0.1)
                           : Theme.of(
                               context,
@@ -777,7 +796,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       color: _moratoriumDays > 0
                           ? (Theme.of(context).brightness == Brightness.dark
                                 ? AppColors.info
-                                : AppColors.primary)
+                                : Theme.of(context).colorScheme.primary)
                           : Theme.of(context).colorScheme.outline,
                       size: 20,
                     ),
@@ -1093,7 +1112,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 hintText: 'A-000',
                 border: const OutlineInputBorder(),
                 suffixIcon: IconButton(
-                  icon: const Icon(Icons.check, color: AppColors.success),
+                  icon: const Icon(
+                    Icons.save_rounded,
+                    color: AppColors.success,
+                  ),
                   onPressed: _saveLoanNumber,
                 ),
               ),
@@ -1127,7 +1149,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 hintText: 'R-000',
                 border: const OutlineInputBorder(),
                 suffixIcon: IconButton(
-                  icon: const Icon(Icons.check, color: AppColors.success),
+                  icon: const Icon(
+                    Icons.save_rounded,
+                    color: AppColors.success,
+                  ),
                   onPressed: _saveReceiptNumber,
                 ),
               ),

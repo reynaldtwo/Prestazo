@@ -60,7 +60,6 @@ class _MonetarySettingsScreenState
     final settingsAsync = ref.watch(appSettingsProvider);
 
     return Scaffold(
-      backgroundColor: AppColors.background,
       appBar: AppBar(
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -72,7 +71,7 @@ class _MonetarySettingsScreenState
             Text(
               S.of(context).monetarySubtitle,
               style: AppTypography.bodySmall.copyWith(
-                color: AppColors.textSecondary,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
                 fontSize: 12,
               ),
             ),
@@ -201,8 +200,8 @@ class _MonetarySettingsScreenState
                               border: const OutlineInputBorder(),
                               suffixIcon: IconButton(
                                 icon: const Icon(
-                                  Icons.save,
-                                  color: AppColors.primary,
+                                  Icons.save_rounded,
+                                  color: AppColors.secondaryDarkTheme,
                                 ),
                                 onPressed: () {
                                   final value =
@@ -225,7 +224,9 @@ class _MonetarySettingsScreenState
                           Text(
                             S.of(context).availableCapitalDesc,
                             style: AppTypography.bodySmall.copyWith(
-                              color: AppColors.textSecondary,
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.onSurfaceVariant,
                             ),
                           ),
                         ],
@@ -329,9 +330,9 @@ class _MonetarySettingsScreenState
                 child: Column(
                   children: [
                     ListTile(
-                      leading: const Icon(
+                      leading: Icon(
                         Icons.currency_exchange,
-                        color: AppColors.accent,
+                        color: Theme.of(context).colorScheme.secondary,
                       ),
                       title: Text(S.of(context).manageExchangeRates),
                       subtitle: Text(S.of(context).currencyMaster),
@@ -340,9 +341,9 @@ class _MonetarySettingsScreenState
                     ),
                     const Divider(height: 1),
                     SwitchListTile(
-                      secondary: const Icon(
+                      secondary: Icon(
                         Icons.edit_note,
-                        color: AppColors.info,
+                        color: Theme.of(context).colorScheme.tertiary,
                       ),
                       title: Row(
                         mainAxisSize: MainAxisSize.min,
@@ -509,7 +510,7 @@ class _MonetarySettingsScreenState
       child: Text(
         title.toUpperCase(),
         style: AppTypography.labelSmall.copyWith(
-          color: AppColors.primary,
+          color: Theme.of(context).colorScheme.primary,
           fontWeight: FontWeight.bold,
           letterSpacing: 1.2,
         ),
@@ -612,7 +613,7 @@ class _MonetarySettingsScreenState
         builder: (ctx) => AlertDialog(
           title: Row(
             children: [
-              const Icon(Icons.warning_amber, color: AppColors.warning),
+              const Icon(Icons.warning_amber, color: AppColors.warningDark),
               const SizedBox(width: 8),
               // Using existing general error title or validations title
               Text(S.of(context).validations),

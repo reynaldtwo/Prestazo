@@ -18,6 +18,9 @@ class SEn extends S {
   String get cancel => 'Cancel';
 
   @override
+  String get applyToWholeMonth => 'Aplicar esta tasa a todo el mes';
+
+  @override
   String get confirm => 'Confirm';
 
   @override
@@ -69,7 +72,7 @@ class SEn extends S {
   String get navHome => 'Home';
 
   @override
-  String get navCollect => 'To Collect';
+  String get navCollect => 'Up to Date';
 
   @override
   String get navCustomers => 'Customers';
@@ -257,6 +260,9 @@ class SEn extends S {
 
   @override
   String get planInstallmentMode => 'Plan Installment';
+
+  @override
+  String get installmentAmount => 'Installment';
 
   @override
   String get collectedToday => 'Total Collected Today';
@@ -1091,7 +1097,10 @@ class SEn extends S {
   String get freqBiweekly => 'Biweekly';
 
   @override
-  String get collectionTitle => 'To Collect';
+  String get collectionTitle => 'Up to Date';
+
+  @override
+  String get tabUpcoming => 'Al Día';
 
   @override
   String get tabOverdue => 'Overdue';
@@ -2582,4 +2591,7 @@ class SEn extends S {
 
   @override
   String get selectPlan => 'Select Plan';
+
+  @override
+  String get ofAmount => 'De';
 }

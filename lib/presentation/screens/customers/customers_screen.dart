@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:prestamos_app/core/constants/app_status.dart';
 import 'package:prestamos_app/core/localization/locale_provider.dart';
-import 'package:prestamos_app/core/theme/app_colors.dart';
+
 import 'package:prestamos_app/core/theme/app_typography.dart';
 import 'package:prestamos_app/core/widgets/widgets.dart';
 import 'package:prestamos_app/data/models/customer.dart';
@@ -226,7 +226,7 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
       leading: Icon(
         isSelected ? Icons.radio_button_checked : Icons.radio_button_unchecked,
         color: isSelected
-            ? AppColors.primary
+            ? Theme.of(context).colorScheme.primary
             : Theme.of(context).colorScheme.outline,
       ),
       title: Text(label),
@@ -249,8 +249,6 @@ class _CustomerListItem extends ConsumerWidget {
     final isActive = customer.status == 'ACTIVE';
     final displayName = customer.alias ?? customer.fullName;
     final isQuincenal = customer.billingFrequency == 'BIWEEKLY';
-
-    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     // Get customer's most recent active loan currency
     final loansAsync = ref.watch(loansByCustomerProvider(customer.customerId));
@@ -352,9 +350,9 @@ class _CustomerListItem extends ConsumerWidget {
                 color: contrastTextColor != null
                     ? contrastTextColor!.withValues(alpha: 0.15)
                     : isActive
-                    ? (isDark
-                          ? AppColors.info.withValues(alpha: 0.2)
-                          : AppColors.primary.withValues(alpha: 0.1))
+                    ? Theme.of(
+                        context,
+                      ).colorScheme.primary.withValues(alpha: 0.15)
                     : Theme.of(
                         context,
                       ).colorScheme.outline.withValues(alpha: 0.1),
@@ -367,7 +365,7 @@ class _CustomerListItem extends ConsumerWidget {
                     color:
                         contrastTextColor ??
                         (isActive
-                            ? (isDark ? AppColors.info : AppColors.primary)
+                            ? Theme.of(context).colorScheme.primary
                             : Theme.of(context).colorScheme.outline),
                     fontWeight: FontWeight.bold,
                     fontSize: avatarText.length > 2

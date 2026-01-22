@@ -167,6 +167,9 @@ class WhatsAppService {
     required Locale locale,
     required String currencySymbol,
     DateTime? nextInstallmentDate,
+    String? paymentPeriod,
+    String? installmentNumber,
+    String? paymentStatus,
   }) async {
     try {
       final s = lookupS(locale);
@@ -174,14 +177,15 @@ class WhatsAppService {
       // Generate PDF bytes
       final pdfGenerator = PdfGeneratorService();
       final pdfBytes = await pdfGenerator.getPaymentReceiptBytes(
-        payment: payment,
-        loan: loan,
-        customer: customer,
-        allocations: allocations,
-        settings: settings,
-        locale: locale,
-        currencySymbol: currencySymbol,
+        payment,
+        loan,
+        customer,
+        allocations,
+        settings,
         nextInstallmentDate: nextInstallmentDate,
+        paymentPeriod: paymentPeriod,
+        installmentNumber: installmentNumber,
+        paymentStatus: paymentStatus,
       );
 
       // Save to temp file

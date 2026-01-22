@@ -1781,6 +1781,63 @@ class _PaymentFormScreenState extends ConsumerState<PaymentFormScreen> {
     required List<PaymentAllocation> allocations,
   }) async {
     if (mounted) {
+      // 1. Calculate Receipt Data BEFORE refreshing providers
+      // Because refreshing will clear _pendingCycles (moving them to paid)
+      String? paymentPeriod;
+      String? installmentNumber;
+      String? paymentStatus;
+
+      if (createdPayment != null) {
+        final paidBillingCycleIds = allocations
+            .map((a) => a.billingCycleId)
+            .where((id) => id != null)
+            .toSet();
+
+        // Use the snapshot of _pendingCycles from BEFORE this payment
+        final paidCycles = _pendingCycles
+            .where((c) => paidBillingCycleIds.contains(c.billingCycleId))
+            .toList();
+
+        if (paidCycles.isNotEmpty) {
+          paidCycles.sort(
+            (a, b) => a.periodStartDate.compareTo(b.periodStartDate),
+          );
+          final start = paidCycles.first.periodStartDate;
+          final end = paidCycles.last.periodEndDate;
+          // Manual formatting dd/MM/yyyy
+          String fmt(DateTime d) =>
+              '${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}/${d.year}';
+          paymentPeriod = '${fmt(start)} - ${fmt(end)}';
+
+          final numbers = paidCycles.map((c) => c.cycleNumber).toList()..sort();
+          if (numbers.isNotEmpty) {
+            installmentNumber = numbers.length == 1
+                ? numbers.first.toString()
+                : '${numbers.first} - ${numbers.last}';
+          }
+
+          // Calculate Payment Status (Completo vs Parcial)
+          var allCompleted = true;
+          for (final cycle in paidCycles) {
+            final cycleAllocations = allocations.where(
+              (a) => a.billingCycleId == cycle.billingCycleId,
+            );
+            final totalAllocated = cycleAllocations.fold<double>(
+              0,
+              (sum, a) => sum + a.amount,
+            );
+
+            // Use installmentPending if available (Plan), else interestPending (Simple)
+            final pending = cycle.installmentPending ?? cycle.interestPending;
+            if (totalAllocated < pending - 0.01) {
+              allCompleted = false;
+              break;
+            }
+          }
+          paymentStatus = allCompleted ? 'Pago Completo' : 'Pago Parcial';
+        }
+      }
+
       // Refresh ALL related providers to update UI everywhere
       ref
         ..invalidate(appSettingsProvider) // Force settings refresh
@@ -1868,6 +1925,9 @@ class _PaymentFormScreenState extends ConsumerState<PaymentFormScreen> {
               locale: locale,
               currencySymbol: loanCurrency.symbol ?? loanCurrency.code,
               nextInstallmentDate: nextInstallmentDate,
+              paymentPeriod: paymentPeriod,
+              installmentNumber: installmentNumber,
+              paymentStatus: paymentStatus,
             );
           } else if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:prestamos_app/core/theme/app_colors.dart';
+
 import 'package:prestamos_app/core/theme/app_typography.dart';
 
 /// Reusable button component with multiple variants
@@ -73,7 +73,7 @@ class AppButton extends StatelessWidget {
     return SizedBox(
       width: isFullWidth ? double.infinity : null,
       height: _getHeight(),
-      child: _buildButton(),
+      child: _buildButton(context),
     );
   }
 
@@ -101,14 +101,18 @@ class AppButton extends StatelessWidget {
     };
   }
 
-  Widget _buildButton() {
+  Widget _buildButton(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     final child = isLoading
         ? SizedBox(
             width: 20,
             height: 20,
             child: CircularProgressIndicator(
               strokeWidth: 2,
-              valueColor: AlwaysStoppedAnimation<Color>(_getLoadingColor()),
+              valueColor: AlwaysStoppedAnimation<Color>(
+                _getLoadingColor(context),
+              ),
             ),
           )
         : Row(
@@ -127,8 +131,8 @@ class AppButton extends StatelessWidget {
       AppButtonVariant.primary => ElevatedButton(
         onPressed: isLoading ? null : onPressed,
         style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.primary,
-          foregroundColor: AppColors.textOnPrimary,
+          backgroundColor: colorScheme.primary,
+          foregroundColor: colorScheme.onPrimary,
           padding: _getPadding(),
           textStyle: _getTextStyle(),
         ),
@@ -137,8 +141,8 @@ class AppButton extends StatelessWidget {
       AppButtonVariant.secondary => ElevatedButton(
         onPressed: isLoading ? null : onPressed,
         style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.accent,
-          foregroundColor: AppColors.textOnAccent,
+          backgroundColor: colorScheme.secondary,
+          foregroundColor: colorScheme.onSecondary,
           padding: _getPadding(),
           textStyle: _getTextStyle(),
         ),
@@ -149,6 +153,8 @@ class AppButton extends StatelessWidget {
         style: OutlinedButton.styleFrom(
           padding: _getPadding(),
           textStyle: _getTextStyle(),
+          side: BorderSide(color: colorScheme.primary),
+          foregroundColor: colorScheme.primary,
         ),
         child: child,
       ),
@@ -163,8 +169,8 @@ class AppButton extends StatelessWidget {
       AppButtonVariant.danger => ElevatedButton(
         onPressed: isLoading ? null : onPressed,
         style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.danger,
-          foregroundColor: AppColors.textOnPrimary,
+          backgroundColor: colorScheme.error,
+          foregroundColor: colorScheme.onError,
           padding: _getPadding(),
           textStyle: _getTextStyle(),
         ),
@@ -181,13 +187,14 @@ class AppButton extends StatelessWidget {
     };
   }
 
-  Color _getLoadingColor() {
+  Color _getLoadingColor(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return switch (variant) {
-      AppButtonVariant.primary => AppColors.textOnPrimary,
-      AppButtonVariant.secondary => AppColors.textOnAccent,
-      AppButtonVariant.outline => AppColors.primary,
-      AppButtonVariant.text => AppColors.primary,
-      AppButtonVariant.danger => AppColors.textOnPrimary,
+      AppButtonVariant.primary => colorScheme.onPrimary,
+      AppButtonVariant.secondary => colorScheme.onSecondary,
+      AppButtonVariant.outline => colorScheme.primary,
+      AppButtonVariant.text => colorScheme.primary,
+      AppButtonVariant.danger => colorScheme.onError,
     };
   }
 }

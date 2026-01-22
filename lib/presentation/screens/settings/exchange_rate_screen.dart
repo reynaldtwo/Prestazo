@@ -237,6 +237,8 @@ class _ExchangeRateScreenState extends ConsumerState<ExchangeRateScreen> {
     double value,
     Color color,
   ) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
       decoration: BoxDecoration(
@@ -251,13 +253,15 @@ class _ExchangeRateScreenState extends ConsumerState<ExchangeRateScreen> {
             '$label: ',
             style: AppTypography.bodySmall.copyWith(
               fontWeight: FontWeight.bold,
+              color: isDark ? color.withValues(alpha: 0.9) : color,
             ),
           ),
           Text(
             value.toStringAsFixed(4),
             style: AppTypography.bodySmall.copyWith(
-              color: AppColors.textPrimary,
               fontFamily: 'RobotoMono',
+              // Remove fixed color so it adapts to theme, or use specific onSurface
+              color: Theme.of(context).colorScheme.onSurface,
             ),
           ),
         ],

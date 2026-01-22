@@ -24,7 +24,9 @@ class AboutScreen extends ConsumerWidget {
               width: 120,
               height: 120,
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? AppColors.surfaceElevatedDark
+                    : Colors.white,
                 shape: BoxShape.circle,
                 boxShadow: [
                   BoxShadow(
@@ -34,14 +36,16 @@ class AboutScreen extends ConsumerWidget {
                   ),
                 ],
               ),
-              padding: const EdgeInsets.all(16),
-              child: Image.asset('assets/Icono.png', fit: BoxFit.contain),
+              padding: const EdgeInsets.all(8),
+              child: ClipOval(
+                child: Image.asset('assets/Icono.png', fit: BoxFit.cover),
+              ),
             ),
             const SizedBox(height: 24),
             Text(
               'Prestazo',
               style: AppTypography.displaySmall.copyWith(
-                color: AppColors.primary,
+                color: Theme.of(context).colorScheme.primary,
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -49,7 +53,7 @@ class AboutScreen extends ConsumerWidget {
             Text(
               '${S.of(context).aboutVersion} 1.0.0',
               style: AppTypography.bodyMedium.copyWith(
-                color: AppColors.textSecondary,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
             ),
             const SizedBox(height: 40),
@@ -73,18 +77,22 @@ class AboutScreen extends ConsumerWidget {
                     ),
                     const SizedBox(height: 24),
                     _buildFeatureItem(
+                      context: context,
                       icon: Icons.people,
                       text: S.of(context).featureCustomers,
                     ),
                     _buildFeatureItem(
+                      context: context,
                       icon: Icons.monetization_on,
                       text: S.of(context).featureCalculations,
                     ),
                     _buildFeatureItem(
+                      context: context,
                       icon: Icons.calendar_today,
                       text: S.of(context).featureCollections,
                     ),
                     _buildFeatureItem(
+                      context: context,
                       icon: Icons.bar_chart,
                       text: S.of(context).featureReports,
                     ),
@@ -97,7 +105,7 @@ class AboutScreen extends ConsumerWidget {
             Text(
               '© ${DateTime.now().year} Prestazo',
               style: AppTypography.labelSmall.copyWith(
-                color: AppColors.textSecondary,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
             ),
           ],
@@ -106,12 +114,16 @@ class AboutScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildFeatureItem({required IconData icon, required String text}) {
+  Widget _buildFeatureItem({
+    required BuildContext context,
+    required IconData icon,
+    required String text,
+  }) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
         children: [
-          Icon(icon, color: AppColors.primary, size: 20),
+          Icon(icon, color: Theme.of(context).colorScheme.primary, size: 20),
           const SizedBox(width: 12),
           Expanded(child: Text(text, style: AppTypography.bodyMedium)),
         ],

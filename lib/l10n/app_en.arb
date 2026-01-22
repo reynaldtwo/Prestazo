@@ -80,7 +80,7 @@
   "@navHome": {
     "description": "Bottom navigation label for Home"
   },
-  "navCollect": "To Collect",
+  "navCollect": "Up to Date",
   "@navCollect": {
     "description": "Bottom navigation label for Collection screen"
   },
@@ -331,6 +331,10 @@
   "planInstallmentMode": "Plan Installment",
   "@planInstallmentMode": {
     "description": "Mode/Option for paying a scheduled installment"
+  },
+  "installmentAmount": "Installment",
+  "@installmentAmount": {
+    "description": "Label for installment amount"
   },
   "collectedToday": "Total Collected Today",
   "@collectedToday": {
@@ -1440,7 +1444,7 @@
   "@freqBiweekly": {
     "description": "Label for biweekly cycle frequency"
   },
-  "collectionTitle": "To Collect",
+  "collectionTitle": "Up to Date",
   "@collectionTitle": {
     "description": "Header for the collection management screen"
   },

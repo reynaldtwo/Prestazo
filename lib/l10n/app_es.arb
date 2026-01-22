@@ -12,6 +12,10 @@
   "@cancel": {
     "description": "Generic cancel action label"
   },
+  "applyToWholeMonth": "Aplicar esta tasa a todo el mes",
+  "@applyToWholeMonth": {
+    "description": "Label for toggle to apply exchange rate to entire month"
+  },
   "confirm": "Confirmar",
   "@confirm": {
     "description": "Generic confirm action label"
@@ -331,6 +335,10 @@
   "planInstallmentMode": "Cuota del Plan",
   "@planInstallmentMode": {
     "description": "Label for payment calculated based on a fixed plan"
+  },
+  "installmentAmount": "Cuota",
+  "@installmentAmount": {
+    "description": "Label for installment amount"
   },
   "collectedToday": "Total Cobrado Hoy",
   "@collectedToday": {
@@ -905,11 +913,12 @@
   "freqWeekly": "Semanal",
   "freqBiweekly": "Quincenal",
   "collectionTitle": "A Cobrar",
+  "tabUpcoming": "Al Día",
   "tabOverdue": "Atrasados",
   "collectionPlanDays": "Planificar cobro",
   "collectionPlanDaysTitle": "Planificación de Cobros",
   "collectionPlanDaysDesc": "Días de antelación para mostrar préstamos a cobrar",
-  "collectionPlanDaysDescription": "Este campo permite definir con cuántos días de antelación se mostrarán los préstamos pendientes en la pantalla \"A Cobrar\".\n\n**Ejemplo:**\nSi configuras 3 días, los préstamos que vencen en los próximos 3 días aparecerán en la lista de cobro.\n\n**Uso:**\nAumenta este valor si necesitas más tiempo para planificar tu ruta de cobro.",
+  "collectionPlanDaysDescription": "Este campo permite definir con cuántos días de antelación se mostrarán los préstamos pendientes en la pantalla \"Al Día\".\n\n**Ejemplo:**\nSi configuras 3 días, los préstamos que vencen en los próximos 3 días aparecerán en la lista de cobro.\n\n**Uso:**\nAumenta este valor si necesitas más tiempo para planificar tu ruta de cobro.",
   "noCollectionUpcomingTitle": "Sin cobros próximos",
   "noCollectionUpcomingMsg": "No hay préstamos con vencimiento en los próximos días",
   "noCollectionOverdueTitle": "Todo al día",
@@ -1653,5 +1662,9 @@
   "noBackupsAvailable": "No hay respaldos disponibles",
   "settingsSaved": "Configuración guardada",
   "invalidExchangeRate": "Tasa de cambio inválida",
-  "selectPlan": "Seleccionar Plan"
+  "selectPlan": "Seleccionar Plan",
+  "ofAmount": "De",
+  "@ofAmount": {
+    "description": "Preposition used in amounts like '20 of 100'"
+  }
 }

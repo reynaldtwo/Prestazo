@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
-import 'package:prestamos_app/core/Widgets/widgets.dart';
 import 'package:prestamos_app/core/localization/locale_provider.dart';
 import 'package:prestamos_app/core/theme/app_colors.dart';
 import 'package:prestamos_app/core/theme/app_typography.dart';
+import 'package:prestamos_app/core/widgets/widgets.dart';
 import 'package:prestamos_app/data/providers/providers.dart';
 
 /// Pantalla de Panel de Control (Dashboard) - Pantalla principal con KPIs reales de la base de datos.
@@ -94,45 +93,49 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     showDialog<void>(
       context: context,
       barrierDismissible: false, // User must choose an action
-      builder: (context) => AlertDialog(
-        title: Row(
-          children: [
-            const Icon(Icons.warning_amber_rounded, color: AppColors.warning),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                S.of(context).defineExchangeRateMessage,
-                style: AppTypography.titleMedium,
+      builder: (context) {
+        final theme = Theme.of(context);
+        return AlertDialog(
+          title: Row(
+            children: [
+              Icon(Icons.warning_amber_rounded, color: theme.colorScheme.error),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  S.of(context).defineExchangeRateMessage,
+                  style: AppTypography.titleMedium,
+                ),
               ),
+            ],
+          ),
+          content: Text(
+            'Detailed conversion error: Missing exchange rate for today. Values may be inaccurate.',
+            style: AppTypography.bodyMedium,
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context); // Close dialog
+              },
+              child: Text(S.of(context).cancel),
+            ),
+            FilledButton(
+              onPressed: () {
+                Navigator.pop(context);
+                context.push('/settings/exchange-rates');
+              },
+              child: Text(S.of(context).goToExchangeRates),
             ),
           ],
-        ),
-        content: Text(
-          'Detailed conversion error: Missing exchange rate for today. Values may be inaccurate.',
-          style: AppTypography.bodyMedium,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context); // Close dialog
-            },
-            child: Text(S.of(context).cancel),
-          ),
-          FilledButton(
-            onPressed: () {
-              Navigator.pop(context);
-              context.push('/settings/exchange-rates');
-            },
-            child: Text(S.of(context).goToExchangeRates),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 
   Widget _buildHeader(BuildContext context, WidgetRef ref) {
     final settingsAsync = ref.watch(appSettingsProvider);
     final settings = settingsAsync.value;
+    final theme = Theme.of(context);
 
     var title = S.of(context).appName;
     if (settings != null &&
@@ -145,7 +148,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     return SliverAppBar(
       pinned: true,
       expandedHeight: 100,
-      backgroundColor: AppColors.primary,
+      backgroundColor: theme.appBarTheme.backgroundColor,
       // No shape allows it to be flat/rectangular like other screens
       flexibleSpace: FlexibleSpaceBar(
         titlePadding: const EdgeInsets.only(left: 20, bottom: 16),
@@ -157,14 +160,16 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             Text(
               title,
               style: AppTypography.titleMedium.copyWith(
-                color: Colors.white,
+                color: theme.appBarTheme.foregroundColor,
                 fontWeight: FontWeight.bold,
               ),
             ),
             Text(
               _getGreeting(context),
               style: AppTypography.bodySmall.copyWith(
-                color: Colors.white.withValues(alpha: 0.9),
+                color: theme.appBarTheme.foregroundColor?.withValues(
+                  alpha: 0.8,
+                ),
                 fontSize: 10,
               ),
             ),
@@ -221,12 +226,18 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
     if (percentage <= 0) {
       // In Dark Mode, use a brighter blue (info or primaryLight) instead of deep primary
-      return isDark ? AppColors.info : AppColors.primary;
+      return isDark ? AppColors.infoDark : AppColors.primary;
     }
-    if (percentage < 50) return AppColors.success;
-    if (percentage < 75) return AppColors.warning;
-    if (percentage < 90) return const Color(0xFFFF9800); // Orange
-    return AppColors.danger;
+    if (percentage < 50) {
+      return isDark ? AppColors.successDark : AppColors.success;
+    }
+    if (percentage < 75) {
+      return isDark ? AppColors.warningDark : AppColors.warning;
+    }
+    if (percentage < 90) {
+      return const Color(0xFFFF9800); // Orange
+    }
+    return isDark ? AppColors.errorDark : AppColors.danger;
   }
 
   Widget _buildKpiGrid(
@@ -246,7 +257,6 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     }
 
     if (stats.error != null) {
-      // Handle missing exchange rate error with localized message
       final errorMessage = stats.error == 'exchange_rate_required'
           ? S.of(context).defineExchangeRateMessage
           : stats.error!;
@@ -258,86 +268,91 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       );
     }
 
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     final capitalColor = _getCapitalUsageColor(
       context,
       stats.capitalUsagePercentage,
     );
-
-    // Use displaySymbol from stats (provided by CurrencyContext)
     final reportSymbol = stats.displaySymbol;
 
-    final kpiCards = [
-      // Capital Colocado with usage indicator
-      _buildCapitalCard(
-        context,
-        stats: stats,
-        capitalColor: capitalColor,
-        currencySymbol: reportSymbol,
-        onTap: () => context.go('/customers'),
-      ),
-      _buildKpiCard(
-        context,
-        icon: Icons.people,
-        iconColor: AppColors.accent,
-        label: S.of(context).activeCustomersLabel,
-        valueText: '${stats.activeCustomers}',
-        onTap: () => context.go('/customers'),
-      ),
-      _buildKpiCard(
-        context,
-        icon: Icons.receipt_long,
-        iconColor: AppColors.info,
-        label: S.of(context).activeLoansLabel,
-        valueText: '${stats.activeLoans}',
-        onTap: () => context.go('/customers'),
-      ),
-      _buildKpiCard(
-        context,
-        icon: Icons.warning_amber,
-        iconColor: AppColors.danger,
-        label: S.of(context).overdueLoansLabel,
-        valueText: '${stats.overdueCount}',
-        isWarning: stats.overdueCount > 0,
-        onTap: () => context.go('/cobrar'),
-      ),
-      _buildKpiCard(
-        context,
-        icon: Icons.trending_up,
-        iconColor: AppColors.success,
-        label: S.of(context).earningsMonthLabel,
-        value: stats.earningsMonth,
-        currencySymbol: reportSymbol,
-        onTap: () => context.go('/reports?tab=0'),
-      ),
-      _buildKpiCard(
-        context,
-        icon: Icons.show_chart,
-        iconColor: AppColors.info,
-        label: S.of(context).projectedMonthLabel,
-        value: stats.projectedEarnings,
-        currencySymbol: reportSymbol,
-        onTap: () => context.go('/reports?tab=1'),
-      ),
-    ];
+    return SliverList(
+      delegate: SliverChildListDelegate([
+        // 1. Capital Colocado (Full Width)
+        _buildCapitalCard(
+          context,
+          stats: stats,
+          capitalColor: capitalColor,
+          currencySymbol: reportSymbol,
+          onTap: () => context.go('/customers'),
+        ),
+        const SizedBox(height: 12),
 
-    return SliverToBoxAdapter(
-      child: GridView.builder(
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        padding: EdgeInsets.zero,
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        // 2. Ganancias del Mes (Full Width)
+        _buildFullWidthKpiCard(
+          context,
+          icon: Icons.trending_up,
+          iconColor: isDark ? AppColors.successDark : AppColors.success,
+          label: S.of(context).earningsMonthLabel,
+          value: stats.earningsMonth,
+          currencySymbol: reportSymbol,
+          onTap: () => context.go('/reports?tab=0'),
+        ),
+        const SizedBox(height: 12),
+
+        // 3. 2x2 Grid (Proyeccion, Vencidos, Activos, Clientes)
+        GridView.count(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
           crossAxisCount: 2,
           mainAxisSpacing: 12,
           crossAxisSpacing: 12,
-          mainAxisExtent: 200,
+          childAspectRatio: 1.4, // Adjusted for typical mobile screen aspects
+          children: [
+            _buildKpiCard(
+              context,
+              icon: Icons.show_chart,
+              iconColor: isDark ? AppColors.infoDark : AppColors.info,
+              label: S.of(context).projectedMonthLabel,
+              value: stats.projectedEarnings,
+              currencySymbol: reportSymbol,
+              onTap: () => context.go('/reports?tab=1'),
+            ),
+            _buildKpiCard(
+              context,
+              icon: Icons.warning_amber,
+              iconColor: theme.colorScheme.error,
+              label: S.of(context).overdueLoansLabel,
+              valueText: '${stats.overdueCount}',
+              isWarning: stats.overdueCount > 0,
+              onTap: () => context.go('/cobrar'),
+            ),
+            _buildKpiCard(
+              context,
+              icon: Icons.receipt_long,
+              iconColor: isDark ? AppColors.infoDark : AppColors.info,
+              label: S.of(context).activeLoansLabel,
+              valueText: '${stats.activeLoans}',
+              onTap: () => context.go('/customers'),
+            ),
+            _buildKpiCard(
+              context,
+              icon: Icons.people,
+              iconColor: isDark
+                  ? AppColors.secondaryDarkTheme
+                  : AppColors.accent,
+              label: S.of(context).activeCustomersLabel,
+              valueText: '${stats.activeCustomers}',
+              onTap: () => context.go('/customers'),
+            ),
+          ],
         ),
-        itemCount: kpiCards.length,
-        itemBuilder: (context, index) => kpiCards[index],
-      ),
+      ]),
     );
   }
 
-  /// Capital card with progress indicator
+  /// Capital card with progress indicator - Full Width
   Widget _buildCapitalCard(
     BuildContext context, {
     required DashboardStats stats,
@@ -345,66 +360,238 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     required String currencySymbol,
     VoidCallback? onTap,
   }) {
+    final theme = Theme.of(context);
     return AppCard(
       onTap: onTap,
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                S.of(context).capitalPlacedLabel,
+                style: AppTypography.titleMedium.copyWith(
+                  color: theme.colorScheme.onSurface,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: capitalColor.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(
+                  Icons.account_balance_wallet,
+                  color: capitalColor,
+                  size: 24,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          MoneyDisplay(
+            amount: stats.totalPrincipalBalance,
+            color: capitalColor,
+            currencySymbol: currencySymbol,
+            size: MoneyDisplaySize.large,
+          ),
+          const SizedBox(height: 4),
+          Text(
+            '${S.of(context).ofAmount} $currencySymbol ${_formatNumber(stats.availableCapital)}',
+            style: AppTypography.bodySmall.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: 16),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final percentage = (stats.capitalUsagePercentage / 100).clamp(
+                0.0,
+                1.0,
+              );
+              final maxWidth = constraints.maxWidth;
+              final progressWidth = maxWidth * percentage;
+              final showTextInside = percentage > 0.15;
+
+              return SizedBox(
+                height: 20,
+                child: Stack(
+                  children: [
+                    // Base background bar
+                    Container(
+                      width: maxWidth,
+                      decoration: BoxDecoration(
+                        color: capitalColor.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    // Progress bar
+                    AnimatedContainer(
+                      duration: const Duration(milliseconds: 500),
+                      curve: Curves.easeOutCubic,
+                      width: progressWidth,
+                      decoration: BoxDecoration(
+                        color: capitalColor,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    // Text positioning
+                    if (showTextInside)
+                      Positioned(
+                        right: maxWidth - progressWidth + 6,
+                        top: 0,
+                        bottom: 0,
+                        child: Center(
+                          child: Text(
+                            '${stats.capitalUsagePercentage.toStringAsFixed(0)}%',
+                            style: AppTypography.labelSmall.copyWith(
+                              color: theme.colorScheme.onPrimary,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 10,
+                            ),
+                          ),
+                        ),
+                      )
+                    else
+                      Positioned(
+                        left: progressWidth + 6,
+                        top: 0,
+                        bottom: 0,
+                        child: Center(
+                          child: Text(
+                            '${stats.capitalUsagePercentage.toStringAsFixed(0)}%',
+                            style: AppTypography.labelSmall.copyWith(
+                              color: theme.colorScheme.onSurface,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 10,
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Full width KPI card for Earnings
+  Widget _buildFullWidthKpiCard(
+    BuildContext context, {
+    required IconData icon,
+    required Color iconColor,
+    required String label,
+    required double value,
+    required String currencySymbol,
+    VoidCallback? onTap,
+  }) {
+    final theme = Theme.of(context);
+    return AppCard(
+      onTap: onTap,
+      padding: const EdgeInsets.all(16),
+      child: Stack(
+        children: [
+          Positioned(
+            top: 0,
+            right: 0,
+            child: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: iconColor.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(icon, color: iconColor, size: 24),
+            ),
+          ),
+          Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const SizedBox(height: 8),
+                MoneyDisplay(
+                  amount: value,
+                  currencySymbol: currencySymbol,
+                  size: MoneyDisplaySize.large,
+                  color: theme.colorScheme.onSurface,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  label,
+                  style: AppTypography.titleMedium.copyWith(
+                    color: theme.colorScheme.onSurface,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Grid KPI card - Icon top left
+  Widget _buildKpiCard(
+    BuildContext context, {
+    required IconData icon,
+    required Color iconColor,
+    required String label,
+    double? value,
+    String? valueText,
+    bool isWarning = false,
+    String? currencySymbol,
+    VoidCallback? onTap,
+  }) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return AppCard(
+      onTap: onTap,
+      padding: const EdgeInsets.all(12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Container(
             padding: const EdgeInsets.all(6),
             decoration: BoxDecoration(
-              color: capitalColor.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(8),
+              color: iconColor.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(6),
             ),
-            child: Icon(
-              Icons.account_balance_wallet,
-              color: capitalColor,
-              size: 18,
-            ),
+            child: Icon(icon, color: iconColor, size: 20),
           ),
-          const SizedBox(height: 6),
-          FittedBox(
-            fit: BoxFit.scaleDown,
-            alignment: Alignment.centerLeft,
-            child: MoneyDisplay(
-              amount: stats.totalPrincipalBalance,
-              color: capitalColor,
-              currencySymbol:
-                  currencySymbol, // CRITICAL: Use display currency symbol
-            ),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            S.of(context).capitalPlacedLabel,
-            style: AppTypography.bodyMedium.copyWith(
-              color: Theme.of(context).colorScheme.onSurface,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          if (stats.availableCapital > 0) ...[
-            const SizedBox(height: 4),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(2),
-              child: LinearProgressIndicator(
-                value: (stats.capitalUsagePercentage / 100).clamp(0.0, 1.0),
-                backgroundColor: Theme.of(
-                  context,
-                ).colorScheme.surfaceContainerHighest,
-                valueColor: AlwaysStoppedAnimation<Color>(capitalColor),
-                minHeight: 3,
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (value != null)
+                MoneyDisplay(amount: value, currencySymbol: currencySymbol)
+              else if (valueText != null)
+                Text(
+                  valueText,
+                  style: AppTypography.headlineSmall.copyWith(
+                    color: isWarning
+                        ? theme.colorScheme.error
+                        : colorScheme.onSurface,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              Text(
+                label,
+                style: AppTypography.labelMedium.copyWith(
+                  color: colorScheme.onSurface,
+                  fontWeight: FontWeight.bold,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
-            ),
-            const SizedBox(height: 2),
-            Text(
-              '${stats.capitalUsagePercentage.toStringAsFixed(1)}% ${S.of(context).ofLabel} $currencySymbol${NumberFormat('#,##0.00').format(stats.availableCapital)}',
-              style: AppTypography.labelSmall.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-                // Removed explicit fontSize to improve readability
-              ),
-            ),
-          ],
+            ],
+          ),
         ],
       ),
     );
@@ -415,8 +602,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     DashboardStats stats,
     WidgetRef ref,
   ) {
-    final colorScheme = Theme.of(context).colorScheme;
-    // Use displaySymbol from stats (provided by CurrencyContext)
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
     final reportSymbol = stats.displaySymbol;
 
     return Padding(
@@ -506,7 +694,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                   MoneyDisplay(
                     amount: stats.collectedToday,
                     size: MoneyDisplaySize.small,
-                    color: AppColors.success,
+                    color: isDark ? AppColors.successDark : AppColors.success,
                     currencySymbol: reportSymbol,
                   ),
                 ],
@@ -518,73 +706,20 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     );
   }
 
-  Widget _buildKpiCard(
-    BuildContext context, {
-    required IconData icon,
-    required Color iconColor,
-    required String label,
-    String? subtitle,
-    double? value,
-    String? valueText,
-    bool isWarning = false,
-    String? currencySymbol,
-    VoidCallback? onTap,
-  }) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return AppCard(
-      onTap: onTap,
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: iconColor.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(icon, color: iconColor, size: 24),
-          ),
-          const SizedBox(height: 16),
-          if (value != null)
-            MoneyDisplay(amount: value, currencySymbol: currencySymbol)
-          else if (valueText != null)
-            FittedBox(
-              fit: BoxFit.scaleDown,
-              alignment: Alignment.centerLeft,
-              child: Text(
-                valueText,
-                style: AppTypography.moneyLarge.copyWith(
-                  color: isWarning ? AppColors.danger : colorScheme.onSurface,
-                ),
-              ),
-            ),
-          const SizedBox(height: 8),
-          Text(
-            label,
-            style: AppTypography.titleSmall.copyWith(
-              color: colorScheme.onSurface,
-              fontWeight: FontWeight.bold,
-            ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-          if (subtitle != null)
-            Text(
-              subtitle,
-              style: AppTypography.labelSmall.copyWith(
-                color: colorScheme.onSurfaceVariant,
-              ),
-            ),
-        ],
-      ),
-    );
+  String _formatNumber(double value) {
+    // Basic format for the "of X" string
+    return value
+        .toStringAsFixed(2)
+        .replaceAllMapped(
+          RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+          (Match m) => '${m[1]},',
+        );
   }
 
   Widget _buildRecentSection(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
 
     return Padding(
       padding: const EdgeInsets.all(16),
@@ -618,7 +753,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                 _buildQuickActionItem(
                   context,
                   icon: Icons.people,
-                  iconColor: AppColors.accent,
+                  iconColor: isDark
+                      ? AppColors.secondaryDarkTheme
+                      : AppColors.accent,
                   title: S.of(context).viewCustomers,
                   subtitle: S.of(context).allCustomersList,
                   onTap: () => context.go('/customers'),
@@ -627,7 +764,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                 _buildQuickActionItem(
                   context,
                   icon: Icons.history,
-                  iconColor: AppColors.info,
+                  iconColor: isDark ? AppColors.infoDark : AppColors.info,
                   title: S.of(context).paymentHistory,
                   subtitle: S.of(context).viewAllPayments,
                   onTap: () => context.go('/payments'),

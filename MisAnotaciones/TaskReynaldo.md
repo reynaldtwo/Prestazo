@@ -2803,6 +2803,175 @@ Tómate un tiempo para analizar la siguiente mejora y haz el desarrollo consider
 
 
 
+**nuevas mejroas**
+
+Tómate un tiempo para analizar la siguiente mejora y haz el desarrollo considerando las reglas descritas en el archivo code-rules.md y apóyate del MCP de Dart para resolver los errores que aparezcan, así como para investigar sobre las buenas prácticas a la hora de escribir código.
+
+**APLICAR MEJORA ESTETICA EN PANTALLA DE INICIO**
+
+1. Quita el efecto glasmorphism por que lo que hicistes esta orrendo.
+2. la tarjeta capital colocado el texto dentro debe estar de la siguiente forma: 
+Capital colocado 
+monto de capital de trabajo
+aca abajo mostrar el progresbar
+3. las demas tarjetas primero deben decir lo que se requiere transmitir y abajo el monto ejemplo:
+Ganancias del mes
+C$ 4,500
+
+4. Asegurarte de que los textos no se desborden de su lugar , actualmente ocurre eso. las tarjetas y todas las pantallas deden ser completamente flexibles , es decir 100% responsive.
+
+
+
+
+
+**nuevas mejroas**
+
+Tómate un tiempo para analizar la siguiente mejora y haz el desarrollo considerando las reglas descritas en el archivo code-rules.md y apóyate del MCP de Dart para resolver los errores que aparezcan, así como para investigar sobre las buenas prácticas a la hora de escribir código.
+
+**APLICAR MEJORA ESTETICA EN PANTALLA DE INICIO**
+1. KPI capital colocado : que cubra todo el ancho de la pantalla a como se ve en la imagen.
+2. reordena los demas KPI de la misma forma en la que se ve en la imagen.
+3. move los iconos de los KPI a como se ve en la imagen.
+
+Nota: la imagen que te muestro es solo un ejemplo nada mas para que te fijes , vas a mantener el color , tipo de textos , y diseño que actualmente tienen.
+
+
+
+
+
+
+**nuevas mejroas**
+
+Tómate un tiempo para analizar la siguiente mejora y haz el desarrollo considerando las reglas descritas en el archivo code-rules.md y apóyate del MCP de Dart para resolver los errores que aparezcan, así como para investigar sobre las buenas prácticas a la hora de escribir código.
+
+**PANTALLA DE INICIO**
+1. el kpi capital colocado el progresbar , ahi hay un texto que indica el porcentaje de progreso ejemplo 20% , te mencione que ese texto debe ir relacionado con el incremento del progressbar , me refiero a que se debe ir moviendo conforme vaya avanzando el progressbar , actualmente no es asi. se va demasiado adelante y debe ir en la punta del incremento. preferible que el texto quede sobre el avance del progressbar.
+
+
+
+
+**nuevas mejroas**
+
+Tómate un tiempo para analizar la siguiente mejora y haz el desarrollo considerando las reglas descritas en el archivo code-rules.md y apóyate del MCP de Dart para resolver los errores que aparezcan, así como para investigar sobre las buenas prácticas a la hora de escribir código.
+
+**PANTALLA A Cobrar**
+**pestaña a cobrar**
+1. en cada tarjeta que s emuestre agregar un campo que indique la fecha que vence la cuota, es decir la fecha de la cuota que se debe pagar. (esto sera muy importante ya que ahi se muestran los prestamos a cobrar , pero como tenemos un parametro en ajustes que hace que aparezcan los prestamos segun los dias de antelacion, es decir si esta en 1 o dos o tres segun lo configure el prestamista, pero no sabemos realmente la fecha que le toca el pago y eso vendra a tener claridad, el prestamista podra darse cuenta que si esta ahi , no necesariamente es por que ya le toque pago si no por que quizas en los dias de antelacion tiene configurado que aparezcan los prestamos a cobrar con varios dias pero ya con ese nuevo campo, podra saber realmente el dia que venece la cuota)
+
+**pestaña atrasados**
+2. en la pestaña atrasados, agregar el mismo campo, salvo que aca ese nuveo campo debe mostrar la fecha de la cuota que esta atrasada, pero si el prestamo tiene varias cuotas vencidas, se debe mostrar la fecha de la cuota mas antogua vencida, para que el prestamista pueda saber desde cuando ese prestamo esta atrasado y que debio pagar.
+
+
+**En Recibos de pago**
+1. hacer lo siguiente: agregar un campo que muestre desde que fecha a que fecha se hizo el pago, es decir la fecha de inicio y la fecha de fin del pago y si el prestamo tiene un plan de pago, se debe indicar el numero de la cuota que se esta pagando. ejemplo: 
+1. para el caso del prestamo sin plan de pago: Periodo de pago: 2025-01-01 al 2025-01-31
+2. para el caso del prestamo con plan de pago: Periodo de pago: 2025-01-01 al 2025-01-31, cuota: 1
+**listo**
+
+
+
+
+
+
+
+**nuevas mejroas**
+
+Tómate un tiempo para analizar la siguiente mejora y haz el desarrollo considerando las reglas descritas en el archivo code-rules.md y apóyate del MCP de Dart para resolver los errores que aparezcan, así como para investigar sobre las buenas prácticas a la hora de escribir código.
+
+**Mejoras**
+1. en pantalla a cobra en ambas pestalas el campo nuevo que agregamos que muestra la fecha de la cuota que se debe pagar, veo que cuando la cuota tiene pocos dias vencido dice algo asi:  vencido desde: Hace 6 dias.  eso no debe ser asi, siempre debe msotrar la fecha.
+
+2. en recibo el nuevo campo tiene un salto de linea asi: 
+
+periodo de pago: 2025-01-01-
+2025-01-31
+
+
+
+
+
+
+**nuevas mejroas**
+
+Tómate un tiempo para analizar la siguiente mejora y haz el desarrollo considerando las reglas descritas en el archivo code-rules.md y apóyate del MCP de Dart para resolver los errores que aparezcan, así como para investigar sobre las buenas prácticas a la hora de escribir código.
+
+**Mejoras**
+1. en recibos hay que agregar una bandera que indique si el pago que se esta efectuando correspondiente a una cuota , es parcial o completa.
+
+
+
+
+**nuevas mejroas**
+
+Tómate un tiempo para analizar la siguiente mejora y haz el desarrollo considerando las reglas descritas en el archivo code-rules.md y apóyate del MCP de Dart para resolver los errores que aparezcan, así como para investigar sobre las buenas prácticas a la hora de escribir código.
+
+**Pantalla A Cobrar**
+1. etengo un prestamo que contiene un plan de pago y en A cobrar me sale ya que la fecha de pago esta proxima , pero en la tarjeta  los campos "Interés esperado" y "Pendiente" no coinciden con los datos de la cuota.
+
+ejemplo: en la pantalla Detalle del prestamo, en ciclos de cobro me sale asi:
+vence el 26/1/2026
+esperado: C$ 1,076.85
+Pendiente: C$ 1,076.85
+
+y en la tarjeta en A cobrar pestaña a cobra me sale :
+
+Interés esperado: C$ 307.62
+pendiente: C$ 307.62
+
+eso esta mal.
+
+Revisa bien en la pantalla a cobrar en ambas pestasñas que los datos que se muestran sean los correctos, sin importar si el prestamo tiene plan de pago o no. y busca si esa inconsistencia esta en algun otro lado y lo reparas.
+
+
+
+
+
+**nuevas mejroas**
+
+Tómate un tiempo para analizar la siguiente mejora y haz el desarrollo considerando las reglas descritas en el archivo code-rules.md y apóyate del MCP de Dart para resolver los errores que aparezcan, así como para investigar sobre las buenas prácticas a la hora de escribir código.
+
+**Pantalla A Cobrar**
+1. en esta pantalla debemos crear un caso :
+
+caso 1: prestamo sin plan de pago, debe quedar a como esta actualmente.
+
+caso 2: prestamo con plan de pago, hacer la siguiente logica: ocultar los campos "Interés esperado" y "Pendiente" y mostrar un campo que muestre el valor de la cuota ya que para este caso viene los intereses mas el capital.
+
+**NOTA**
+se debe aplicar a ambas pestañas de la pantalla A cobrar, SOlo que en la pestaña atrasados, para el caso de los prestamos con planes de pago , recordad que si son varias cuotas vencidas, , debes sumarlas todas.
+
+**LISTO**
+
+
+
+
+
+
+
+**nuevas mejroas**
+
+Tómate un tiempo para analizar la siguiente mejora y haz el desarrollo considerando las reglas descritas en el archivo code-rules.md y apóyate del MCP de Dart para resolver los errores que aparezcan, así como para investigar sobre las buenas prácticas a la hora de escribir código.
+
+**Pantalla A Cobrar"PESTAÑA A COBRAR**
+1. En esta pestaña se deben mostrar solo aquellos prestamos que no esten vencidos.
+2. en la pestaña **atrasados** se deben mostrar aquellos prestamos que ya estan con cuotas vencidas.
+
+**LISTO**
+
+
+
+
+
+
+
+**nuevas mejroas**
+
+Tómate un tiempo para analizar la siguiente mejora y haz el desarrollo considerando las reglas descritas en el archivo code-rules.md y apóyate del MCP de Dart para resolver los errores que aparezcan, así como para investigar sobre las buenas prácticas a la hora de escribir código.
+
+**EN TODO EL PROYECTO**
+1. Crear un archivo en la carpeta MisAnotaciones que se llame "ColorModeDart" ahi agrega todos los tipos de componentes que tentemos agrupados por tipo y su color correspondiente. esto solo para el modo oscuro que actualmente esta implementado.
+
+**listo**
 
 
 
@@ -2811,3 +2980,157 @@ Tómate un tiempo para analizar la siguiente mejora y haz el desarrollo consider
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+**nuevas mejroas**
+
+Tómate un tiempo para analizar la siguiente mejora y haz el desarrollo considerando las reglas descritas en el archivo code-rules.md y apóyate del MCP de Dart para resolver los errores que aparezcan, así como para investigar sobre las buenas prácticas a la hora de escribir código.
+
+Actualmente en el modo oscuro tenemos colores que no son los correctos, por eso necesito que implementemos(sustituye los actuales) por los siguientes colores, solo para el modo oscuro que esta en Ajustes > Apariencia > Modo de tema:
+
+**“Nocturne Emerald”**
+
+Enfocada en verde/teal moderno (dinero/acción) + azul profundo para UI.
+
+**Tokens base**
+Token	Hex
+Background (Scaffold)	#0B0F14
+Surface (Cards/AppBar/BottomBar)	#121826
+Surface Elevated (cards “raised”)	#182235
+Surface Variant (Inputs/Chips)	#1F2A44
+Outline / Border	#2C3A5A
+Divider	#22304A
+**Colores vivos (acción/estados)**
+Token	Hex
+Primary (acciones principales)	#2D7DFF
+OnPrimary (texto)	#FFFFFF
+Secondary / Accent (dinero / confirmar)	#18D6B4
+OnSecondary	#062019
+Tertiary (detalle/links)	#B16CFF
+Error	#FF4D6D
+Warning	#FFB020
+Info	#38BDF8
+Success	#22C55E
+**Textos e íconos**
+Token	Hex
+Text Primary	#EAF0FF
+Text Secondary	#B7C3DE
+Text Tertiary / Hint	#7F8FB3
+Icon Inactive	#7F8FB3
+
+
+
+
+
+
+**nuevas mejroas**
+
+Tómate un tiempo para analizar la siguiente mejora y haz el desarrollo considerando las reglas descritas en el archivo code-rules.md y apóyate del MCP de Dart para resolver los errores que aparezcan, así como para investigar sobre las buenas prácticas a la hora de escribir código.
+
+Actualmente en el modo oscuro  que esta en Ajustes > Apariencia > Modo de tema ; cuando se activa esa opcion hay campos que no se le esta aplicado la paleta de colores a como corresponde segun la paleta Nocturne Emerald, para asegurarnos de que todos los componentes visuales se vean correctamente en el modo oscuro, se realizo un inventario de todos los componentes visuales que se usan en la app, dichos componentes estan en el archivo ColorModeDart.md mas sin embargo he revisado el archivo ColorModeDart.md y he encontrado que hay componentes que no estan inventariados, por lo que tu tarea sera, ir cuidadosamente pantalla por pantalla en busca de componentes faltantes y agregarlos al archivo ColorModeDart.md ; asegurate de considerarlos todo, hay componentes que tienen inconos como por ejemplo el selector de moneda en la pantalla de prestamos , ese componente tiene un icono, ese tipo de componentes deben ser considerados y agregados al archivo ColorModeDart.md
+
+**Listo**
+
+
+
+
+
+**nuevas mejroas**
+
+Tómate un tiempo para analizar la siguiente mejora y haz el desarrollo considerando las reglas descritas en el archivo code-rules.md y apóyate del MCP de Dart para resolver los errores que aparezcan, así como para investigar sobre las buenas prácticas a la hora de escribir código.
+
+Actualmente en el modo oscuro  que esta en Ajustes > Apariencia > Modo de tema ; cuando se activa esa opcion hay campos que no se le esta aplicado la paleta de colores a como corresponde segun la paleta Nocturne Emerald, para asegurarnos de que todos los componentes visuales se vean correctamente en el modo oscuro, se realizo un inventario de todos los componentes visuales que se usan en la app, dichos componentes estan en el archivo ColorModeDart.md asi que tu tarea sera, implementar la paleta de colores a todos los componentes visuales que se usan en la app, que esten inventariados en el archivo ColorModeDart.md
+
+**Listo**
+
+
+
+**nuevas mejroas**
+
+Tómate un tiempo para analizar la siguiente mejora y haz el desarrollo considerando las reglas descritas en el archivo code-rules.md y apóyate del MCP de Dart para resolver los errores que aparezcan, así como para investigar sobre las buenas prácticas a la hora de escribir código.
+
+
+**PANTALLA ACERCA DE PRESTAZO**
+1. El logo se ve todo cuadrado, debe mostrase redondo y bien estetico.
+
+
+**PANTALLA DATOS DE LA EMPRESA**
+1. los tuggles visible no tienen aplicado el modo oscuro.
+
+**PANTALLA FRECUENCIA DE PAGO**
+1. El boton nueva frecuencia no esta bien diseñado, se ve un circulo y el texto + Nueva frecuencia, hay que dejarlo bien estetico.
+
+**PANTALLA gestion monetaria** 
+1. en el campo , capital disponible el icono de guardar, aplicale un color mas claro de la paleta de colores Nocturne Emerald. ya que el que tiene no se logra apreciar.
+
+**PANTALLA AJUSTES**
+1. EN EL apartado consecutivos a los campos ultimo prestamo generado y ultimo recibo , reemplazar el icono de un check por un icono de un boton que indique guardar.
+**listo** 
+
+
+
+
+
+
+
+
+
+
+**nuevas mejroas**
+
+Tómate un tiempo para analizar la siguiente mejora y haz el desarrollo considerando las reglas descritas en el archivo code-rules.md y apóyate del MCP de Dart para resolver los errores que aparezcan, así como para investigar sobre las buenas prácticas a la hora de escribir código.
+
+**PANTALLA A Cobrar**
+1. en la pestaña AL Día, para el caso de los prestamos con planes de pago, el campo "Cuota" esta mostrando la suma de todas las cuotas del pestamo y no es asi. la logica es mostrar la cuota a pagar.
+
+
+
+
+**nuevas mejroas**
+
+Tómate un tiempo para analizar la siguiente mejora y haz el desarrollo considerando las reglas descritas en el archivo code-rules.md y apóyate del MCP de Dart para resolver los errores que aparezcan, así como para investigar sobre las buenas prácticas a la hora de escribir código.
+
+**PANTALLA A Cobrar**
+1. en la pestaña AL Día, no se esta conciderando el campo "Planificar Cobro" que esta en ajustes, ese campo de dias de antelacion para mostrar los prestamos que se van a cobrar, debe ser respetado desde la pestaña Al Día en la pantalla A Cobrar. actualmente tengo un caso de un prestamo que su proxima cuota es el dia 19-02-26 y en dias de antelacion tengo configurado = 10 dias, por lo que el prestamo no se deberia de mostrar aún, mas sin embargo si se esta mostrando. revisa bien eso y corregilo.
+
+
+
+
+
+**nuevas mejroas**
+
+Tómate un tiempo para analizar la siguiente mejora y haz el desarrollo considerando las reglas descritas en el archivo code-rules.md y apóyate del MCP de Dart para resolver los errores que aparezcan, así como para investigar sobre las buenas prácticas a la hora de escribir código.
+
+**PANTALLA Tasa de Cambio**
+1. los campos: "Tasa Compra:" y "Tasa Venta:" no se aplican el modo oscuro. (me refiero al valor de esos campos, ejemplo Tasa Compra: 11.00, Tasa Venta: 11.00) los valores de esos campos no se aplican el modo oscuro. Actualmente tiene un color oscuro que no se logra apreciar.
+
+
+**PANTALLA Agregar Tasa de Cambio**
+1. Agergar un nuevo tuggle que diga:"Aplicar esta tasa a todo el mes"
+
+**Logica a implementar**
+1. Si el tuggle esta activado, la tasa de cambio se aplicara a todo el mes, y se deben de guardar esa misma tasa para cada dia del mes, inciando desde el dia 1 hasta el ultimo dia del mes actual. Esto se debe hacer cuando se presione el boton guardar, es decir al presionar el boton guardar si el tuggle esta activado, se debe de guardar la tasa de cambio para cada dia del mes actual, caso contrario mantener la logica actual de guardar la tasa de cambio solo para la fecha seleccionada por el usuario.
+
+**Nota**
+1.  todo este nuevo cambio, debes asegurarte de dejalor bien configurado para que se le aplique el modo oscuro a los campos y para que sea multi idioma.
+
+
+
+
+**nuevas mejroas**
+
+Tómate un tiempo para analizar la siguiente mejora y haz el desarrollo considerando las reglas descritas en el archivo code-rules.md y apóyate del MCP de Dart para resolver los errores que aparezcan, así como para investigar sobre las buenas prácticas a la hora de escribir código.
+
+**Pantalla Al Día** esa pantalla se debe llamar "A Cobrar" , solo la pestaña "Al Día" es la que debe conservar ese nombre. Haz el cambio y asegurate de que ese nuevo nombre se refleje en todos los lugares donde se usa esa pantalla, incluyendo los archivos de idioma, incluso en los flujos de las pantalla para que todo el flujo siga funcionando correctamente.

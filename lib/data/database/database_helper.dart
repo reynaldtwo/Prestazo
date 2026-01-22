@@ -589,6 +589,7 @@ class DatabaseHelper {
         payment_currency TEXT,
         exchange_rate_applied REAL,
         exchange_profit REAL,
+        collection_plan_days INTEGER NOT NULL DEFAULT 3,
         created_at TEXT NOT NULL,
         updated_at TEXT NOT NULL
       )

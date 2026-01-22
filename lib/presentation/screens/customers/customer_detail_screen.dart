@@ -97,13 +97,26 @@ class CustomerDetailScreen extends ConsumerWidget {
         ? S.of(context).statusActive
         : S.of(context).statusInactive;
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return SliverAppBar(
       expandedHeight: 220,
       pinned: true,
-      backgroundColor: AppColors.primary,
+      backgroundColor: Theme.of(context).colorScheme.primary,
       flexibleSpace: FlexibleSpaceBar(
         background: Container(
-          decoration: const BoxDecoration(gradient: AppColors.primaryGradient),
+          decoration: BoxDecoration(
+            gradient: isDark
+                ? LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      Theme.of(context).colorScheme.primary,
+                      Theme.of(context).colorScheme.surface,
+                    ],
+                  )
+                : AppColors.primaryGradient,
+          ),
           child: SafeArea(
             child: Padding(
               padding: const EdgeInsets.fromLTRB(20, 60, 20, 20),
@@ -144,7 +157,7 @@ class CustomerDetailScreen extends ConsumerWidget {
                             Text(
                               statusLabel,
                               style: context.textStyles.bodyMedium.copyWith(
-                                color: Colors.white70,
+                                color: Colors.white.withValues(alpha: 0.7),
                               ),
                             ),
                           ],
@@ -159,13 +172,13 @@ class CustomerDetailScreen extends ConsumerWidget {
                       const Icon(
                         Icons.calendar_today,
                         size: 14,
-                        color: Colors.white70,
+                        color: Color.fromARGB(179, 255, 255, 255),
                       ),
                       const SizedBox(width: 6),
                       Text(
                         '${S.of(context).registeredDate} ${_formatDate(customer.createdAt)}',
                         style: context.textStyles.bodySmall.copyWith(
-                          color: Colors.white70,
+                          color: Colors.white.withValues(alpha: 0.7),
                         ),
                       ),
                     ],

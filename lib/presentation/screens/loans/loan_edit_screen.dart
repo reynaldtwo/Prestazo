@@ -99,10 +99,10 @@ class _LoanEditScreenState extends ConsumerState<LoanEditScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(
+                Icon(
                   Icons.error_outline,
                   size: 48,
-                  color: AppColors.danger,
+                  color: Theme.of(context).colorScheme.error,
                 ),
                 const SizedBox(height: 16),
                 Text(
@@ -380,18 +380,20 @@ class _LoanEditScreenState extends ConsumerState<LoanEditScreen> {
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Préstamo actualizado y recalculado'),
-              backgroundColor: AppColors.success,
+            SnackBar(
+              content: const Text('Préstamo actualizado y recalculado'),
+              backgroundColor: Theme.of(context).brightness == Brightness.dark
+                  ? AppColors.successDark
+                  : AppColors.success,
             ),
           );
           context.pop();
         }
       } else if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Error al actualizar'),
-            backgroundColor: AppColors.danger,
+          SnackBar(
+            content: const Text('Error al actualizar'),
+            backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
       }
@@ -400,7 +402,7 @@ class _LoanEditScreenState extends ConsumerState<LoanEditScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error: $e'),
-            backgroundColor: AppColors.danger,
+            backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
       }
@@ -433,7 +435,7 @@ class _LoanEditScreenState extends ConsumerState<LoanEditScreen> {
           ),
           error: (err, _) => Text(
             'Error: $err',
-            style: const TextStyle(color: AppColors.danger),
+            style: TextStyle(color: Theme.of(context).colorScheme.error),
           ),
           data: (frequencies) {
             return LayoutBuilder(
@@ -561,7 +563,9 @@ class _FrequencyOption extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final primaryColor = isDark ? AppColors.info : AppColors.primary;
+    final primaryColor = isDark
+        ? AppColors.infoDark
+        : Theme.of(context).colorScheme.primary;
 
     return InkWell(
       onTap: onTap,

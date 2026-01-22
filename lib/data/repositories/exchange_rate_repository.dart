@@ -96,6 +96,58 @@ class ExchangeRateRepository {
     return rate;
   }
 
+  /// Create exchange rates for the entire month of the given date
+  Future<void> createMonthlyRates({
+    required String sourceCurrency,
+    required String targetCurrency,
+    required DateTime date,
+    required double buyRate,
+    required double sellRate,
+  }) async {
+    final db = await _dbHelper.database;
+    final now = DateTime.now();
+
+    // Calculate start and end of the month
+    final nextMonth = DateTime(date.year, date.month + 1);
+    final lastDay = nextMonth.subtract(const Duration(days: 1)).day;
+
+    final batch = db.batch();
+
+    for (var day = 1; day <= lastDay; day++) {
+      final currentDay = DateTime(date.year, date.month, day);
+      final rateId = const Uuid().v4();
+
+      // Check if rate exists effectively by trying to delete it first or using conflict strategy
+      // Since sqflite insert with conflictAlgorithm might conflict on ID, we should handle logic.
+      // However, we have a unique ID per rate, not per date/currency composite key in schema usually.
+      // Assuming schema doesn't enforce composite unique on (source, target, date), we should
+      // clean up old entries for this day/pair first to avoid duplicates.
+
+      final dateStr = currentDay.toIso8601String().split('T')[0];
+
+      // Delete existing rate for this day/pair
+      batch.delete(
+        'exchange_rates',
+        where: 'source_currency = ? AND target_currency = ? AND rate_date = ?',
+        whereArgs: [sourceCurrency, targetCurrency, dateStr],
+      );
+
+      final rate = ExchangeRate(
+        rateId: rateId,
+        sourceCurrency: sourceCurrency,
+        targetCurrency: targetCurrency,
+        date: currentDay,
+        buyRate: buyRate,
+        sellRate: sellRate,
+        createdAt: now,
+      );
+
+      batch.insert('exchange_rates', rate.toMap());
+    }
+
+    await batch.commit(noResult: true);
+  }
+
   /// Update existing exchange rate
   Future<void> updateRate(ExchangeRate rate) async {
     final db = await _dbHelper.database;

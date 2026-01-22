@@ -115,6 +115,12 @@ abstract class S {
   /// **'Cancelar'**
   String get cancel;
 
+  /// Label for toggle to apply exchange rate to entire month
+  ///
+  /// In es, this message translates to:
+  /// **'Aplicar esta tasa a todo el mes'**
+  String get applyToWholeMonth;
+
   /// Generic confirm action label
   ///
   /// In es, this message translates to:
@@ -594,6 +600,12 @@ abstract class S {
   /// In es, this message translates to:
   /// **'Cuota del Plan'**
   String get planInstallmentMode;
+
+  /// Label for installment amount
+  ///
+  /// In es, this message translates to:
+  /// **'Cuota'**
+  String get installmentAmount;
 
   /// Summary label for the daily collection total
   ///
@@ -2191,6 +2203,12 @@ abstract class S {
   /// **'A Cobrar'**
   String get collectionTitle;
 
+  /// No description provided for @tabUpcoming.
+  ///
+  /// In es, this message translates to:
+  /// **'Al Día'**
+  String get tabUpcoming;
+
   /// No description provided for @tabOverdue.
   ///
   /// In es, this message translates to:
@@ -2218,7 +2236,7 @@ abstract class S {
   /// No description provided for @collectionPlanDaysDescription.
   ///
   /// In es, this message translates to:
-  /// **'Este campo permite definir con cuántos días de antelación se mostrarán los préstamos pendientes en la pantalla \"A Cobrar\".\n\n**Ejemplo:**\nSi configuras 3 días, los préstamos que vencen en los próximos 3 días aparecerán en la lista de cobro.\n\n**Uso:**\nAumenta este valor si necesitas más tiempo para planificar tu ruta de cobro.'**
+  /// **'Este campo permite definir con cuántos días de antelación se mostrarán los préstamos pendientes en la pantalla \"Al Día\".\n\n**Ejemplo:**\nSi configuras 3 días, los préstamos que vencen en los próximos 3 días aparecerán en la lista de cobro.\n\n**Uso:**\nAumenta este valor si necesitas más tiempo para planificar tu ruta de cobro.'**
   String get collectionPlanDaysDescription;
 
   /// No description provided for @noCollectionUpcomingTitle.
@@ -4898,6 +4916,12 @@ abstract class S {
   /// In es, this message translates to:
   /// **'Seleccionar Plan'**
   String get selectPlan;
+
+  /// Preposition used in amounts like '20 of 100'
+  ///
+  /// In es, this message translates to:
+  /// **'De'**
+  String get ofAmount;
 }
 
 class _SDelegate extends LocalizationsDelegate<S> {

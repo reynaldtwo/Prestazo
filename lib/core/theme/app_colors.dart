@@ -74,37 +74,67 @@ class AppColors {
   /// Color de divisores.
   static const Color divider = Color(0xFFE2E8F0);
 
-  // ====== DARK THEME COLORS ======
-
-  // Dark Theme - Neutral Colors
+  // ====== DARK THEME COLORS (Nocturne Emerald) ======
+  // Tokens base
   /// Color de fondo principal (Tema oscuro).
-  static const Color backgroundDark = Color(0xFF121212);
+  static const Color backgroundDark = Color(0xFF0B0F14);
 
   /// Color para superficies (Tema oscuro).
-  static const Color surfaceDark = Color(0xFF1E1E1E);
+  static const Color surfaceDark = Color(0xFF121826);
+
+  /// Color para superficies elevadas (Tema oscuro).
+  static const Color surfaceElevatedDark = Color(0xFF182235);
 
   /// Variante de superficie (Tema oscuro).
-  static const Color surfaceVariantDark = Color(0xFF2D2D2D);
+  static const Color surfaceVariantDark = Color(0xFF1F2A44);
+
+  // Colores vivos (acción/estados)
+  /// Color primario en modo oscuro.
+  static const Color primaryDarkTheme = Color(0xFF2D7DFF);
+
+  /// Color de acento/confirmar en modo oscuro.
+  static const Color secondaryDarkTheme = Color(0xFF18D6B4);
+
+  /// Texto sobre color de acento en modo oscuro.
+  static const Color onSecondaryDarkTheme = Color(0xFF062019);
+
+  /// Color terciario (detalle/links) en modo oscuro.
+  static const Color tertiaryDarkTheme = Color(0xFFB16CFF);
+
+  /// Color de error en modo oscuro.
+  static const Color errorDark = Color(0xFFFF4D6D);
+
+  /// Color de advertencia en modo oscuro.
+  static const Color warningDark = Color(0xFFFFB020);
+
+  /// Color de información en modo oscuro.
+  static const Color infoDark = Color(0xFF38BDF8);
+
+  /// Color de éxito en modo oscuro.
+  static const Color successDark = Color(0xFF22C55E);
 
   // Dark Theme - Text Colors
   /// Color de texto principal (Tema oscuro).
-  static const Color textPrimaryDark = Color(0xFFE1E1E1);
+  static const Color textPrimaryDark = Color(0xFFEAF0FF);
 
   /// Color de texto secundario (Tema oscuro).
-  static const Color textSecondaryDark = Color(0xFFAAAAAA);
+  static const Color textSecondaryDark = Color(0xFFB7C3DE);
 
   /// Color de texto terciario (Tema oscuro).
-  static const Color textTertiaryDark = Color(0xFF777777);
+  static const Color textTertiaryDark = Color(0xFF7F8FB3);
+
+  /// Iconos inactivos (Tema oscuro).
+  static const Color iconInactiveDark = Color(0xFF7F8FB3);
 
   // Dark Theme - Border Colors
   /// Color de bordes (Tema oscuro).
-  static const Color borderDark = Color(0xFF3D3D3D);
+  static const Color borderDark = Color(0xFF2C3A5A);
 
   /// Variante clara de bordes (Tema oscuro).
-  static const Color borderLightDark = Color(0xFF2D2D2D);
+  static const Color borderLightDark = Color(0xFF1F2A44);
 
   /// Color de divisores (Tema oscuro).
-  static const Color dividerDark = Color(0xFF3D3D3D);
+  static const Color dividerDark = Color(0xFF22304A);
 
   // Status Colors for Loans (same for both themes)
   /// Color para estado activo.

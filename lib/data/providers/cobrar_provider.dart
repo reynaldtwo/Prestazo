@@ -12,6 +12,9 @@ class CustomerDueInfo {
     required this.totalInterestExpected,
     required this.totalInterestPending,
     required this.totalInterestPaid,
+    required this.totalInstallmentAmount,
+    required this.hasSimpleLoans,
+    required this.hasPlanLoans,
     required this.daysOverdue,
     required this.isInMora,
     required this.loans,
@@ -47,6 +50,15 @@ class CustomerDueInfo {
   /// Interés total ya pagado.
   final double totalInterestPaid;
 
+  /// Monto total de cuotas pendientes (para préstamos con plan).
+  final double totalInstallmentAmount;
+
+  /// Indica si el cliente tiene préstamos sin plan de pago.
+  final bool hasSimpleLoans;
+
+  /// Indica si el cliente tiene préstamos con plan de pago.
+  final bool hasPlanLoans;
+
   /// Fecha del último pago realizado.
   final DateTime? lastPaymentDate;
 
@@ -73,6 +85,8 @@ class LoanDueInfo {
     required this.interestPending,
     this.loanNumber,
     this.nextDueDate,
+    this.installmentAmount = 0,
+    this.hasPlan = false,
   });
 
   /// ID del préstamo.
@@ -91,7 +105,14 @@ class LoanDueInfo {
   final double interestPending;
 
   /// Fecha del próximo vencimiento (si aplica).
+  /// Fecha del próximo vencimiento (si aplica).
   final DateTime? nextDueDate;
+
+  /// Valor de la cuota pendiente (para préstamos con plan).
+  final double installmentAmount;
+
+  /// Indica si este préstamo tiene plan de pagos.
+  final bool hasPlan;
 }
 
 /// Filter type for A Cobrar screen
@@ -231,19 +252,10 @@ class CobrarNotifier extends StateNotifier<CobrarState> {
     final today = DateTime(now.year, now.month, now.day);
     final todayStr = today.toIso8601String().split('T')[0];
 
-    // Get moratorium days from settings for overdue calculation
-    var moratoriumDays = 0;
-    if (filter == CobrarFilter.overdue) {
-      final settingsResult = await db.query(
-        'app_settings',
-        columns: ['moratorium_days'],
-        where: 'settings_id = ?',
-        whereArgs: ['global'],
-      );
-      if (settingsResult.isNotEmpty) {
-        moratoriumDays = (settingsResult.first['moratorium_days'] as int?) ?? 0;
-      }
-    }
+    final settings = await _ref.read(appSettingsProvider.future);
+    final advanceDays = settings.collectionPlanDays;
+    final maxDate = today.add(Duration(days: advanceDays));
+    final maxDateStr = maxDate.toIso8601String().split('T')[0];
 
     // Build query based on filter
     String query;
@@ -251,10 +263,7 @@ class CobrarNotifier extends StateNotifier<CobrarState> {
 
     switch (filter) {
       case CobrarFilter.overdue:
-        // Customers with overdue cycles (status = 'OVERDUE' or due_date past cutoff)
-        // Calculate the cutoff date by subtracting moratorium days from today
-        final cutoffDate = today.subtract(Duration(days: moratoriumDays));
-        final cutoffDateStr = cutoffDate.toIso8601String().split('T')[0];
+        // Cuentas con ciclos vencidos (due_date anterior a hoy)
         query = '''
           SELECT 
             c.customer_id,
@@ -265,11 +274,13 @@ class CobrarNotifier extends StateNotifier<CobrarState> {
             l.loan_id,
             l.loan_number,
             l.principal_balance,
+            l.plan_id,
             bc.billing_cycle_id,
             bc.due_date,
             bc.interest_expected,
             bc.interest_paid,
             bc.interest_pending,
+            bc.installment_pending,
             bc.status as cycle_status,
             (SELECT MAX(p.created_at) FROM payments p WHERE p.customer_id = c.customer_id AND p.status = 'VALID') as last_payment_date
           FROM customers c
@@ -279,24 +290,11 @@ class CobrarNotifier extends StateNotifier<CobrarState> {
           WHERE c.status = 'ACTIVE'
           ORDER BY bc.due_date ASC, c.full_name ASC
         ''';
-        args.add(cutoffDateStr);
+        args.add(todayStr);
 
       case CobrarFilter.upcoming:
-        // Loans with cycles due within collectionPlanDays
-        // Get collectionPlanDays from settings
-        var collectionPlanDays = 3;
-        final planResult = await db.query(
-          'app_settings',
-          columns: ['collection_plan_days'],
-          where: 'settings_id = ?',
-          whereArgs: ['global'],
-        );
-        if (planResult.isNotEmpty) {
-          collectionPlanDays =
-              (planResult.first['collection_plan_days'] as int?) ?? 3;
-        }
-        final futureDate = today.add(Duration(days: collectionPlanDays - 1));
-        final futureDateStr = futureDate.toIso8601String().split('T')[0];
+        // Préstamos con ciclos que vencen hoy o en el futuro cercano (según advanceDays)
+        // EXCLUYE clientes que tengan cualquier ciclo vencido pendiente
         query = '''
           SELECT 
             c.customer_id,
@@ -307,21 +305,37 @@ class CobrarNotifier extends StateNotifier<CobrarState> {
             l.loan_id,
             l.loan_number,
             l.principal_balance,
+            l.plan_id,
             bc.billing_cycle_id,
             bc.due_date,
             bc.interest_expected,
             bc.interest_paid,
             bc.interest_pending,
+            bc.installment_pending,
             (SELECT MAX(p.created_at) FROM payments p WHERE p.customer_id = c.customer_id AND p.status = 'VALID') as last_payment_date
           FROM customers c
           INNER JOIN loans l ON c.customer_id = l.customer_id AND l.status IN ('ACTIVE', 'IN_MORA')
-          INNER JOIN billing_cycles bc ON l.loan_id = bc.loan_id 
-            AND bc.status IN ('PENDING', 'PARTIAL')
-            AND bc.due_date BETWEEN ? AND ?
+          INNER JOIN billing_cycles bc ON bc.billing_cycle_id = (
+             SELECT bc2.billing_cycle_id 
+             FROM billing_cycles bc2 
+             WHERE bc2.loan_id = l.loan_id 
+               AND bc2.status IN ('PENDING', 'PARTIAL')
+               AND bc2.due_date >= ?
+               AND bc2.due_date <= ?
+             ORDER BY bc2.due_date ASC
+             LIMIT 1
+          )
           WHERE c.status = 'ACTIVE'
+            AND NOT EXISTS (
+              SELECT 1 FROM billing_cycles bc3
+              INNER JOIN loans l2 ON bc3.loan_id = l2.loan_id
+              WHERE l2.customer_id = c.customer_id
+                AND bc3.due_date < ?
+                AND bc3.status IN ('PENDING', 'PARTIAL', 'OVERDUE')
+            )
           ORDER BY bc.due_date ASC, c.full_name ASC
         ''';
-        args.addAll([todayStr, futureDateStr]);
+        args.addAll([todayStr, maxDateStr, todayStr]);
     }
 
     final results = await db.rawQuery(query, args);
@@ -359,6 +373,9 @@ class CobrarNotifier extends StateNotifier<CobrarState> {
           totalInterestExpected: 0,
           totalInterestPending: 0,
           totalInterestPaid: 0,
+          totalInstallmentAmount: 0,
+          hasSimpleLoans: false,
+          hasPlanLoans: false,
           lastPaymentDate: lastPaymentDate,
           daysOverdue: daysOverdue,
           isInMora: daysOverdue > 7,
@@ -376,6 +393,18 @@ class CobrarNotifier extends StateNotifier<CobrarState> {
         final interestPending =
             (row['interest_pending'] as num?)?.toDouble() ?? 0;
         final interestPaid = (row['interest_paid'] as num?)?.toDouble() ?? 0;
+
+        final planId = row['plan_id'] as String?;
+        final hasPlan = planId != null;
+
+        var installmentAmount =
+            (row['installment_pending'] as num?)?.toDouble() ?? 0;
+
+        // If it's a plan but installment is 0 (shouldn't happen for pending cycles),
+        // fallback to interest pending (better than 0).
+        if (hasPlan && installmentAmount <= 0) {
+          installmentAmount = interestPending;
+        }
 
         final dueDateStr = row['due_date'] as String?;
         DateTime? nextDueDate;
@@ -399,6 +428,8 @@ class CobrarNotifier extends StateNotifier<CobrarState> {
               interestExpected: interestExpected,
               interestPending: interestPending,
               nextDueDate: nextDueDate,
+              hasPlan: hasPlan,
+              installmentAmount: installmentAmount,
             ),
           ];
 
@@ -416,13 +447,34 @@ class CobrarNotifier extends StateNotifier<CobrarState> {
                 existingCustomer.totalInterestPending + interestPending,
             totalInterestPaid:
                 existingCustomer.totalInterestPaid + interestPaid,
+            totalInstallmentAmount:
+                existingCustomer.totalInstallmentAmount + installmentAmount,
+            hasSimpleLoans: existingCustomer.hasSimpleLoans || !hasPlan,
+            hasPlanLoans: existingCustomer.hasPlanLoans || hasPlan,
             lastPaymentDate: existingCustomer.lastPaymentDate,
             daysOverdue: existingCustomer.daysOverdue,
             isInMora: existingCustomer.daysOverdue > 7,
             loans: updatedLoans,
           );
         } else {
-          // Existing loan - accumulate interest from multiple cycles
+          // Existing loan - accumulate interest/installments from multiple cycles
+          final existingLoan = existingCustomer.loans[existingLoanIndex];
+          final updatedLoan = LoanDueInfo(
+            loanId: existingLoan.loanId,
+            loanNumber: existingLoan.loanNumber,
+            principalBalance: existingLoan.principalBalance,
+            interestExpected: existingLoan.interestExpected + interestExpected,
+            interestPending: existingLoan.interestPending + interestPending,
+            // Keep the earliest due date for upcoming, or this row's date
+            nextDueDate: existingLoan.nextDueDate ?? nextDueDate,
+            hasPlan: hasPlan,
+            installmentAmount:
+                existingLoan.installmentAmount + installmentAmount,
+          );
+
+          final updatedLoans = [...existingCustomer.loans];
+          updatedLoans[existingLoanIndex] = updatedLoan;
+
           customerMap[customerId] = CustomerDueInfo(
             customerId: existingCustomer.customerId,
             customerName: existingCustomer.customerName,
@@ -436,10 +488,14 @@ class CobrarNotifier extends StateNotifier<CobrarState> {
                 existingCustomer.totalInterestPending + interestPending,
             totalInterestPaid:
                 existingCustomer.totalInterestPaid + interestPaid,
+            totalInstallmentAmount:
+                existingCustomer.totalInstallmentAmount + installmentAmount,
+            hasSimpleLoans: existingCustomer.hasSimpleLoans || !hasPlan,
+            hasPlanLoans: existingCustomer.hasPlanLoans || hasPlan,
             lastPaymentDate: existingCustomer.lastPaymentDate,
             daysOverdue: existingCustomer.daysOverdue,
             isInMora: existingCustomer.daysOverdue > 7,
-            loans: existingCustomer.loans,
+            loans: updatedLoans,
           );
         }
       }

@@ -160,7 +160,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
           // Arc Sidebar custom widget
           ArcSideBar(
             key: _arcSideBarKey,
-            accentColor: AppColors.primary,
+            accentColor: Theme.of(context).colorScheme.primary,
             selectedIndex: _selectedTab,
             header: Padding(
               padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
@@ -168,7 +168,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                 S.of(context).reports,
                 style: AppTypography.headlineSmall.copyWith(
                   fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary,
+                  color: Theme.of(context).colorScheme.onSurface,
                 ),
               ),
             ),
@@ -209,7 +209,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
               child: Text(
                 S.of(context).selectReportType,
                 style: AppTypography.bodySmall.copyWith(
-                  color: AppColors.textSecondary,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -307,7 +307,11 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
             const Center(child: CircularProgressIndicator())
           else ...[
             AppCard(
-              backgroundColor: AppColors.success.withValues(alpha: 0.1),
+              backgroundColor:
+                  (Theme.of(context).brightness == Brightness.dark
+                          ? AppColors.successDark
+                          : AppColors.success)
+                      .withValues(alpha: 0.1),
               child: Column(
                 children: [
                   Text(
@@ -318,7 +322,9 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                   MoneyDisplay(
                     amount: _realizedTotal,
                     size: MoneyDisplaySize.large,
-                    color: AppColors.success,
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? AppColors.successDark
+                        : AppColors.success,
                     currencySymbol: symbol,
                   ),
                   const SizedBox(height: 4),
@@ -395,13 +401,15 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                           vertical: 2,
                         ),
                         decoration: BoxDecoration(
-                          color: AppColors.primary.withValues(alpha: 0.1),
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.primary.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(4),
                         ),
                         child: Text(
                           loanCurrencyCode,
                           style: AppTypography.labelSmall.copyWith(
-                            color: AppColors.primary,
+                            color: Theme.of(context).colorScheme.primary,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -423,7 +431,9 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                   Text(
                     'Int: $symbol ${interestPaid.toStringAsFixed(2)}',
                     style: AppTypography.labelSmall.copyWith(
-                      color: AppColors.success,
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? AppColors.successDark
+                          : AppColors.success,
                     ),
                   ),
               ],
@@ -476,7 +486,11 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
           ),
           const SizedBox(height: 16),
           AppCard(
-            backgroundColor: AppColors.info.withValues(alpha: 0.1),
+            backgroundColor:
+                (Theme.of(context).brightness == Brightness.dark
+                        ? AppColors.infoDark
+                        : AppColors.info)
+                    .withValues(alpha: 0.1),
             child: Column(
               children: [
                 Text(
@@ -488,7 +502,9 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                 MoneyDisplay(
                   amount: _projectedTotal,
                   size: MoneyDisplaySize.large,
-                  color: AppColors.info,
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? AppColors.infoDark
+                      : AppColors.info,
                   currencySymbol: symbol,
                 ),
                 const SizedBox(height: 4),
@@ -534,13 +550,15 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                           vertical: 2,
                         ),
                         decoration: BoxDecoration(
-                          color: AppColors.primary.withValues(alpha: 0.1),
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.primary.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(4),
                         ),
                         child: Text(
                           loan.currencyCode,
                           style: AppTypography.labelSmall.copyWith(
-                            color: AppColors.primary,
+                            color: Theme.of(context).colorScheme.primary,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -571,7 +589,9 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                       MoneyDisplay(
                         amount: monthlyReturn,
                         size: MoneyDisplaySize.small,
-                        color: AppColors.success,
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? AppColors.successDark
+                            : AppColors.success,
                         currencySymbol: loanSymbol,
                       ),
                     ],
@@ -586,7 +606,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                 child: Text(
                   S.of(context).noActiveLoans,
                   style: AppTypography.bodyMedium.copyWith(
-                    color: AppColors.textSecondary,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
                   textAlign: TextAlign.center,
                 ),
@@ -758,7 +778,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(S.of(context).errorGeneratingReport(e.toString())),
-            backgroundColor: AppColors.danger,
+            backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
       }
