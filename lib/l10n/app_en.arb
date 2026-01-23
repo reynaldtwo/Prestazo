@@ -12,6 +12,10 @@
   "@cancel": {
     "description": "General cancel action label"
   },
+  "applyToWholeMonth": "Apply rate to entire month",
+  "@applyToWholeMonth": {
+    "description": "Label for toggle to apply exchange rate to entire month"
+  },
   "confirm": "Confirm",
   "@confirm": {
     "description": "General confirm action label"
@@ -80,9 +84,13 @@
   "@navHome": {
     "description": "Bottom navigation label for Home"
   },
-  "navCollect": "Up to Date",
+  "navCollect": "Collection",
   "@navCollect": {
     "description": "Bottom navigation label for Collection screen"
+  },
+  "tabUpcoming": "Upcoming",
+  "@tabUpcoming": {
+    "description": "Label for the first tab in collection screen"
   },
   "navCustomers": "Customers",
   "@navCustomers": {
@@ -804,6 +812,10 @@
   "@errorOccurred": {
     "description": "Generic error message"
   },
+  "collectionTitle": "Collection",
+  "@collectionTitle": {
+    "description": "Title for the collection screen"
+  },
   "quickActions": "Quick Actions",
   "@quickActions": {
     "description": "Label for the dashboard's fast navigation section"
@@ -1443,10 +1455,6 @@
   "freqBiweekly": "Biweekly",
   "@freqBiweekly": {
     "description": "Label for biweekly cycle frequency"
-  },
-  "collectionTitle": "Up to Date",
-  "@collectionTitle": {
-    "description": "Header for the collection management screen"
   },
   "tabOverdue": "Overdue",
   "@tabOverdue": {
@@ -3419,5 +3427,9 @@
   "invalidExchangeRate": "Invalid exchange rate",
   "@invalidExchangeRate": {
     "description": "Alternative validation alert for rate inputs"
+  },
+  "ofAmount": "Of",
+  "@ofAmount": {
+    "description": "Preposition for statistic labels like 'Of [Amount]'"
   }
 }

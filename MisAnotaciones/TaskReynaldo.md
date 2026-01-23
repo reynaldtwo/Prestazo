@@ -3134,3 +3134,219 @@ Tómate un tiempo para analizar la siguiente mejora y haz el desarrollo consider
 Tómate un tiempo para analizar la siguiente mejora y haz el desarrollo considerando las reglas descritas en el archivo code-rules.md y apóyate del MCP de Dart para resolver los errores que aparezcan, así como para investigar sobre las buenas prácticas a la hora de escribir código.
 
 **Pantalla Al Día** esa pantalla se debe llamar "A Cobrar" , solo la pestaña "Al Día" es la que debe conservar ese nombre. Haz el cambio y asegurate de que ese nuevo nombre se refleje en todos los lugares donde se usa esa pantalla, incluyendo los archivos de idioma, incluso en los flujos de las pantalla para que todo el flujo siga funcionando correctamente.
+**listo**
+
+
+
+
+
+
+
+
+
+
+
+
+
+**nuevas mejroas**
+
+Tómate un tiempo para analizar la siguiente mejora y haz el desarrollo considerando las reglas descritas en el archivo code-rules.md y apóyate del MCP de Dart para resolver los errores que aparezcan, así como para investigar sobre las buenas prácticas a la hora de escribir código.
+
+**Pantalla INICIO** 
+1. haz una copia de la pantalla inicio(respaldo por si toca hacer rollback) y la original modificala para que obtengamos un nuevo diselo premuin siguiendo las siguientes instrucciones:
+
+
+
+
+1) Alcance
+
+Implementar únicamente la barra inferior de navegación (tabs: Inicio, etc.).
+
+No modificar contenido de pantallas ni layouts superiores.
+
+Mantener la lógica actual de navegación (índice seleccionado, cambio de tab, stack/pageview/navigator) intacta.
+
+2) Reemplazo del componente actual
+
+Sustituir el componente de barra inferior existente (Material BottomNavigationBar / NavigationBar / CupertinoTabBar / paquete equivalente) por un componente custom que:
+
+Reciba selectedIndex
+
+Reciba items (icon + label)
+
+Exponga onSelect(index)
+
+La lógica de cambio de tab debe seguir siendo la misma: solo cambia el render de la barra.
+
+3) Colores: estrictamente Nocturne Emerald (sin hex nuevos)
+
+Usar únicamente tokens/colores ya definidos en el tema (Nocturne Emerald). Prohibido hardcodear colores nuevos en el widget.
+
+Asignación obligatoria por rol:
+
+Background / scaffoldBackgroundColor = #0B0F14 → color del cutout.
+
+Surface = #121826 → fondo de la barra.
+
+Outline = #2C3A5A → borde sutil.
+
+Primary = #2D7DFF → icono + label activo.
+
+Accent/Secondary = #18D6B4 → solo para onda secundaria (pulse), con baja opacidad.
+
+TextTertiary = #7F8FB3 → iconos inactivos (80–85% opacidad).
+
+4) Geometría y estilo (valores exactos)
+
+Barra (contenedor principal):
+
+Altura: 76dp
+
+Margen lateral: 16dp
+
+Margen inferior: 12dp
+
+Radio: 24dp (capsule/pill)
+
+Fondo: Surface
+
+Borde: 1dp con Outline (≈45% opacidad)
+
+Sombra: suave (profundidad en dark sin “mancha”)
+
+Ítems:
+
+Máximo 5
+
+Ícono: 24dp (activo alcanza 26dp en animación)
+
+Label: solo el ítem activo muestra label (11–12sp, peso fuerte). Inactivos sin label.
+
+5) Cutout premium (obligatorio)
+
+Agregar un cutout circular centrado sobre el ítem activo:
+
+Diámetro: 58dp
+
+Debe “morder” la barra (superpuesto hacia arriba) para que el ítem activo se sienta encastrado.
+
+El área del cutout debe mostrar el background real de la pantalla:
+
+Usar scaffoldBackgroundColor/token Background (no un color aproximado).
+
+Render del ícono activo dentro del cutout, centrado.
+
+6) Animaciones (secuencia obligatoria)
+
+Parámetros globales:
+
+Duración base: 320ms
+
+Curva: easeOutCubic
+
+Al seleccionar un ítem:
+
+Deslizamiento del cutout hacia el nuevo ítem (0–320ms).
+
+Lift del ícono activo: elevar 3dp (sutil).
+
+Micro-bounce controlado del ícono activo:
+
+Escala: 1.00 → 1.12 → 1.00
+
+Debe verse fino, no infantil.
+
+7) Ondas (pulse premium, no ripple estándar)
+
+Al seleccionar un ítem, disparar “pulse radial doble” desde el centro del ícono activo:
+
+Onda 1 (Primary):
+
+Color: Primary
+
+Opacidad inicial: 14%
+
+Radio: 0 → 52dp
+
+Duración: 420ms
+
+Fade a 0%
+
+Onda 2 (Accent):
+
+Color: Accent/Secondary
+
+Opacidad inicial: 9%
+
+Delay: 90ms después de la onda 1
+
+Radio: 0 → 64dp
+
+Duración: 420ms
+
+Fade a 0%
+
+Reglas:
+
+No usar InkWell ripple default.
+
+Ondas suaves (expand + fade) sin bordes duros.
+
+Performance: mantener 60fps; si hay stutter, reducir costo visual antes de aceptar.
+
+8) Estados de color
+
+Ícono activo + label activo: Primary
+
+Íconos inactivos: TextTertiary con opacidad 80–85%
+
+Accent solo para onda secundaria, no para ícono activo permanente.
+
+9) Criterios de aceptación (QA)
+
+Cutout se integra perfecto con el fondo (se ve como hueco real, no parche).
+
+Barra flotante premium (margen + sombra suave).
+
+Selección: movimiento suave + lift + micro-bounce + doble onda.
+
+Íconos inactivos visibles en dark mode.
+
+Animaciones fluidas (60fps).
+
+
+
+
+
+**nuevas mejroas**
+
+Tómate un tiempo para analizar la siguiente mejora y haz el desarrollo considerando las reglas descritas en el archivo code-rules.md y apóyate del MCP de Dart para resolver los errores que aparezcan, así como para investigar sobre las buenas prácticas a la hora de escribir código.
+
+**MEJORA*** 
+1. Haz que cuando se habra nuestra app, se anule esa franja negra que es propia de android que aparece en la parte de abajo en color oscuro con las botones de navegacion atras y adelante y cerrar todo al medio.
+
+**LISTO**
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

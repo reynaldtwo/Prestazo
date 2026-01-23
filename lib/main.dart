@@ -1,6 +1,7 @@
 import 'dart:io' as io;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:prestamos_app/core/localization/locale_provider.dart';
@@ -10,6 +11,18 @@ import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Configuración de interfaz inmersiva (Edge-to-Edge)
+  await SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+  SystemChrome.setSystemUIOverlayStyle(
+    const SystemUiOverlayStyle(
+      systemNavigationBarColor: Colors.transparent,
+      systemNavigationBarDividerColor: Colors.transparent,
+      systemNavigationBarContrastEnforced: false,
+      statusBarColor: Colors.transparent,
+      systemStatusBarContrastEnforced: false,
+    ),
+  );
 
   // Initialize FFI for Desktop (Windows/Linux/MacOS)
   if (io.Platform.isWindows || io.Platform.isLinux || io.Platform.isMacOS) {
@@ -67,40 +80,56 @@ class PrestamosApp extends ConsumerWidget {
     // Watch locale for reactive updates
     final locale = ref.watch(localeProvider);
 
-    return MaterialApp.router(
-      title: 'PrestamosApp',
-      debugShowCheckedModeBanner: false,
-      theme: lightTheme,
-      darkTheme: darkTheme,
-      themeMode: themeMode,
-      locale: locale,
-      supportedLocales: AppLocales.supportedLocales,
-      localizationsDelegates: const [
-        S.delegate,
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-      ],
-      localeResolutionCallback: (locale, supportedLocales) {
-        // 1. Check for more specific match (languageCode + countryCode)
-        for (final supportedLocale in supportedLocales) {
-          if (supportedLocale.languageCode == locale?.languageCode &&
-              supportedLocale.countryCode == locale?.countryCode) {
-            return supportedLocale;
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        systemNavigationBarColor: Colors.transparent,
+        systemNavigationBarDividerColor: Colors.transparent,
+        systemNavigationBarContrastEnforced: false,
+        systemStatusBarContrastEnforced: false,
+        // Adaptar brillo de iconos según el tema
+        statusBarIconBrightness: themeMode == ThemeMode.dark
+            ? Brightness.light
+            : Brightness.dark,
+        systemNavigationBarIconBrightness: themeMode == ThemeMode.dark
+            ? Brightness.light
+            : Brightness.dark,
+      ),
+      child: MaterialApp.router(
+        title: 'PrestamosApp',
+        debugShowCheckedModeBanner: false,
+        theme: lightTheme,
+        darkTheme: darkTheme,
+        themeMode: themeMode,
+        locale: locale,
+        supportedLocales: AppLocales.supportedLocales,
+        localizationsDelegates: const [
+          S.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        localeResolutionCallback: (locale, supportedLocales) {
+          // 1. Check for more specific match (languageCode + countryCode)
+          for (final supportedLocale in supportedLocales) {
+            if (supportedLocale.languageCode == locale?.languageCode &&
+                supportedLocale.countryCode == locale?.countryCode) {
+              return supportedLocale;
+            }
           }
-        }
 
-        // 2. Check for language code match
-        for (final supportedLocale in supportedLocales) {
-          if (supportedLocale.languageCode == locale?.languageCode) {
-            return supportedLocale;
+          // 2. Check for language code match
+          for (final supportedLocale in supportedLocales) {
+            if (supportedLocale.languageCode == locale?.languageCode) {
+              return supportedLocale;
+            }
           }
-        }
 
-        // 3. Fallback to English (Default)
-        return AppLocales.en;
-      },
-      routerConfig: appRouter,
+          // 3. Fallback to English (Default)
+          return AppLocales.en;
+        },
+        routerConfig: appRouter,
+      ),
     );
   }
 }

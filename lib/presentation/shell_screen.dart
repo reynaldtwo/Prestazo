@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:prestamos_app/core/localization/locale_provider.dart';
+import 'package:prestamos_app/core/widgets/clean_premium_nav_bar.dart';
 
 /// Pantalla principal que actúa como contenedor (Shell) con navegación inferior.
 class ShellScreen extends StatelessWidget {
@@ -12,130 +13,76 @@ class ShellScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(body: child, bottomNavigationBar: _buildBottomNav(context));
+    return Scaffold(
+      body: child,
+      extendBody: true,
+      bottomNavigationBar: _buildBottomNav(context),
+    );
   }
 
   Widget _buildBottomNav(BuildContext context) {
     final location = GoRouterState.of(context).uri.path;
-    final colorScheme = Theme.of(context).colorScheme;
     final s = S.of(context);
+    final currentIndex = _getCurrentIndex(location);
 
-    return Container(
-      decoration: BoxDecoration(
-        color: colorScheme.surface,
-        boxShadow: [
-          BoxShadow(
-            color: Theme.of(context).brightness == Brightness.dark
-                ? Colors.black.withValues(alpha: 0.3)
-                : Colors.black.withValues(alpha: 0.08),
-            blurRadius: 10,
-            offset: const Offset(0, -4),
-          ),
-        ],
+    final items = [
+      CleanNavItem(
+        icon: Icons.dashboard_outlined,
+        activeIcon: Icons.dashboard,
+        label: s.navHome,
       ),
-      child: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              _NavItem(
-                icon: Icons.dashboard_outlined,
-                activeIcon: Icons.dashboard,
-                label: s.navHome,
-                isActive: location == '/dashboard',
-                onTap: () => context.go('/dashboard'),
-              ),
-              _NavItem(
-                icon: Icons.payments_outlined,
-                activeIcon: Icons.payments,
-                label: s.navCollect,
-                isActive: location == '/cobrar',
-                onTap: () => context.go('/cobrar'),
-              ),
-              _NavItem(
-                icon: Icons.people_outline,
-                activeIcon: Icons.people,
-                label: s.navCustomers,
-                isActive: location == '/customers',
-                onTap: () => context.go('/customers'),
-              ),
-              _NavItem(
-                icon: Icons.bar_chart_outlined,
-                activeIcon: Icons.bar_chart,
-                label: s.navReports,
-                isActive: location == '/reports',
-                onTap: () => context.go('/reports'),
-              ),
-              _NavItem(
-                icon: Icons.settings_outlined,
-                activeIcon: Icons.settings,
-                label: s.navSettings,
-                isActive: location == '/settings',
-                onTap: () => context.go('/settings'),
-              ),
-            ],
-          ),
-        ),
+      CleanNavItem(
+        icon: Icons.payments_outlined,
+        activeIcon: Icons.payments,
+        label: s.navCollect,
       ),
+      CleanNavItem(
+        icon: Icons.people_outline,
+        activeIcon: Icons.people,
+        label: s.navCustomers,
+      ),
+      CleanNavItem(
+        icon: Icons.bar_chart_outlined,
+        activeIcon: Icons.bar_chart,
+        label: s.navReports,
+      ),
+      CleanNavItem(
+        icon: Icons.settings_outlined,
+        activeIcon: Icons.settings,
+        label: s.navSettings,
+      ),
+    ];
+
+    return CleanPremiumNavBar(
+      currentIndex: currentIndex,
+      items: items,
+      onTap: (index) => _onTap(context, index),
     );
   }
-}
 
-class _NavItem extends StatelessWidget {
-  const _NavItem({
-    required this.icon,
-    required this.activeIcon,
-    required this.label,
-    required this.isActive,
-    required this.onTap,
-  });
-  final IconData icon;
-  final IconData activeIcon;
-  final String label;
-  final bool isActive;
-  final VoidCallback onTap;
+  int _getCurrentIndex(String location) {
+    if (location.startsWith('/dashboard')) return 0;
+    if (location.startsWith('/cobrar')) return 1;
+    if (location.startsWith('/customers') || location.startsWith('/customer')) {
+      return 2;
+    }
+    if (location.startsWith('/reports')) return 3;
+    if (location.startsWith('/settings')) return 4;
+    return 0;
+  }
 
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        decoration: BoxDecoration(
-          color: isActive
-              ? colorScheme.primary.withValues(alpha: 0.1)
-              : Colors.transparent,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              isActive ? activeIcon : icon,
-              color: isActive
-                  ? colorScheme.primary
-                  : colorScheme.onSurfaceVariant,
-              size: 24,
-            ),
-            const SizedBox(height: 4),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
-                color: isActive
-                    ? colorScheme.primary
-                    : colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
+  void _onTap(BuildContext context, int index) {
+    switch (index) {
+      case 0:
+        context.go('/dashboard');
+      case 1:
+        context.go('/cobrar');
+      case 2:
+        context.go('/customers');
+      case 3:
+        context.go('/reports');
+      case 4:
+        context.go('/settings');
+    }
   }
 }
