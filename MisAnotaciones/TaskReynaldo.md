@@ -3334,10 +3334,24 @@ Tómate un tiempo para analizar la siguiente mejora y haz el desarrollo consider
 
 
 
+**nuevas mejroas**
+
+Tómate un tiempo para analizar la siguiente mejora y haz el desarrollo considerando las reglas descritas en el archivo code-rules.md y apóyate del MCP de Dart para resolver los errores que aparezcan, así como para investigar sobre las buenas prácticas a la hora de escribir código.
+
+**MEJORA**
+1. Despues del la mejroa que agregastes en Edge-to-Edge,  en las pantallas como incio , ajustes u otras pantallas cuando haces scroll hacia arriba , la parte de abajo no sube se queda detras del navbar , fijate en la imagen para que sepas a que me refiero.
 
 
 
 
+
+
+**nuevas mejroas**
+
+Tómate un tiempo para analizar la siguiente mejora y haz el desarrollo considerando las reglas descritas en el archivo code-rules.md y apóyate del MCP de Dart para resolver los errores que aparezcan, así como para investigar sobre las buenas prácticas a la hora de escribir código.
+
+**fix**
+1. el problema persiste con el tema  Edge-to-Edge  ahora esta pasando con las pantallas internas como gestion monetarias, convecion financiera etc y adicional a eso cuando se activa el teclado cuando se escribe en cualquier formulario se sube una parte negra hasta arriba, podes verlo en la imagen. has el fix y no me actualices el code-rules.md hasta que yo te lo pida.
 
 
 

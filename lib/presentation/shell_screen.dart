@@ -13,11 +13,7 @@ class ShellScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: child,
-      extendBody: true,
-      bottomNavigationBar: _buildBottomNav(context),
-    );
+    return Scaffold(body: child, bottomNavigationBar: _buildBottomNav(context));
   }
 
   Widget _buildBottomNav(BuildContext context) {
