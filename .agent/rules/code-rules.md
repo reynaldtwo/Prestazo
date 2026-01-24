@@ -370,23 +370,3 @@ class CatalogBloc extends Bloc<CatalogEvent, CatalogState> {
   /// Creates a [CatalogBloc] with the given [repository].
   CatalogBloc({required IProductRepository repository});
 }
-
-## 13. Interfaz Inmersiva & Edge-to-Edge (MANDATORIO)
-
-Para lograr un aspecto premium y moderno, la aplicación debe ocupar toda la pantalla física, incluyendo el área detrás de las barras de navegación y estado del sistema.
-
-### 13.1 Requisitos para Android (Edge-to-Edge)
-
-Todos los desarrollos deben asegurar que se elimine el "scrim" (la franja oscura/negra en la parte inferior), incluso en el modo de navegación de 3 botones.
-
-#### Capa Nativa (Kotlin/XML)
-- **MainActivity.kt**: Usar `WindowCompat.setDecorFitsSystemWindows(window, false)` y desactivar el refuerzo de contraste (`window.isNavigationBarContrastEnforced = false`).
-- **styles.xml**: Configurar los temas (`LaunchTheme` y `NormalTheme`) con `windowDrawsSystemBarBackgrounds` en `true` y `windowLayoutInDisplayCutoutMode` en `shortEdges`. Establecer colores en `@android:color/transparent`.
-
-#### Capa Flutter (Dart)
-- **main.dart**: Habilitar `SystemUiMode.edgeToEdge` y configurar `SystemUiOverlayStyle` con `systemNavigationBarContrastEnforced: false`.
-- **Estilos Globales**: Envolver el widget raíz en un `AnnotatedRegion<SystemUiOverlayStyle>` para asegurar que la transparencia persista y reaccione al tema de la app (brillo de iconos).
-- **Layouts**: Cualquier `Scaffold` principal (Shell) debe usar `extendBody: true` para permitir que el contenido fluya detrás de la barra de navegación.
-
-#### Mantenimiento
-- Si una nueva funcionalidad o pantalla reintroduce una franja negra, se considera un **Error Visual** y debe corregirse inmediatamente siguiendo estos pasos.

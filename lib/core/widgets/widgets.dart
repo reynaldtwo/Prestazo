@@ -5,6 +5,7 @@ export 'app_button.dart';
 export 'app_card.dart';
 export 'app_dialogs.dart';
 export 'app_state_widgets.dart';
+export 'app_text.dart';
 export 'app_text_field.dart';
 export 'arc_sidebar.dart';
 export 'money_display.dart';

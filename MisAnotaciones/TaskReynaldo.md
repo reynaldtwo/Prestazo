@@ -3352,12 +3352,49 @@ Tómate un tiempo para analizar la siguiente mejora y haz el desarrollo consider
 
 **fix**
 1. el problema persiste con el tema  Edge-to-Edge  ahora esta pasando con las pantallas internas como gestion monetarias, convecion financiera etc y adicional a eso cuando se activa el teclado cuando se escribe en cualquier formulario se sube una parte negra hasta arriba, podes verlo en la imagen. has el fix y no me actualices el code-rules.md hasta que yo te lo pida.
+**LISTO**
+
+
+
+
+
+**nuevas mejroas**
+
+Tómate un tiempo para analizar la siguiente mejora y haz el desarrollo considerando las reglas descritas en el archivo code-rules.md y apóyate del MCP de Dart para resolver los errores que aparezcan, así como para investigar sobre las buenas prácticas a la hora de escribir código.
+
+**MEJORA EN PANTALLA DE CLIENTES**
+1. En esta pantalla hay 2 limites arriba y abajo el limite de arriba es justo donde dice la cantidad de clientes y abajo es el navbar donde estan los botones de inicio, a cobrar, clientes...
+
+**QUE HARAS**
+1. Vas a crear un efecto premiun para ambos limites y haras que la tarjeta que este serca del limite ya sea arriba o abajo se desbanezca conforme se vaya asercando al limite hasta llegar a desaparece cuando este por debajo del limite.
+
+2. otro efecto que haga que el color de la tarjeta que se aproxima a los limites ilumine por debajo de los limites pereciendo un efecto glasmorphism. este tambien debe ser un efecto premiun.
+
+3. al boton de nuevo cliente redondo que esta actualmente , resaltalo un poco mas , que parezca que esta flotando , pero no muy exagerado.
+
+**NOTA** 
+al finalizar no reconstruyas el apk. eso lo hare yo.
+
+**LISTO**
 
 
 
 
 
 
+
+
+
+
+**nuevas mejroas**
+
+Tómate un tiempo para analizar la siguiente mejora y haz el desarrollo considerando las reglas descritas en el archivo code-rules.md y apóyate del MCP de Dart para resolver los errores que aparezcan, así como para investigar sobre las buenas prácticas a la hora de escribir código.
+
+**MEJORA EN PANTALLA DE CLIENTES**
+1. YA PROBE la mejora y esta bueno, pero aun no es premium, es desvanecimiento debe ser mas delicado, mas sutil, mas premium, actualmente se que lo que hicistes es poner como una especia de transparencia en ambos limites.
+
+**NOTA** 
+al finalizar no reconstruyas el apk. eso lo hare yo.
 
 
 
